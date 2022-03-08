@@ -78,8 +78,17 @@ class TomoLog():
         # prepare projection 1
         plots.plot_projection(args, proj[0], FILE_NAME_PROJ)
         with open(FILE_NAME_PROJ, 'rb') as f:
-            self.dbx.files_upload(
-                f.read(), '/'+FILE_NAME_PROJ, dropbox.files.WriteMode.overwrite)
+            try:
+                self.dbx.files_upload(
+                    f.read(), '/'+FILE_NAME_PROJ, dropbox.files.WriteMode.overwrite)
+            except Exception as exc:                
+                print(exc)
+                log.error('The dropbox token might need to be updated, please follow the following instructions')
+                dropbox_auth.auth()
+                log.info('The token has been updated, continue upload..')
+                self.dbx.files_upload(
+                    f.read(), '/'+FILE_NAME_PROJ, dropbox.files.WriteMode.overwrite)
+                
             proj_url = self.dbx.files_get_temporary_link('/'+FILE_NAME_PROJ).link            
             self.snippets.create_image(
                 args['presentation_id'], page_id, proj_url, 210, 210, 0, 240)

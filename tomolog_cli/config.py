@@ -109,6 +109,14 @@ SECTIONS['parameters'] = {
         'type': float,
         'default': 0.01,
         'help': "Colorbar histograms  scale for for reconstruction visualization"},
+    'max': {
+        'type': float,
+        'default': 0.0,
+        'help': "Maximum threshold value for reconstruction visualization"},
+    'min': {
+        'type': float,
+        'default': 0.0,
+        'help': "Minimum threshold value for reconstruction visualization"},
 }
 
 PARAMS = ('file-reading', 'parameters')

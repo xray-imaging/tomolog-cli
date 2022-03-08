@@ -67,7 +67,8 @@ def plot_recon(pars, recon, file_name):
                             1, 1, pars['width']/pars['height']])
     slices = ['x', 'y', 'z']
     # autoadjust colorbar values according to a histogram
-    mmin, mmax = utils.find_min_max(np.concatenate(recon), pars['scale'])
+    if pars['min']==pars['max']:
+        pars['max'], pars['min'] = utils.find_min_max(np.concatenate(recon), pars['scale'])
 
     scalebar = 10  # um
     # plot 3 slices in a column
@@ -75,8 +76,8 @@ def plot_recon(pars, recon, file_name):
     h = pars['height']//pars['binning']
 
     for k in range(3):
-        recon[k][recon[k] > mmax] = mmax
-        recon[k][recon[k] < mmin] = mmin
+        recon[k][recon[k] > pars['max']] = pars['max']
+        recon[k][recon[k] < pars['min']] = pars['min']
         ax = fig.add_subplot(grid[k])
         im = ax.imshow(recon[k], cmap='gray')
         divider = make_axes_locatable(ax)
