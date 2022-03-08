@@ -7,7 +7,7 @@ import uuid
 import h5py
 import sys
 import os
-import utils
+import tomolog_cli.utils as utils
 from epics import PV
 import dxchange
 import numpy as np
