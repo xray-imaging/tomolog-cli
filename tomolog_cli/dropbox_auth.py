@@ -1,6 +1,8 @@
-from tomolog_cli import logging
-import requests
 import json
+import requests
+
+from tomolog_cli import logging
+
 
 log = logging.getLogger(__name__)
 

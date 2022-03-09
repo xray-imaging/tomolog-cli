@@ -1,4 +1,3 @@
-
 import numpy as np
 
 def find_min_max(data, scale):

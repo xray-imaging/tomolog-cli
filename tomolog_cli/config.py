@@ -1,12 +1,13 @@
 import sys
-from copy import copy
-from pathlib import Path
+import logging
+import inspect
+import warnings
 import argparse
 import configparser
+
+from copy import copy
+from pathlib import Path
 from collections import OrderedDict
-import logging
-import warnings
-import inspect
 
 
 log = logging.getLogger(__name__)
