@@ -3,6 +3,7 @@ import matplotlib.pyplot as plt
 import matplotlib.patheffects as PathEffects
 
 from mpl_toolkits.axes_grid1 import make_axes_locatable
+
 from tomolog_cli import utils
 
 

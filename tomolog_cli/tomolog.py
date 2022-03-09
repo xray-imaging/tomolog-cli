@@ -13,14 +13,11 @@ from tomolog_cli import reads
 from tomolog_cli import google_snippets
 from tomolog_cli import dropbox_auth
 
-
 # tmp files to be created in dropbox
-FILE_NAME_PROJ = 'projection_google.jpg'
-FILE_NAME_PROJ2 = 'projection2_google.jpg'
+FILE_NAME_PROJ  = 'projection_google'
 FILE_NAME_RECON = 'reconstruction_google.jpg'
 
 log = logging.getLogger(__name__)
-
 
 class TomoLog():
     def __init__(self):
@@ -40,14 +37,10 @@ class TomoLog():
                 self.dbx = dropbox.Dropbox(token['access_token'])
         log.info('done')
 
-        
     def run_log(self, args):
         if args.file_name is None:
             args.file_name = PV(args.PV_prefix.get(as_string=True))
         presentation_id = args.presentation_url.split('/')[-2]
-
-        proj, meta = reads.read_scan_info(args)
-        # print(meta)
 
         # Add scan info to a new slide
         page_id = str(uuid.uuid4())
@@ -70,6 +63,10 @@ class TomoLog():
         num_angle     = 'process_acquisition_rotation_num_angles'
         data_size     = 'exchange_data'
         binning       = 'measurement_instrument_detector_binning_x'
+
+        proj, meta = reads.read_scan_info(args)
+        # print(meta)
+        # print(proj)
         dims          = meta['exchange_data'][0].replace("(", "").replace(")", "").split(',')
         width         = dims[2]
         height        = dims[1]
@@ -110,36 +107,13 @@ class TomoLog():
             presentation_id, page_id, 'Micro-CT projection', 30, 150, 0, 190, 10)
         self.snippets.create_textbox_with_text(
             presentation_id, page_id, 'Nano-CT projection', 30, 150, 0, 290, 10)
+        
+        # publish projections
+        for i in range(len(proj)):
+            fname = FILE_NAME_PROJ+str(i)+'.jpg'
+            self.publish_projection(fname, proj[i], plot_param, presentation_id, page_id, 210, 210, 0, 115+i*125)
 
-        # prepare projection 1
-        plots.plot_projection(plot_param, proj[0], FILE_NAME_PROJ)
-
-        with open(FILE_NAME_PROJ, 'rb') as f:
-            try:
-                self.dbx.files_upload(
-                    f.read(), '/'+FILE_NAME_PROJ, dropbox.files.WriteMode.overwrite)
-            except Exception as exc:                
-                print(exc)
-                log.error('The dropbox token might need to be updated, please follow the following instructions')
-                dropbox_auth.auth()
-                log.info('The token has been updated, continue upload..')
-                self.dbx.files_upload(
-                    f.read(), '/'+FILE_NAME_PROJ, dropbox.files.WriteMode.overwrite)
-
-            proj_url = self.dbx.files_get_temporary_link('/'+FILE_NAME_PROJ).link            
-            self.snippets.create_image(
-                presentation_id, page_id, proj_url, 210, 210, 0, 240)
-            
-        if len(proj) == 2:
-            # prepare projection 2
-            plots.plot_projection(plot_param, proj[1], FILE_NAME_PROJ2, scale=100)
-            with open(FILE_NAME_PROJ2, 'rb') as f:
-                self.dbx.files_upload(
-                    f.read(), '/'+FILE_NAME_PROJ2, dropbox.files.WriteMode.overwrite)
-            proj_url = self.dbx.files_get_temporary_link('/'+FILE_NAME_PROJ2).link            
-            self.snippets.create_image(
-                presentation_id, page_id, proj_url, 210, 210, 0, 115)
-
+        # publish reconstructions
         recon = reads.read_recon(args, plot_param)    
         if len(recon) == 3:
             # prepare reconstruction
@@ -150,3 +124,20 @@ class TomoLog():
             recon_url = self.dbx.files_get_temporary_link('/'+FILE_NAME_RECON).link            
             self.snippets.create_image(
                 presentation_id, page_id, recon_url, 370, 370, 130, 30)
+
+    def publish_projection(self, fname, proj, plot_param, presentation_id, page_id, a, b, c, d):
+        plots.plot_projection(plot_param, proj, fname)
+        with open(fname, 'rb') as f:
+            try:
+                self.dbx.files_upload(
+                    f.read(), '/'+fname, dropbox.files.WriteMode.overwrite)
+            except Exception as exc:                
+                print(exc)
+                log.error('The dropbox token might need to be updated, please follow the following instructions')
+                dropbox_auth.auth()
+                log.info('The token has been updated, continue upload..')
+                self.dbx.files_upload(
+                    f.read(), '/'+fname, dropbox.files.WriteMode.overwrite)
+            proj_url = self.dbx.files_get_temporary_link('/'+fname).link            
+            self.snippets.create_image(
+                presentation_id, page_id, proj_url, a, b, c, d)
