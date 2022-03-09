@@ -51,6 +51,7 @@ def plot_recon(args, params, recon, file_name):
     w = params['width']//params['binning']
     h = params['height']//params['binning']
 
+    sl = [args.idx,args.idy,args.idz]#params['id'+slices[k]]
     for k in range(3):
         recon[k][recon[k] > params['max']] = params['max']
         recon[k][recon[k] < params['min']] = params['min']
@@ -59,8 +60,8 @@ def plot_recon(args, params, recon, file_name):
         divider = make_axes_locatable(ax)
         cax = divider.append_axes("right", size="5%", pad=0.1)
         plt.colorbar(im, cax=cax)
-        sl = params['id'+slices[k]]
-        ax.set_ylabel(f'slice {slices[k]}={sl}', fontsize=14)
+        #sl = params['id'+slices[k]]
+        ax.set_ylabel(f'slice {slices[k]}={sl[k]}', fontsize=14)
         if(k < 2):
             ax.set_xticklabels([])
         if k == 2:  # z slices

@@ -1,13 +1,29 @@
 import json
 import requests
-
+import dropbox
 from tomolog_cli import logging
 
 
 log = logging.getLogger(__name__)
 
-def auth():
+def auth(token):
 
+    try:
+        with open(token) as f:
+            token = json.loads(json.load(f))
+            dbx = dropbox.Dropbox(token['access_token'])
+            # try to upload a test file
+            with open('tmp.txt','w') as fid:
+                fid.write('test upload')
+            with open('tmp.txt','rb') as fid:
+                dbx.files_upload(
+                    fid.read(), '/tmp.txt', dropbox.files.WriteMode.overwrite)
+            return dbx
+    except:
+        dropbox_auth.auth()
+        with open(token) as f:
+            token = json.loads(json.load(f))
+            dbx = dropbox.Dropbox(token['access_token'])
     app_key = "evwc7v2rksnhoq3"
     app_secret = "sgz87wxix2p98vu"
 
@@ -36,3 +52,5 @@ def auth():
     with open('/home/beams/USERTXM/tokens/dropbox_token.json', 'w') as f:
         json.dump(json_string, f)
     log.info("dropbox token is saved to /home/beams/USERTXM/tokens/dropbox_token.txt and will be used for further authorization")
+    
+    return dbx

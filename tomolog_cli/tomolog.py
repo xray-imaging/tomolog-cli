@@ -16,6 +16,8 @@ from tomolog_cli import dropbox_auth
 # tmp files to be created in dropbox
 FILE_NAME_PROJ  = 'projection_google'
 FILE_NAME_RECON = 'reconstruction_google.jpg'
+TOKEN_DROPBOX = '/home/beams/USERTXM/tokens/dropbox_token.json'
+TOKEN_GOOGLE = '/home/beams/USERTXM/tokens/token_google.json'
 
 log = logging.getLogger(__name__)
 
@@ -23,20 +25,11 @@ class TomoLog():
     def __init__(self):
         log.info('establishing connection to google and dropbox')
         creds = service_account.Credentials.from_service_account_file(
-            '/home/beams/USERTXM/tokens/token_google.json').with_scopes(['https://www.googleapis.com/auth/presentations'])
+            TOKEN_GOOGLE).with_scopes(['https://www.googleapis.com/auth/presentations'])
         slides = build('slides', 'v1', credentials=creds)
         self.snippets = google_snippets.SlidesSnippets(slides, creds)
-        try:
-            with open('/home/beams/USERTXM/tokens/dropbox_token.json') as f:
-                token = json.loads(json.load(f))
-                self.dbx = dropbox.Dropbox(token['access_token'])
-        except:
-            dropbox_auth.auth()
-            with open('/home/beams/USERTXM/tokens/dropbox_token.json') as f:
-                token = json.loads(json.load(f))
-                self.dbx = dropbox.Dropbox(token['access_token'])
-        log.info('done')
-
+        self.dbx = dropbox_auth.auth(TOKEN_DROPBOX)
+        
         # hdf file key definitions
         self.description_1 = 'measurement_sample_description_1'
         self.description_2 = 'measurement_sample_description_2'
@@ -100,21 +93,20 @@ class TomoLog():
         self.snippets.create_textbox_with_bullets(
             presentation_id, page_id, descr, 240, 200, 0, 27, 8)
 
-        # publish other labels
-        self.snippets.create_textbox_with_text(
-            presentation_id, page_id, 'Reconstruction', 30, 150, 270, 0, 10)
-        self.snippets.create_textbox_with_text(
-            presentation_id, page_id, 'Other info/screenshots', 30, 230, 480, 0, 10)
+        # publish projection label(s)
         self.snippets.create_textbox_with_text(
             presentation_id, page_id, 'Nano-CT projection', 30, 100, 60, 255, 8)
         self.snippets.create_textbox_with_text(
             presentation_id, page_id, 'Micro-CT projection', 30, 100, 60, 375, 8)
-        
-        # publish projections
+                # publish projections
+        # publish projection(s)
         for i in range(len(proj)):
             fname = FILE_NAME_PROJ+str(i)+'.jpg'
             self.publish_projection(fname, proj[i], plot_param, presentation_id, page_id, 210, 210, 0, 100+i*125)
 
+        # publish reconstruction label
+        self.snippets.create_textbox_with_text(
+            presentation_id, page_id, 'Reconstruction', 30, 150, 270, 0, 10)
         # publish reconstructions
         recon = reads.read_recon(args, plot_param)    
         if len(recon) == 3:
@@ -127,20 +119,16 @@ class TomoLog():
             self.snippets.create_image(
                 presentation_id, page_id, recon_url, 370, 370, 130, 30)
 
+        # publish other labels
+        self.snippets.create_textbox_with_text(
+            presentation_id, page_id, 'Other info/screenshots', 30, 230, 480, 0, 10)
+
     def publish_projection(self, fname, proj, plot_param, presentation_id, page_id, a, b, c, d):
         plots.plot_projection(plot_param, proj, fname)
         with open(fname, 'rb') as f:
-            try:
-                self.dbx.files_upload(
-                    f.read(), '/'+fname, dropbox.files.WriteMode.overwrite)
-            except Exception as exc:                
-                with open(fname, 'rb') as f:
-                    print(exc)
-                    log.error('The dropbox token might need to be updated, please follow the following instructions')
-                    dropbox_auth.auth()
-                    log.info('The token has been updated, continue upload..')
-                    self.dbx.files_upload(
-                        f.read(), '/'+fname, dropbox.files.WriteMode.overwrite)
+            self.dbx.files_upload(
+                f.read(), '/'+fname, dropbox.files.WriteMode.overwrite)
             proj_url = self.dbx.files_get_temporary_link('/'+fname).link            
             self.snippets.create_image(
                 presentation_id, page_id, proj_url, a, b, c, d)
+
