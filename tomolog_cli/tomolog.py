@@ -87,7 +87,6 @@ class TomoLog():
         plot_param['idz']           = args.idz
         plot_param['min']           = args.min
         plot_param['max']           = args.max
-        plot_param['scale']         = args.scale
 
         descr =  f"Particle description: {meta[description_1][0]} {meta[description_2][0]} {meta[description_3][0]}\n"
         descr += f"Scan date: {meta[date][0]}\n"
@@ -104,7 +103,7 @@ class TomoLog():
             presentation_id, page_id, descr, 270, 300, 0, 27, 12)
         # other labels
         self.snippets.create_textbox_with_text(
-            presentation_id, page_id, 'Reconstruction', 30, 170, 270, 0, 14)
+            presentation_id, page_id, 'Reconstruction', 30, 150, 270, 0, 14)
         self.snippets.create_textbox_with_text(
             presentation_id, page_id, 'Other info/screenshots', 30, 230, 480, 0, 14)
         self.snippets.create_textbox_with_text(
