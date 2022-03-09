@@ -2,7 +2,7 @@
 tomolog-cli
 ===========
 
-A command-line-interface for logging data in Google slides
+A command-line-interface for logging experiment data in a Google slides
 
 .. image:: docs/source/img/slide_00.png
     :width: 60%
