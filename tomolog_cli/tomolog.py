@@ -125,6 +125,7 @@ class TomoLog():
                 log.info('The token has been updated, continue upload..')
                 self.dbx.files_upload(
                     f.read(), '/'+FILE_NAME_PROJ, dropbox.files.WriteMode.overwrite)
+
             proj_url = self.dbx.files_get_temporary_link('/'+FILE_NAME_PROJ).link            
             self.snippets.create_image(
                 presentation_id, page_id, proj_url, 210, 210, 0, 240)
