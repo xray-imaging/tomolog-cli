@@ -1,4 +1,9 @@
+import h5py
+import tifffile
+
 import numpy as np
+
+from collections import OrderedDict, deque
 
 PIPE = "│"
 ELBOW = "└──"
@@ -41,7 +46,6 @@ def read_hdf_meta(fname, add_shape=True):
     # for entry in tree:
     #     print(entry)
     return tree, meta
-
 
 def _get_subgroups(hdf_object, key=None):
     """

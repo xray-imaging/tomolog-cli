@@ -58,7 +58,7 @@ class TomoLog():
         self.snippets.create_textbox_with_text(presentation_id, page_id, os.path.basename(
             args.file_name)[:-3], 50, 400, 0, 0, 18)  # magnitude
  
-        proj, meta = reads.read_scan_info(args)
+        meta = reads.read_scan_info(args)
         # print(meta)
         # print(proj)
         dims          = meta['exchange_data'][0].replace("(", "").replace(")", "").split(',')
@@ -99,7 +99,9 @@ class TomoLog():
         self.snippets.create_textbox_with_text(
             presentation_id, page_id, 'Micro-CT projection', 30, 100, 60, 375, 8)
                 # publish projections
+
         # publish projection(s)
+        proj = reads.read_raw(args)
         for i in range(len(proj)):
             fname = FILE_NAME_PROJ+str(i)+'.jpg'
             self.publish_projection(fname, proj[i], plot_param, presentation_id, page_id, 210, 210, 0, 100+i*125)
