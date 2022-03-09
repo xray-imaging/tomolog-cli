@@ -100,8 +100,6 @@ class TomoLog():
         self.snippets.create_textbox_with_bullets(
             presentation_id, page_id, descr, 240, 200, 0, 27, 8)
 
-        # def create_textbox_with_text(self, presentation_id, page_id, text, magnitudex, magnitudey, posx, posy, fontsize):
-
         # publish other labels
         self.snippets.create_textbox_with_text(
             presentation_id, page_id, 'Reconstruction', 30, 150, 270, 0, 10)
@@ -111,7 +109,6 @@ class TomoLog():
             presentation_id, page_id, 'Nano-CT projection', 30, 100, 60, 255, 8)
         self.snippets.create_textbox_with_text(
             presentation_id, page_id, 'Micro-CT projection', 30, 100, 60, 375, 8)
-
         
         # publish projections
         for i in range(len(proj)):
