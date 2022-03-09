@@ -1,5 +1,5 @@
 ===========
-tomolog-cli$
+tomolog-cli
 ===========
 
 A command-line-interface for logging data in Google slides
