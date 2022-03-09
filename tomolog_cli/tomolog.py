@@ -37,33 +37,34 @@ class TomoLog():
                 self.dbx = dropbox.Dropbox(token['access_token'])
         log.info('done')
 
+        # hdf file key definitions
+        self.description_1 = 'measurement_sample_description_1'
+        self.description_2 = 'measurement_sample_description_2'
+        self.description_3 = 'measurement_sample_description_3'
+        self.date          = 'process_acquisition_start_date'
+        self.energy        = 'measurement_instrument_monochromator_energy'
+        self.pixel_size    = 'measurement_instrument_detector_pixel_size'
+        self.magnification = 'measurement_instrument_detection_system_objective_camera_objective'
+        self.resolution    = 'measurement_instrument_detection_system_objective_resolution'
+        self.exposure_time = 'measurement_instrument_detector_exposure_time'
+        self.angle_step    = 'process_acquisition_rotation_rotation_step'
+        self.num_angle     = 'process_acquisition_rotation_num_angles'
+        self.data_size     = 'exchange_data'
+        self.binning       = 'measurement_instrument_detector_binning_x'
+
     def run_log(self, args):
+
         if args.file_name is None:
             args.file_name = PV(args.PV_prefix.get(as_string=True))
         presentation_id = args.presentation_url.split('/')[-2]
 
-        # Add scan info to a new slide
+        # Create a new Google slide
         page_id = str(uuid.uuid4())
         self.snippets.create_slide(presentation_id, page_id)
         # title
         self.snippets.create_textbox_with_text(presentation_id, page_id, os.path.basename(
             args.file_name)[:-3], 50, 400, 0, 0, 18)  # magnitude
  
-        # key definitions
-        description_1 = 'measurement_sample_description_1'
-        description_2 = 'measurement_sample_description_2'
-        description_3 = 'measurement_sample_description_3'
-        date          = 'process_acquisition_start_date'
-        energy        = 'measurement_instrument_monochromator_energy'
-        pixel_size    = 'measurement_instrument_detector_pixel_size'
-        magnification = 'measurement_instrument_detection_system_objective_camera_objective'
-        resolution    = 'measurement_instrument_detection_system_objective_resolution'
-        exposure_time = 'measurement_instrument_detector_exposure_time'
-        angle_step    = 'process_acquisition_rotation_rotation_step'
-        num_angle     = 'process_acquisition_rotation_num_angles'
-        data_size     = 'exchange_data'
-        binning       = 'measurement_instrument_detector_binning_x'
-
         proj, meta = reads.read_scan_info(args)
         # print(meta)
         # print(proj)
@@ -74,10 +75,10 @@ class TomoLog():
         plot_param = {}
         plot_param['width']         = int(dims[2])
         plot_param['height']        = int(dims[1])
-        plot_param['pixel_size']    = float(meta[pixel_size][0])
-        plot_param['resolution']    = float(meta[resolution][0])
-        plot_param['magnification'] = int(meta[magnification][0].replace("x", ""))
-        plot_param['binning']       = int(meta[binning][0])
+        plot_param['pixel_size']    = float(meta[self.pixel_size][0])
+        plot_param['resolution']    = float(meta[self.resolution][0])
+        plot_param['magnification'] = int(meta[self.magnification][0].replace("x", ""))
+        plot_param['binning']       = int(meta[self.binning][0])
         plot_param['scale']         = args.scale
         plot_param['idx']           = args.idx
         plot_param['idy']           = args.idy
@@ -85,20 +86,21 @@ class TomoLog():
         plot_param['min']           = args.min
         plot_param['max']           = args.max
 
-        descr =  f"Particle description: {meta[description_1][0]} {meta[description_2][0]} {meta[description_3][0]}\n"
-        descr += f"Scan date: {meta[date][0]}\n"
-        descr += f"Scan energy: {meta[energy][0]} {meta[energy][1]}\n"
-        descr += f"Pixel size: {meta[pixel_size][0]:.02f} {meta[pixel_size][1]}\n"
-        descr += f"Lens magnification: {meta[magnification][0]}\n"
-        descr += f"Resolution: {meta[resolution][0]:.02f} {meta[resolution][1]}\n"
-        descr += f"Exposure time: {meta[exposure_time][0]:.02f} {meta[exposure_time][1]}\n"
-        descr += f"Angle step: {meta[angle_step][0]:.03f} {meta[angle_step][1]}\n"
-        descr += f"Number of angles: {meta[num_angle][0]}\n"
+        # publish labels and scan info in the new slide
+        descr =  f"Particle description: {meta[self.description_1][0]} {meta[self.description_2][0]} {meta[self.description_3][0]}\n"
+        descr += f"Scan date: {meta[self.date][0]}\n"
+        descr += f"Scan energy: {meta[self.energy][0]} {meta[self.energy][1]}\n"
+        descr += f"Pixel size: {meta[self.pixel_size][0]:.02f} {meta[self.pixel_size][1]}\n"
+        descr += f"Lens magnification: {meta[self.magnification][0]}\n"
+        descr += f"Resolution: {meta[self.resolution][0]:.02f} {meta[self.resolution][1]}\n"
+        descr += f"Exposure time: {meta[self.exposure_time][0]:.02f} {meta[self.exposure_time][1]}\n"
+        descr += f"Angle step: {meta[self.angle_step][0]:.03f} {meta[self.angle_step][1]}\n"
+        descr += f"Number of angles: {meta[self.num_angle][0]}\n"
         descr += f"Projection size: {width} x {height}"
- 
         self.snippets.create_textbox_with_bullets(
             presentation_id, page_id, descr, 270, 300, 0, 27, 12)
-        # other labels
+
+        # publish other labels
         self.snippets.create_textbox_with_text(
             presentation_id, page_id, 'Reconstruction', 30, 150, 270, 0, 14)
         self.snippets.create_textbox_with_text(
