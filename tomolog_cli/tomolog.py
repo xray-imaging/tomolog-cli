@@ -98,22 +98,25 @@ class TomoLog():
         descr += f"Number of angles: {meta[self.num_angle][0]}\n"
         descr += f"Projection size: {width} x {height}"
         self.snippets.create_textbox_with_bullets(
-            presentation_id, page_id, descr, 270, 300, 0, 27, 12)
+            presentation_id, page_id, descr, 240, 200, 0, 27, 8)
+
+        # def create_textbox_with_text(self, presentation_id, page_id, text, magnitudex, magnitudey, posx, posy, fontsize):
 
         # publish other labels
         self.snippets.create_textbox_with_text(
-            presentation_id, page_id, 'Reconstruction', 30, 150, 270, 0, 14)
+            presentation_id, page_id, 'Reconstruction', 30, 150, 270, 0, 10)
         self.snippets.create_textbox_with_text(
-            presentation_id, page_id, 'Other info/screenshots', 30, 230, 480, 0, 14)
+            presentation_id, page_id, 'Other info/screenshots', 30, 230, 480, 0, 10)
         self.snippets.create_textbox_with_text(
-            presentation_id, page_id, 'Micro-CT projection', 30, 150, 0, 190, 10)
+            presentation_id, page_id, 'Nano-CT projection', 30, 100, 60, 255, 8)
         self.snippets.create_textbox_with_text(
-            presentation_id, page_id, 'Nano-CT projection', 30, 150, 0, 290, 10)
+            presentation_id, page_id, 'Micro-CT projection', 30, 100, 60, 375, 8)
+
         
         # publish projections
         for i in range(len(proj)):
             fname = FILE_NAME_PROJ+str(i)+'.jpg'
-            self.publish_projection(fname, proj[i], plot_param, presentation_id, page_id, 210, 210, 0, 115+i*125)
+            self.publish_projection(fname, proj[i], plot_param, presentation_id, page_id, 210, 210, 0, 100+i*125)
 
         # publish reconstructions
         recon = reads.read_recon(args, plot_param)    
