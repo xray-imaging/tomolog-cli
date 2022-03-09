@@ -134,12 +134,13 @@ class TomoLog():
                 self.dbx.files_upload(
                     f.read(), '/'+fname, dropbox.files.WriteMode.overwrite)
             except Exception as exc:                
-                print(exc)
-                log.error('The dropbox token might need to be updated, please follow the following instructions')
-                dropbox_auth.auth()
-                log.info('The token has been updated, continue upload..')
-                self.dbx.files_upload(
-                    f.read(), '/'+fname, dropbox.files.WriteMode.overwrite)
+                with open(fname, 'rb') as f:
+                    print(exc)
+                    log.error('The dropbox token might need to be updated, please follow the following instructions')
+                    dropbox_auth.auth()
+                    log.info('The token has been updated, continue upload..')
+                    self.dbx.files_upload(
+                        f.read(), '/'+fname, dropbox.files.WriteMode.overwrite)
             proj_url = self.dbx.files_get_temporary_link('/'+fname).link            
             self.snippets.create_image(
                 presentation_id, page_id, proj_url, a, b, c, d)
