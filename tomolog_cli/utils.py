@@ -4,12 +4,16 @@ import tifffile
 import numpy as np
 
 from collections import OrderedDict, deque
+from tomolog_cli import logging
 
 PIPE = "│"
 ELBOW = "└──"
 TEE = "├──"
 PIPE_PREFIX = "│   "
 SPACE_PREFIX = "    "
+
+log = logging.getLogger(__name__)
+
 
 def find_min_max(data, scale):
     """Find min and max values according to histogram"""

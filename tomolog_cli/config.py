@@ -120,6 +120,16 @@ SECTIONS['parameters'] = {
         'type': float,
         'default': 0.0,
         'help': "Minimum threshold value for reconstruction visualization"},
+    'beamline': {
+        'default': '32-id',
+        'type': str,
+        'help': "Customized the goodle slide to the beamline selected",
+        'choices': ['None','2-bm', '7-bm', '32-id']},
+    'rec-type': {
+        'default': 'recgpu',
+        'type': str,
+        'help': "Specify the prefix of the recon folder",
+        'choices': ['recgpu','rec']},
 }
 
 PARAMS = ('file-reading', 'parameters')

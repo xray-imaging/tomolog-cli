@@ -59,7 +59,7 @@ def read_recon(args, meta):
         # read z slices
         # take size
         tmp = utils.read_tiff(
-            f'{dirname}_recgpu/{basename}_rec/r_00000.tiff').copy()
+            f'{dirname}_{args.rec_type}/{basename}_rec/r_00000.tiff').copy()
         binning = width//tmp.shape[0]
         w = width//binning
         h = height//binning
@@ -69,20 +69,20 @@ def read_recon(args, meta):
             args.idy = int(w//2+shift)
             args.idx = int(w//2+shift)
         z = utils.read_tiff(
-            f'{dirname}_recgpu/{basename}_rec/r_{args.idz:05}.tiff').copy()
+            f'{dirname}_{args.rec_type}/{basename}_rec/r_{args.idz:05}.tiff').copy()
         # read x,y slices by lines
         y = np.zeros((h, w), dtype='float32')
         x = np.zeros((h, w), dtype='float32')
         for j in range(h):
             zz = utils.read_tiff(
-                f'{dirname}_recgpu/{basename}_rec/r_{j:05}.tiff')
+                f'{dirname}_{args.rec_type}/{basename}_rec/r_{j:05}.tiff')
             y[j, :] = zz[args.idy]
             x[j, :] = zz[:, args.idx]
         recon = [x,y,z]
         log.info('Adding reconstruction')
     except:
         log.warning('Skipping reconstruction')
-        
+        print(f'{dirname}_{args.rec_type}/{basename}_rec/r_00000.tiff')
     return recon
 
 
