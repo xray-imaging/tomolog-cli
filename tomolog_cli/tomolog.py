@@ -35,19 +35,20 @@ class TomoLog():
         self.dbx = dropbox_auth.auth(TOKEN_DROPBOX)
         
         # hdf file key definitions
-        self.description_1 = 'measurement_sample_description_1'
-        self.description_2 = 'measurement_sample_description_2'
-        self.description_3 = 'measurement_sample_description_3'
-        self.date          = 'process_acquisition_start_date'
-        self.energy        = 'measurement_instrument_monochromator_energy'
-        self.pixel_size    = 'measurement_instrument_detector_pixel_size'
-        self.magnification = 'measurement_instrument_detection_system_objective_camera_objective'
-        self.resolution    = 'measurement_instrument_detection_system_objective_resolution'
-        self.exposure_time = 'measurement_instrument_detector_exposure_time'
-        self.angle_step    = 'process_acquisition_rotation_rotation_step'
-        self.num_angle     = 'process_acquisition_rotation_num_angles'
-        self.data_size     = 'exchange_data'
-        self.binning       = 'measurement_instrument_detector_binning_x'
+        self.full_file_name = 'measurement_sample_full_file_name'
+        self.description_1  = 'measurement_sample_description_1'
+        self.description_2  = 'measurement_sample_description_2'
+        self.description_3  = 'measurement_sample_description_3'
+        self.date           = 'process_acquisition_start_date'
+        self.energy         = 'measurement_instrument_monochromator_energy'
+        self.pixel_size     = 'measurement_instrument_detector_pixel_size'
+        self.magnification  = 'measurement_instrument_detection_system_objective_camera_objective'
+        self.resolution     = 'measurement_instrument_detection_system_objective_resolution'
+        self.exposure_time  = 'measurement_instrument_detector_exposure_time'
+        self.angle_step     = 'process_acquisition_rotation_rotation_step'
+        self.num_angle      = 'process_acquisition_rotation_num_angles'
+        self.data_size      = 'exchange_data'
+        self.binning        = 'measurement_instrument_detector_binning_x'
 
     def run_log(self, args):
 
@@ -58,13 +59,15 @@ class TomoLog():
         # Create a new Google slide
         page_id = str(uuid.uuid4())
         self.snippets.create_slide(presentation_id, page_id)
-        # title
-        self.snippets.create_textbox_with_text(presentation_id, page_id, os.path.basename(
-            args.file_name)[:-3], 50, 400, 0, 0, 18)  # magnitude
- 
+        
         meta = reads.read_scan_info(args)
         # print(meta)
 
+        # title
+        full_file_name = meta[self.full_file_name][0]
+        # self.snippets.create_textbox_with_text(presentation_id, page_id, file_name, 50, 400, 0, 0, 18)  # magnitude
+        self.snippets.create_textbox_with_text(presentation_id, page_id, os.path.basename(
+            full_file_name)[:-3], 50, 400, 0, 0, 18)  # magnitude
         dims          = meta['exchange_data'][0].replace("(", "").replace(")", "").split(',')
         width         = dims[2]
         height        = dims[1]
