@@ -3,3 +3,4 @@ google-auth-oauthlib
 dropbox
 matplotlib
 epics
+python-dotenv

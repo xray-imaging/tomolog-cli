@@ -342,6 +342,7 @@ MOCK_MODULES = ['h5py',
                 'googleapiclient.discovery',
                 'tifffile',
                 'epics',
+                'python-dotenv',
                 ]
 
 for mod_name in MOCK_MODULES:
