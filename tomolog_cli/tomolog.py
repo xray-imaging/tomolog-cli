@@ -104,13 +104,13 @@ class TomoLog():
         proj = reads.read_raw(args)
         for i in range(len(proj)):
             fname = FILE_NAME_PROJ+str(i)+'.jpg'
-            self.publish_projection(fname, proj[i], plot_param, presentation_id, page_id, 210, 210, 0, 100+i*125)
+            self.publish_projection(args, meta, fname, proj[i], presentation_id, page_id, 210, 210, 0, 100+i*125)
 
         # publish reconstruction label
         self.snippets.create_textbox_with_text(
             presentation_id, page_id, 'Reconstruction', 30, 150, 270, 0, 10)
         # publish reconstructions
-        recon = reads.read_recon(args, plot_param)    
+        recon = reads.read_recon(args, meta)    
         if len(recon) == 3:
             # prepare reconstruction
             plots.plot_recon(args, plot_param, recon, FILE_NAME_RECON)
@@ -125,8 +125,8 @@ class TomoLog():
         self.snippets.create_textbox_with_text(
             presentation_id, page_id, 'Other info/screenshots', 30, 230, 480, 0, 10)
 
-    def publish_projection(self, fname, proj, plot_param, presentation_id, page_id, a, b, c, d):
-        plots.plot_projection(plot_param, proj, fname)
+    def publish_projection(self, args, meta, fname, proj, presentation_id, page_id, a, b, c, d):
+        plots.plot_projection(args, meta, proj, fname)
         with open(fname, 'rb') as f:
             self.dbx.files_upload(
                 f.read(), '/'+fname, dropbox.files.WriteMode.overwrite)

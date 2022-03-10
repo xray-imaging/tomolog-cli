@@ -11,16 +11,7 @@ log = logging.getLogger(__name__)
 def read_scan_info(args):
     '''Read acquistion parameters
     '''
-    proj, meta = utils.read_hdf_meta(args.file_name, add_shape=True)
-    proj = []
-    with h5py.File(args.file_name) as fid:
-        proj.append(fid['exchange/data'][0][:])
-        log.info('Adding nanoCT projection')
-        try:
-            proj.append(fid['exchange/data2'][0][:])
-            log.info('Adding microCT projection')
-        except:            
-            log.warning('Skipping microCT projection')
+    _, meta = utils.read_hdf_meta(args.file_name, add_shape=True)
 
     return meta
 
@@ -28,7 +19,6 @@ def read_scan_info(args):
 def read_raw(args):
     '''Read raw data from an hdf5 file
     '''
-    proj, meta = utils.read_hdf_meta(args.file_name, add_shape=True)
     proj = []
     with h5py.File(args.file_name) as fid:
         proj.append(fid['exchange/data'][0][:])
@@ -42,9 +32,18 @@ def read_raw(args):
     return proj
 
 
-def read_recon(args, params):
+def read_recon(args, meta):
     '''Read reconstructed orho-slices
     '''
+
+    data_size     = 'exchange_data'
+    binning_label = 'measurement_instrument_detector_binning_x'
+
+    dims          = meta[data_size][0].replace("(", "").replace(")", "").split(',')
+    width         = int(dims[2])
+    height        = int(dims[1])
+
+    binning         = int(meta[binning_label][0])
 
     recon = []
     try:
@@ -56,9 +55,9 @@ def read_recon(args, params):
         # take size
         tmp = utils.read_tiff(
             f'{dirname}_recgpu/{basename}_rec/r_00000.tiff').copy()
-        params['binning'] = params['width']//tmp.shape[0]
-        w = params['width']//params['binning']
-        h = params['height']//params['binning']
+        binning = width//tmp.shape[0]
+        w = width//binning
+        h = height//binning
 
         if args.idz == -1:
             args.idz = int(h//2+shift)
