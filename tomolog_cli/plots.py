@@ -29,9 +29,6 @@ def plot_projection(args, meta, proj, file_name, scale=10000):
     '''
 
     resolution    = 'measurement_instrument_detection_system_objective_resolution'
-        # self.exposure_time = 'measurement_instrument_detector_exposure_time'
-        # self.angle_step    = 'process_acquisition_rotation_rotation_step'
-        # self.num_angle     = 'process_acquisition_rotation_num_angles'
     data_size     = 'exchange_data'
 
     dims          = meta[data_size][0].replace("(", "").replace(")", "").split(',')
@@ -61,28 +58,38 @@ def plot_projection(args, meta, proj, file_name, scale=10000):
     plt.savefig(file_name, bbox_inches='tight', pad_inches=0, dpi=300)
 
 
-def plot_recon(args, params, recon, file_name):
+def plot_recon(args, meta, recon, file_name):
     '''Plot orthoslices with scalebars and colorbars, and save the figure as FILENAME_RECON
     '''
 
+    data_size     = 'exchange_data'
+    binning_label = 'measurement_instrument_detector_binning_x'
+    resolution    = 'measurement_instrument_detection_system_objective_resolution'
+
+    dims          = meta[data_size][0].replace("(", "").replace(")", "").split(',')
+    width         = int(dims[2])
+    height        = int(dims[1])
+    binning       = int(meta[binning_label][0])
+    resolution    = float(meta[resolution][0])
+
     fig = plt.figure(constrained_layout=True, figsize=(6, 12))
     grid = fig.add_gridspec(3, 1, height_ratios=[
-                            1, 1, params['width']/params['height']])
+                            1, 1, width/height])
     slices = ['x', 'y', 'z']
     # autoadjust colorbar values according to a histogram
 
-    if params['min']==params['max']:
-        params['min'], params['max'] = utils.find_min_max(np.concatenate(recon), params['scale'])
+    if args.min==args.max:
+        args.min, args.max = utils.find_min_max(np.concatenate(recon), args.scale)
 
     scalebar = 10  # um
     # plot 3 slices in a column
-    w = params['width']//params['binning']
-    h = params['height']//params['binning']
+    w = width//binning
+    h = height//binning
 
     sl = [args.idx,args.idy,args.idz]#params['id'+slices[k]]
     for k in range(3):
-        recon[k][recon[k] > params['max']] = params['max']
-        recon[k][recon[k] < params['min']] = params['min']
+        recon[k][recon[k] > args.max] = args.max
+        recon[k][recon[k] < args.min] = args.min
         ax = fig.add_subplot(grid[k])
         im = ax.imshow(recon[k], cmap='gray')
         divider = make_axes_locatable(ax)
@@ -93,15 +100,15 @@ def plot_recon(args, params, recon, file_name):
         if(k < 2):
             ax.set_xticklabels([])
         if k == 2:  # z slices
-            ax.plot([w*8.7/10, w*8.7/10+scalebar*1000/params['resolution'] /
-                    params['binning']], [w*9.5/10, w*9.5/10], 'r')
+            ax.plot([w*8.7/10, w*8.7/10+scalebar*1000/resolution /
+                    binning], [w*9.5/10, w*9.5/10], 'r')
             txt = ax.text(w*8.7/10, w*9.15/10,
                           f'{scalebar}um', color='red', fontsize=14)
             txt.set_path_effects(
                 [PathEffects.withStroke(linewidth=1, foreground='w')])
         else:  # x,y slices
-            ax.plot([w*8.7/10, w*8.7/10+scalebar*1000/params['resolution'] /
-                    params['binning']], [h*9.5/10, h*9.5/10], 'r')
+            ax.plot([w*8.7/10, w*8.7/10+scalebar*1000/resolution /
+                    binning], [h*9.5/10, h*9.5/10], 'r')
             txt = ax.text(w*8.7/10, h*9.1/10,
                           f'{scalebar}um', color='red', fontsize=14)
             txt.set_path_effects(

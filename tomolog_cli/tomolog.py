@@ -113,7 +113,7 @@ class TomoLog():
         recon = reads.read_recon(args, meta)    
         if len(recon) == 3:
             # prepare reconstruction
-            plots.plot_recon(args, plot_param, recon, FILE_NAME_RECON)
+            plots.plot_recon(args, meta, recon, FILE_NAME_RECON)
             with open(FILE_NAME_RECON, 'rb') as f:
                 self.dbx.files_upload(
                     f.read(), '/'+FILE_NAME_RECON, dropbox.files.WriteMode.overwrite)
