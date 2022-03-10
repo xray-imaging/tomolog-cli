@@ -14,6 +14,11 @@ from tomolog_cli import reads
 from tomolog_cli import google_snippets
 from tomolog_cli import dropbox_auth
 
+__author__ = "Viktor Nikitin"
+__copyright__ = "Copyright (c) 2022, UChicago Argonne, LLC."
+__docformat__ = 'restructuredtext en'
+__all__ = ['TomoLog',]
+
 # tmp files to be created in dropbox
 FILE_NAME_PROJ  = 'projection_google'
 FILE_NAME_RECON = 'reconstruction_google.jpg'

@@ -6,6 +6,12 @@ import numpy as np
 from tomolog_cli import logging
 from tomolog_cli import utils
 
+__author__ = "Viktor Nikitin"
+__copyright__ = "Copyright (c) 2022, UChicago Argonne, LLC."
+__docformat__ = 'restructuredtext en'
+__all__ = ['read_scan_info', 'read_raw', 'read_recon']
+
+
 log = logging.getLogger(__name__)
 
 def read_scan_info(args):

@@ -6,23 +6,11 @@ from mpl_toolkits.axes_grid1 import make_axes_locatable
 
 from tomolog_cli import utils
 
-    # dims          = meta[self.data_size][0].replace("(", "").replace(")", "").split(',')
-    # width         = dims[2]
-    # height        = dims[1]
+__author__ = "Viktor Nikitin"
+__copyright__ = "Copyright (c) 2022, UChicago Argonne, LLC."
+__docformat__ = 'restructuredtext en'
+__all__ = ['plot_projection', 'plot_recon']
 
-    # plot_param = {}
-    # plot_param['width']         = int(dims[2])
-    # plot_param['height']        = int(dims[1])
-    # plot_param['pixel_size']    = float(meta[self.pixel_size][0])
-    # plot_param['resolution']    = float(meta[self.resolution][0])
-    # plot_param['magnification'] = int(meta[self.magnification][0].replace("x", ""))
-    # plot_param['binning']       = int(meta[self.binning][0])
-    # plot_param['scale']         = args.scale
-    # plot_param['idx']           = args.idx
-    # plot_param['idy']           = args.idy
-    # plot_param['idz']           = args.idz
-    # plot_param['min']           = args.min
-    # plot_param['max']           = args.max
 
 def plot_projection(args, meta, proj, file_name, i):
     '''Plot the first projection with a scalebar and colorbar, and save it to FILENAME_PROJ
