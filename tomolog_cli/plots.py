@@ -24,10 +24,12 @@ from tomolog_cli import utils
     # plot_param['min']           = args.min
     # plot_param['max']           = args.max
 
-def plot_projection(args, meta, proj, file_name, scale=10000):
+def plot_projection(args, meta, proj, file_name, i):
     '''Plot the first projection with a scalebar and colorbar, and save it to FILENAME_PROJ
     '''
-
+    pixel_size    = 'measurement_instrument_detector_pixel_size'
+    magnification = 'measurement_instrument_detection_system_objective_camera_objective'
+ 
     resolution    = 'measurement_instrument_detection_system_objective_resolution'
     data_size     = 'exchange_data'
 
@@ -35,20 +37,30 @@ def plot_projection(args, meta, proj, file_name, scale=10000):
     width         = int(dims[2])
     height        = int(dims[1])
     resolution    = float(meta[resolution][0])
+    pixel_size    = float(meta[pixel_size][0])
+    magnification = float(meta[magnification][0])
 
     # auto-adjust colorbar values according to a histogram
     mmin, mmax = utils.find_min_max(proj, 0.005)
     proj[proj > mmax] = mmax
     proj[proj < mmin] = mmin
 
+
     # plot
     fig = plt.figure(constrained_layout=True, figsize=(6, 4))
     ax = fig.add_subplot()
     im = ax.imshow(proj, cmap='gray')
-    ax.plot([width*8.7/10, width*8.7/10+scale/resolution],
-            [height*9.5/10, height*9.5/10], 'r')
-    txt = ax.text(width*8.7/10, height *
-                  9.1/10, '10um', color='red', fontsize=14)
+    if i==0:
+        ax.plot([width*8.7/10, width*8.7/10+10000/resolution],
+                [height*9.5/10, height*9.5/10], 'r')
+        txt = ax.text(width*8.7/10, height *
+                      9.1/10, '10um', color='red', fontsize=14)
+    else:
+        ax.plot([width*8.7/10, width*8.7/10+100/(pixel_size /
+                magnification)], [height*9.5/10, height*9.5/10], 'r')
+        txt = ax.text(width*8.5/10, height *
+                      9.15/10, '100um', color='red', fontsize=14)
+
     txt.set_path_effects([PathEffects.withStroke(linewidth=1, foreground='w')])
     divider = make_axes_locatable(ax)
     cax = divider.append_axes("right", size="5%", pad=0.1)

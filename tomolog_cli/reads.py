@@ -37,13 +37,12 @@ def read_recon(args, meta):
     '''
 
     data_size     = 'exchange_data'
-    binning_label = 'measurement_instrument_detector_binning_x'
+    binning       = 'measurement_instrument_detector_binning_x'
 
     dims          = meta[data_size][0].replace("(", "").replace(")", "").split(',')
     width         = int(dims[2])
     height        = int(dims[1])
-
-    binning         = int(meta[binning_label][0])
+    binning       = int(meta[binning][0])
 
     recon = []
     try:

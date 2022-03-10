@@ -2,6 +2,7 @@ import os
 import json
 import uuid
 import dropbox
+import pathlib
 
 from epics import PV
 from google.oauth2 import service_account
@@ -16,13 +17,16 @@ from tomolog_cli import dropbox_auth
 # tmp files to be created in dropbox
 FILE_NAME_PROJ  = 'projection_google'
 FILE_NAME_RECON = 'reconstruction_google.jpg'
-TOKEN_DROPBOX = '/home/beams/USERTXM/tokens/dropbox_token.json'
-TOKEN_GOOGLE = '/home/beams/USERTXM/tokens/token_google.json'
+
+TOKEN_HOME      = os.path.join(str(pathlib.Path.home()), 'tokens')
+TOKEN_DROPBOX   = os.path.join(str(pathlib.Path.home()), 'tokens', 'dropbox_token.json')
+TOKEN_GOOGLE    = os.path.join(str(pathlib.Path.home()), 'tokens', 'token_google.json')
 
 log = logging.getLogger(__name__)
 
 class TomoLog():
     def __init__(self):
+
         log.info('establishing connection to google and dropbox')
         creds = service_account.Credentials.from_service_account_file(
             TOKEN_GOOGLE).with_scopes(['https://www.googleapis.com/auth/presentations'])
@@ -60,24 +64,10 @@ class TomoLog():
  
         meta = reads.read_scan_info(args)
         # print(meta)
-        # print(proj)
+
         dims          = meta['exchange_data'][0].replace("(", "").replace(")", "").split(',')
         width         = dims[2]
         height        = dims[1]
-
-        plot_param = {}
-        plot_param['width']         = int(dims[2])
-        plot_param['height']        = int(dims[1])
-        plot_param['pixel_size']    = float(meta[self.pixel_size][0])
-        plot_param['resolution']    = float(meta[self.resolution][0])
-        plot_param['magnification'] = int(meta[self.magnification][0].replace("x", ""))
-        plot_param['binning']       = int(meta[self.binning][0])
-        plot_param['scale']         = args.scale
-        plot_param['idx']           = args.idx
-        plot_param['idy']           = args.idy
-        plot_param['idz']           = args.idz
-        plot_param['min']           = args.min
-        plot_param['max']           = args.max
 
         # publish labels and scan info in the new slide
         descr =  f"Particle description: {meta[self.description_1][0]} {meta[self.description_2][0]} {meta[self.description_3][0]}\n"
@@ -102,9 +92,11 @@ class TomoLog():
 
         # publish projection(s)
         proj = reads.read_raw(args)
+        # print(proj)   
         for i in range(len(proj)):
             fname = FILE_NAME_PROJ+str(i)+'.jpg'
-            self.publish_projection(args, meta, fname, proj[i], presentation_id, page_id, 210, 210, 0, 100+i*125)
+            # self.publish_projection(args, meta, fname, proj[i], presentation_id, page_id, 210, 210, 0, 100+i*125)
+            self.publish_projection(args, meta, fname, proj[i], presentation_id, page_id, i)
 
         # publish reconstruction label
         self.snippets.create_textbox_with_text(
@@ -125,12 +117,12 @@ class TomoLog():
         self.snippets.create_textbox_with_text(
             presentation_id, page_id, 'Other info/screenshots', 30, 230, 480, 0, 10)
 
-    def publish_projection(self, args, meta, fname, proj, presentation_id, page_id, a, b, c, d):
-        plots.plot_projection(args, meta, proj, fname)
+    def publish_projection(self, args, meta, fname, proj, presentation_id, page_id, i):
+        plots.plot_projection(args, meta, proj, fname, i)
         with open(fname, 'rb') as f:
             self.dbx.files_upload(
                 f.read(), '/'+fname, dropbox.files.WriteMode.overwrite)
             proj_url = self.dbx.files_get_temporary_link('/'+fname).link            
             self.snippets.create_image(
-                presentation_id, page_id, proj_url, a, b, c, d)
+                presentation_id, page_id, proj_url, 210, 210, 0, 100+i*125)
 

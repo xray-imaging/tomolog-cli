@@ -1,4 +1,6 @@
+import os
 import sys
+import pathlib
 import logging
 import inspect
 import warnings
@@ -50,8 +52,8 @@ def default_parameter(func, param):
         return _param.default
 
 
-LOGS_HOME = Path.home()/'logs'
-CONFIG_FILE_NAME = Path.home()/'tomocupyon.conf'
+LOGS_HOME = os.path.join(str(pathlib.Path.home()), 'logs')
+CONFIG_FILE_NAME = os.path.join(str(pathlib.Path.home()), 'logs', 'tomolog.conf')
 
 SECTIONS = OrderedDict()
 
