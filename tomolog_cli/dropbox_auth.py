@@ -8,7 +8,6 @@ log = logging.getLogger(__name__)
 
 def auth(token):
 
-    print(token)
     try:
         with open(token) as f:
             token = json.loads(json.load(f))

@@ -23,9 +23,30 @@ def run_status(args):
 
 
 def run_log(args):
-    # config.show_config(args)
-    TomoLog().run_log(args)
-    
+
+    log.warning('publication start')
+    file_path = Path(args.file_name)
+    if file_path.is_file():
+        log.info("publishing a single file: %s" % args.file_name)
+        TomoLog().run_log(args)
+    elif file_path.is_dir():
+        log.info("publishing a multiple files in: %s" % args.file_name)
+        top = os.path.join(args.file_name, '')
+        h5_file_list = list(filter(lambda x: x.endswith(('.h5', '.hdf', 'hdf5')), os.listdir(top)))
+        if (h5_file_list):
+            h5_file_list.sort()
+            log.info("found: %s" % h5_file_list) 
+            index=0
+            for fname in h5_file_list:
+                args.file_name = top + fname
+                log.warning("  *** file %d/%d;  %s" % (index, len(h5_file_list), fname))
+                index += 1
+                TomoLog().run_log(args)
+        else:
+            log.error("directory %s does not contain any file" % args.file_name)
+    else:
+        log.error("directory or File Name does not exist: %s" % args.file_name)
+ 
 
 def main():
     parser = argparse.ArgumentParser()
