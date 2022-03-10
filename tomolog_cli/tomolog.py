@@ -101,11 +101,14 @@ class TomoLog():
         # publish projection(s)
         proj = reads.read_raw(args)
         # print(proj)   
-        for i in range(len(proj)):
-            fname = FILE_NAME_PROJ+str(i)+'.jpg'
-            # self.publish_projection(args, meta, fname, proj[i], presentation_id, page_id, 210, 210, 0, 100+i*125)
-            self.publish_projection(args, meta, fname, proj[i], presentation_id, page_id, i)
-
+        if(args.beamline == '32-id'):
+            # 32-id datasets include both micro and nano CT data
+            for i in range(len(proj)):
+                fname = FILE_NAME_PROJ+str(i)+'.jpg'
+                # self.publish_projection(args, meta, fname, proj[i], presentation_id, page_id, 210, 210, 0, 100+i*125)
+                self.publish_projection(args, meta, fname, proj[i], presentation_id, page_id, i)
+        else:
+            print('to be completed for micro CT only')
         # publish reconstruction label
         self.snippets.create_textbox_with_text(
             presentation_id, page_id, 'Reconstruction', 30, 150, 270, 0, 10)
