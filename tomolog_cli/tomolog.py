@@ -5,14 +5,11 @@ import dropbox
 import pathlib
 
 from epics import PV
-from google.oauth2 import service_account
-from googleapiclient.discovery import build
 
 from tomolog_cli import logging
 from tomolog_cli import plots
 from tomolog_cli import reads
-from tomolog_cli import google_snippets
-from tomolog_cli import dropbox_auth
+from tomolog_cli import auth
 
 __author__ = "Viktor Nikitin"
 __copyright__ = "Copyright (c) 2022, UChicago Argonne, LLC."
@@ -23,21 +20,16 @@ __all__ = ['TomoLog',]
 FILE_NAME_PROJ  = 'projection_google'
 FILE_NAME_RECON = 'reconstruction_google.jpg'
 
-TOKEN_HOME      = os.path.join(str(pathlib.Path.home()), 'tokens')
-TOKEN_DROPBOX   = os.path.join(str(pathlib.Path.home()), 'tokens', 'dropbox_token.json')
-TOKEN_GOOGLE    = os.path.join(str(pathlib.Path.home()), 'tokens', 'token_google.json')
+DROPBOX_TOKEN   = os.path.join(str(pathlib.Path.home()), 'tokens', 'dropbox_token.json')
+GOOGLE_TOKEN    = os.path.join(str(pathlib.Path.home()), 'tokens', 'google_token.json')
 
 log = logging.getLogger(__name__)
 
 class TomoLog():
     def __init__(self):
 
-        log.info('establishing connection to google and dropbox')
-        creds = service_account.Credentials.from_service_account_file(
-            TOKEN_GOOGLE).with_scopes(['https://www.googleapis.com/auth/presentations'])
-        slides = build('slides', 'v1', credentials=creds)
-        self.snippets = google_snippets.SlidesSnippets(slides, creds)
-        self.dbx = dropbox_auth.auth(TOKEN_DROPBOX)
+        self.snippets  = auth.google(GOOGLE_TOKEN)
+        self.dbx = auth.drop_box(DROPBOX_TOKEN)
         
         # hdf file key definitions
         self.full_file_name = 'measurement_sample_full_file_name'
@@ -59,8 +51,11 @@ class TomoLog():
 
         if args.file_name is None:
             args.file_name = PV(args.PV_prefix.get(as_string=True))
-        presentation_id = args.presentation_url.split('/')[-2]
-
+        try:
+            presentation_id = args.presentation_url.split('/')[-2]
+        except AttributeError:
+            log.error("Set --presentation-url to point to a valid Google slide location")
+            exit()
         # Create a new Google slide
         page_id = str(uuid.uuid4())
         self.snippets.create_slide(presentation_id, page_id)

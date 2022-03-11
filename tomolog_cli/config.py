@@ -11,9 +11,11 @@ from copy import copy
 from pathlib import Path
 from collections import OrderedDict
 
-
 log = logging.getLogger(__name__)
 
+LOGS_HOME = os.path.join(str(pathlib.Path.home()), 'logs')
+CONFIG_FILE_NAME = os.path.join(str(pathlib.Path.home()), 'logs', 'tomolog.conf')
+TOKEN_HOME      = os.path.join(str(pathlib.Path.home()), 'tokens')
 
 def default_parameter(func, param):
     """Get the default value for a function parameter.
@@ -52,9 +54,6 @@ def default_parameter(func, param):
         return _param.default
 
 
-LOGS_HOME = os.path.join(str(pathlib.Path.home()), 'logs')
-CONFIG_FILE_NAME = os.path.join(str(pathlib.Path.home()), 'logs', 'tomolog.conf')
-
 SECTIONS = OrderedDict()
 
 
@@ -69,7 +68,11 @@ SECTIONS['general'] = {
         'type': str,
         'help': "Log file directory",
         'metavar': 'FILE'},
-    'verbose': {
+    'token-home': {
+        'default': TOKEN_HOME,
+        'type': str,
+        'help': "Token file directory",
+        'metavar': 'FILE'},    'verbose': {
         'default': False,
         'help': 'Verbose output',
         'action': 'store_true'},

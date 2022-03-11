@@ -69,12 +69,16 @@ def main():
         cmd_parser.set_defaults(_func=func)
 
     args = config.parse_known_args(parser, subparser=True)
-    # create logger
-    logs_home = args.logs_home
 
     # make sure logs directory exists
+    logs_home = args.logs_home
     if not os.path.exists(logs_home):
         os.makedirs(logs_home)
+
+    # make sure token directory exists
+    token_home = args.token_home
+    if not os.path.exists(token_home):
+        os.makedirs(token_home)
 
     lfname = os.path.join(logs_home, 'tomolog_' +
                           datetime.strftime(datetime.now(), "%Y-%m-%d_%H_%M_%S") + '.log')
