@@ -20,7 +20,7 @@ def plot_projection(args, meta, proj, file_name, i):
     height        = int(dims[1])
     resolution    = float(meta[resolution][0])
     pixel_size    = float(meta[pixel_size][0])
-    magnification = float(meta[magnification][0])
+    magnification = float(meta[magnification][0].replace("x", ""))
 
     # auto-adjust colorbar values according to a histogram
     mmin, mmax = utils.find_min_max(proj, 0.005)

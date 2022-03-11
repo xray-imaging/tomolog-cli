@@ -28,12 +28,12 @@ def read_raw(args):
     proj = []
     with h5py.File(args.file_name) as fid:
         proj.append(fid['exchange/data'][0][:])
-        log.info('Adding nanoCT projection')
+        log.info('Adding CT projection')
         try:
             proj.append(fid['exchange/data2'][0][:])
             log.info('Adding microCT projection')
         except:            
-            log.warning('Skipping microCT projection')
+            pass
 
     return proj
 
@@ -51,6 +51,7 @@ def read_recon(args, meta):
     binning       = int(meta[binning][0])
 
     recon = []
+
     try:
         basename = os.path.basename(args.file_name)[:-3]
         dirname = os.path.dirname(args.file_name)
@@ -58,8 +59,11 @@ def read_recon(args, meta):
         shift = 0
         # read z slices
         # take size
+        rec_prefix = 'r'
+        if args.rec_type == 'rec':
+            rec_prefix = 'recon'
         tmp = utils.read_tiff(
-            f'{dirname}_{args.rec_type}/{basename}_rec/r_00000.tiff').copy()
+            f'{dirname}_{args.rec_type}/{basename}_rec/{rec_prefix}_00000.tiff').copy()
         binning = width//tmp.shape[0]
         w = width//binning
         h = height//binning
@@ -69,20 +73,20 @@ def read_recon(args, meta):
             args.idy = int(w//2+shift)
             args.idx = int(w//2+shift)
         z = utils.read_tiff(
-            f'{dirname}_{args.rec_type}/{basename}_rec/r_{args.idz:05}.tiff').copy()
+            f'{dirname}_{args.rec_type}/{basename}_rec/{rec_prefix}_{args.idz:05}.tiff').copy()
         # read x,y slices by lines
         y = np.zeros((h, w), dtype='float32')
         x = np.zeros((h, w), dtype='float32')
         for j in range(h):
             zz = utils.read_tiff(
-                f'{dirname}_{args.rec_type}/{basename}_rec/r_{j:05}.tiff')
+                f'{dirname}_{args.rec_type}/{basename}_rec/{rec_prefix}_{j:05}.tiff')
             y[j, :] = zz[args.idy]
             x[j, :] = zz[:, args.idx]
         recon = [x,y,z]
         log.info('Adding reconstruction')
     except:
         log.warning('Skipping reconstruction')
-        print(f'{dirname}_{args.rec_type}/{basename}_rec/r_00000.tiff')
+        print(f'{dirname}_{args.rec_type}/{basename}_rec/{rec_prefix}_00000.tiff')
     return recon
 
 

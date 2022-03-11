@@ -86,24 +86,25 @@ class TomoLog():
         self.snippets.create_textbox_with_bullets(
             presentation_id, page_id, descr, 240, 200, 0, 27, 8)
 
-        # publish projection label(s)
-        self.snippets.create_textbox_with_text(
-            presentation_id, page_id, 'Nano-CT projection', 30, 100, 60, 255, 8)
-        self.snippets.create_textbox_with_text(
-            presentation_id, page_id, 'Micro-CT projection', 30, 100, 60, 375, 8)
-                # publish projections
-
         # publish projection(s)
         proj = reads.read_raw(args)
         # print(proj)   
+
         if(args.beamline == '32-id'):
+            # publish projection label(s)
+            self.snippets.create_textbox_with_text(
+                presentation_id, page_id, 'Nano-CT projection', 30, 100, 60, 255, 8)
+            self.snippets.create_textbox_with_text(
+                presentation_id, page_id, 'Micro-CT projection', 30, 100, 60, 375, 8)
+
+        for i in range(len(proj)):
+            fname = FILE_NAME_PROJ+str(i)+'.jpg'
             # 32-id datasets include both micro and nano CT data
-            for i in range(len(proj)):
-                fname = FILE_NAME_PROJ+str(i)+'.jpg'
-                # self.publish_projection(args, meta, fname, proj[i], presentation_id, page_id, 210, 210, 0, 100+i*125)
+            if(args.beamline == '32-id'):
                 self.publish_projection(args, meta, fname, proj[i], presentation_id, page_id, i)
-        else:
-            print('to be completed for micro CT only')
+            else:
+                self.publish_projection(args, meta, fname, proj[i], presentation_id, page_id, 1)
+
         # publish reconstruction label
         self.snippets.create_textbox_with_text(
             presentation_id, page_id, 'Reconstruction', 30, 150, 270, 0, 10)
