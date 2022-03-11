@@ -11,8 +11,6 @@ from googleapiclient.discovery import build
 from tomolog_cli import log
 from tomolog_cli import google_snippets
 
-# log = logging.getLogger(__name__)
-
 def drop_box(token_fname):
 
     log.info('Establishing connection to dropbox')

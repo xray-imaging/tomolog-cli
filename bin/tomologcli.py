@@ -9,8 +9,6 @@ from tomolog_cli import log
 from tomolog_cli import config
 from tomolog_cli import TomoLog
 
-# log = logging.getLogger(__name__)
-
 
 def init(args):
     if not os.path.exists(str(args.config)):
@@ -86,8 +84,6 @@ def main():
         cmd_parser.set_defaults(_func=func)
 
     args = config.parse_known_args(parser, subparser=True)
-
-
 
     # make sure token directory exists
     token_home = args.token_home

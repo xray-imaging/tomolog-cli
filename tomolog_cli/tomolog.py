@@ -23,8 +23,6 @@ FILE_NAME_RECON = 'reconstruction_google.jpg'
 DROPBOX_TOKEN   = os.path.join(str(pathlib.Path.home()), 'tokens', 'dropbox_token.json')
 GOOGLE_TOKEN    = os.path.join(str(pathlib.Path.home()), 'tokens', 'google_token.json')
 
-# log = logging.getLogger(__name__)
-
 class TomoLog():
     def __init__(self):
 

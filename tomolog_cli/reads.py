@@ -12,8 +12,6 @@ __docformat__ = 'restructuredtext en'
 __all__ = ['read_scan_info', 'read_raw', 'read_recon']
 
 
-# log = logging.getLogger(__name__)
-
 def read_scan_info(args):
     '''Read acquistion parameters
     '''
@@ -87,6 +85,4 @@ def read_recon(args, meta):
     except:
         log.warning('Skipping reconstruction')
     return recon
-
-
 

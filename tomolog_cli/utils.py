@@ -12,8 +12,6 @@ TEE = "├──"
 PIPE_PREFIX = "│   "
 SPACE_PREFIX = "    "
 
-# log = logging.getLogger(__name__)
-
 
 def find_min_max(data, scale):
     """Find min and max values according to histogram"""

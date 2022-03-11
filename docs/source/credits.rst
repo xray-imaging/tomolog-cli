@@ -13,8 +13,6 @@ Cite :cite:`Gursoy:14b` if you use `tomopy <https://tomopy.readthedocs.io/en/lat
 
 Cite :cite:`DeCarlo:14a` if you use `DataExchange <https://dxchange.readthedocs.io/en/latest/>`_
 
-
-
 .. bibliography:: bibtex/cite.bib
    :style: plain
    :labelprefix: A
