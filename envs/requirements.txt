@@ -4,3 +4,5 @@ dropbox
 matplotlib
 pyepics
 python-dotenv
+h5py
+tifffile
