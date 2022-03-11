@@ -17,7 +17,8 @@ __docformat__ = 'restructuredtext en'
 __all__ = ['TomoLog',]
 
 # tmp files to be created in dropbox
-FILE_NAME_PROJ  = 'projection_google'
+FILE_NAME_PROJ0  = 'projection_google0'
+FILE_NAME_PROJ1  = 'projection_google1'
 FILE_NAME_RECON = 'reconstruction_google.jpg'
 
 DROPBOX_TOKEN   = os.path.join(str(pathlib.Path.home()), 'tokens', 'dropbox_token.json')
@@ -94,14 +95,18 @@ class TomoLog():
         proj = reads.read_raw(args)
         # print(proj)   
 
-        # publish projection(s)
-        for i in range(len(proj)):
-            fname = FILE_NAME_PROJ+str(i)+'.jpg'
+        if(args.beamline == '32-id'):
             # 32-id datasets include both micro and nano CT data
-            if(args.beamline == '32-id'):
-                self.publish_projection(args, meta, fname, proj[i], presentation_id, page_id, i)
-            else:
-                self.publish_projection(args, meta, fname, proj[i], presentation_id, page_id, 1)
+            fname = FILE_NAME_PROJ0+'.jpg'
+            self.publish_projection(args, meta, fname, proj[0], presentation_id, page_id, instrument='nanoCT')
+            try:
+                fname = FILE_NAME_PROJ1+'.jpg'
+                self.publish_projection(args, meta, fname, proj[1], presentation_id, page_id, instrument='microCT')
+            except:
+                log.warning('No microCT data available')
+        else:
+            fname = FILE_NAME_PROJ1+'.jpg'
+            self.publish_projection(args, meta, fname, proj[0], presentation_id, page_id, instrument='microCT')
 
         # publish reconstruction label
         self.snippets.create_textbox_with_text(
@@ -113,24 +118,27 @@ class TomoLog():
         # publish reconstructions
         if len(recon) == 3:
             # prepare reconstruction
-            plots.plot_recon(args, meta, recon, FILE_NAME_RECON)
+            if(args.beamline == '32-id'):
+                scalebar = 10
+            else:
+                scalebar = 100
+            plots.plot_recon(args, meta, recon, FILE_NAME_RECON, scalebar)
             with open(FILE_NAME_RECON, 'rb') as f:
-                self.dbx.files_upload(
-                    f.read(), '/'+FILE_NAME_RECON, dropbox.files.WriteMode.overwrite)
+                self.dbx.files_upload(f.read(), '/'+FILE_NAME_RECON, dropbox.files.WriteMode.overwrite)
             recon_url = self.dbx.files_get_temporary_link('/'+FILE_NAME_RECON).link            
-            self.snippets.create_image(
-                presentation_id, page_id, recon_url, 370, 370, 130, 30)
+            self.snippets.create_image(presentation_id, page_id, recon_url, 370, 370, 130, 30)
 
         # publish other labels
         self.snippets.create_textbox_with_text(
             presentation_id, page_id, 'Other info/screenshots', 30, 230, 480, 0, 10)
 
-    def publish_projection(self, args, meta, fname, proj, presentation_id, page_id, i):
-        plots.plot_projection(args, meta, proj, fname, i)
+    def publish_projection(self, args, meta, fname, proj, presentation_id, page_id, instrument):
+        plots.plot_projection(args, meta, proj, fname, instrument)
         with open(fname, 'rb') as f:
-            self.dbx.files_upload(
-                f.read(), '/'+fname, dropbox.files.WriteMode.overwrite)
-            proj_url = self.dbx.files_get_temporary_link('/'+fname).link            
-            self.snippets.create_image(
-                presentation_id, page_id, proj_url, 210, 210, 0, 100+i*125)
+            self.dbx.files_upload(f.read(), '/'+fname, dropbox.files.WriteMode.overwrite)
+            proj_url = self.dbx.files_get_temporary_link('/'+fname).link
+            if instrument == 'nanoCT':          
+                self.snippets.create_image(presentation_id, page_id, proj_url, 210, 210, 0, 100)
+            else:
+                self.snippets.create_image(presentation_id, page_id, proj_url, 210, 210, 0, 225)
 

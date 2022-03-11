@@ -7,7 +7,7 @@ from mpl_toolkits.axes_grid1 import make_axes_locatable
 from tomolog_cli import utils
 
 
-def plot_projection(args, meta, proj, file_name, i):
+def plot_projection(args, meta, proj, file_name, instrument='nanoCT'):
     '''Plot the first projection with a scalebar and colorbar, and save it to FILENAME_PROJ
     '''
     pixel_size    = 'measurement_instrument_detector_pixel_size'
@@ -31,7 +31,8 @@ def plot_projection(args, meta, proj, file_name, i):
     fig = plt.figure(constrained_layout=True, figsize=(6, 4))
     ax = fig.add_subplot()
     im = ax.imshow(proj, cmap='gray')
-    if i==0:
+    # scale bar
+    if instrument=='nanoCT':
         ax.plot([width*8.7/10, width*8.7/10+10000/resolution],
                 [height*9.5/10, height*9.5/10], 'r')
         txt = ax.text(width*8.7/10, height *
@@ -51,20 +52,25 @@ def plot_projection(args, meta, proj, file_name, i):
     plt.savefig(file_name, bbox_inches='tight', pad_inches=0, dpi=300)
 
 
-def plot_recon(args, meta, recon, file_name):
+def plot_recon(args, meta, recon, file_name, scalebar=10):
     '''Plot orthoslices with scalebars and colorbars, and save the figure as FILENAME_RECON
     '''
 
-    data_size     = 'exchange_data'
-    binning_label = 'measurement_instrument_detector_binning_x'
-    resolution    = 'measurement_instrument_detection_system_objective_resolution'
 
-    dims          = meta[data_size][0].replace("(", "").replace(")", "").split(',')
-    width         = int(dims[2])
-    height        = int(dims[1])
-    binning       = int(meta[binning_label][0])
-    resolution    = float(meta[resolution][0])
+    data_size        = 'exchange_data'
+    binning_label    = 'measurement_instrument_detector_binning_x'
+    resolution_label = 'measurement_instrument_detection_system_objective_resolution'
 
+    dims             = meta[data_size][0].replace("(", "").replace(")", "").split(',')
+    width            = int(dims[2])
+    height           = int(dims[1])
+    binning          = int(meta[binning_label][0])
+    resolution       = float(meta[resolution_label][0])
+    resolution_units = meta[resolution_label][1]
+
+    if resolution_units == 'microns':
+        resolution = resolution*1000
+    
     fig = plt.figure(constrained_layout=True, figsize=(6, 12))
     grid = fig.add_gridspec(3, 1, height_ratios=[
                             1, 1, width/height])
@@ -74,7 +80,6 @@ def plot_recon(args, meta, recon, file_name):
     if args.min==args.max:
         args.min, args.max = utils.find_min_max(np.concatenate(recon), args.scale)
 
-    scalebar = 10  # um
     # plot 3 slices in a column
     w = width//binning
     h = height//binning
