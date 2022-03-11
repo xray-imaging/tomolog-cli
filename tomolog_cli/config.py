@@ -89,14 +89,6 @@ SECTIONS['file-reading'] = {
         'type': Path,
         'help': "Name of the hdf file",
         'metavar': 'PATH'},
-    'PV-prefix': {
-        'default': '32idcSP1:',
-        'type': str,
-        'help': "PV prefix for camera"},
-    'presentation-url': {
-        'default': None,
-        'type': str,
-        'help': "Google presention url"},
 }
 
 SECTIONS['parameters'] = {
@@ -134,6 +126,14 @@ SECTIONS['parameters'] = {
         'type': str,
         'help': "Specify the prefix of the recon folder",
         'choices': ['recgpu','rec']},
+    'PV-prefix': {
+        'default': '32idcSP1:',
+        'type': str,
+        'help': "PV prefix for camera"},
+    'presentation-url': {
+        'default': None,
+        'type': str,
+        'help': "Google presention url"},
 }
 
 PARAMS = ('file-reading', 'parameters')
