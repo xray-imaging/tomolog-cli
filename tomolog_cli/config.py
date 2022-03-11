@@ -72,7 +72,8 @@ SECTIONS['general'] = {
         'default': TOKEN_HOME,
         'type': str,
         'help': "Token file directory",
-        'metavar': 'FILE'},    'verbose': {
+        'metavar': 'FILE'},    
+    'verbose': {
         'default': False,
         'help': 'Verbose output',
         'action': 'store_true'},

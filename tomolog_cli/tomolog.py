@@ -63,16 +63,15 @@ class TomoLog():
         meta = reads.read_scan_info(args)
         # print(meta)
 
-        # title
+        # publish title
         full_file_name = meta[self.full_file_name][0]
-        # self.snippets.create_textbox_with_text(presentation_id, page_id, file_name, 50, 400, 0, 0, 18)  # magnitude
         self.snippets.create_textbox_with_text(presentation_id, page_id, os.path.basename(
-            full_file_name)[:-3], 50, 400, 0, 0, 18)  # magnitude
+            full_file_name)[:-3], 50, 400, 0, 0, 18)
         dims          = meta['exchange_data'][0].replace("(", "").replace(")", "").split(',')
         width         = dims[2]
         height        = dims[1]
 
-        # publish labels and scan info in the new slide
+        # publish scan info
         descr =  f"Particle description: {meta[self.description_1][0]} {meta[self.description_2][0]} {meta[self.description_3][0]}\n"
         descr += f"Scan date: {meta[self.date][0]}\n"
         descr += f"Scan energy: {meta[self.energy][0]} {meta[self.energy][1]}\n"
@@ -86,17 +85,18 @@ class TomoLog():
         self.snippets.create_textbox_with_bullets(
             presentation_id, page_id, descr, 240, 200, 0, 27, 8)
 
-        # publish projection(s)
-        proj = reads.read_raw(args)
-        # print(proj)   
-
+        # publish projection label(s)
         if(args.beamline == '32-id'):
-            # publish projection label(s)
             self.snippets.create_textbox_with_text(
                 presentation_id, page_id, 'Nano-CT projection', 30, 100, 60, 255, 8)
             self.snippets.create_textbox_with_text(
                 presentation_id, page_id, 'Micro-CT projection', 30, 100, 60, 375, 8)
+        
+        # read projection(s)
+        proj = reads.read_raw(args)
+        # print(proj)   
 
+        # publish projection(s)
         for i in range(len(proj)):
             fname = FILE_NAME_PROJ+str(i)+'.jpg'
             # 32-id datasets include both micro and nano CT data
@@ -108,8 +108,11 @@ class TomoLog():
         # publish reconstruction label
         self.snippets.create_textbox_with_text(
             presentation_id, page_id, 'Reconstruction', 30, 150, 270, 0, 10)
-        # publish reconstructions
+
+        # read reconstructions
         recon = reads.read_recon(args, meta)    
+
+        # publish reconstructions
         if len(recon) == 3:
             # prepare reconstruction
             plots.plot_recon(args, meta, recon, FILE_NAME_RECON)

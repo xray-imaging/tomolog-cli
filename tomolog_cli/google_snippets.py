@@ -35,7 +35,7 @@ class SlidesSnippets(object):
         }
         response = slides_service.presentations().batchUpdate(presentationId=presentation_id, body=body).execute()
         create_slide_response = response.get('replies')[0].get('createSlide')
-        print('Created slide with ID: {0}'.format(
+        log.info('Created slide with ID: {0}'.format(
             create_slide_response.get('objectId')))
         return response
     
@@ -97,7 +97,7 @@ class SlidesSnippets(object):
         response = slides_service.presentations() \
             .batchUpdate(presentationId=presentation_id, body=body).execute()
         create_shape_response = response.get('replies')[0].get('createShape')
-        print('Created textbox with ID: {0}'.format(
+        log.info('Created textbox with ID: {0}'.format(
             create_shape_response.get('objectId')))
         # [END slides_create_textbox_with_text]
         return response    
@@ -169,7 +169,7 @@ class SlidesSnippets(object):
         response = slides_service.presentations() \
             .batchUpdate(presentationId=presentation_id, body=body).execute()
         create_shape_response = response.get('replies')[0].get('createShape')
-        print('Created textbox bullets with ID: {0}'.format(
+        log.info('Created textbox bullets with ID: {0}'.format(
             create_shape_response.get('objectId')))
         return response            
     
@@ -208,7 +208,7 @@ class SlidesSnippets(object):
         response = slides_service.presentations() \
             .batchUpdate(presentationId=presentation_id, body=body).execute()
         create_image_response = response.get('replies')[0].get('createImage')
-        print('Created image with ID: {0}'.format(
+        log.info('Created image with ID: {0}'.format(
         create_image_response.get('objectId')))        
         return response
 

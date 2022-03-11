@@ -86,7 +86,6 @@ def read_recon(args, meta):
         log.info('Adding reconstruction')
     except:
         log.warning('Skipping reconstruction')
-        print(f'{dirname}_{args.rec_type}/{basename}_rec/{rec_prefix}_00000.tiff')
     return recon
 
 

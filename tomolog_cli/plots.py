@@ -27,7 +27,6 @@ def plot_projection(args, meta, proj, file_name, i):
     proj[proj > mmax] = mmax
     proj[proj < mmin] = mmin
 
-
     # plot
     fig = plt.figure(constrained_layout=True, figsize=(6, 4))
     ax = fig.add_subplot()

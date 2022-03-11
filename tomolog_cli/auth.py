@@ -15,7 +15,7 @@ log = logging.getLogger(__name__)
 
 def drop_box(token_fname):
 
-    log.info('establishing connection to dropbox')
+    log.info('Establishing connection to dropbox')
     try:
         with open(token_fname) as f:
             token = json.loads(json.load(f))
@@ -26,6 +26,7 @@ def drop_box(token_fname):
             with open('tmp.txt','rb') as fid:
                 dbx.files_upload(
                     fid.read(), '/tmp.txt', dropbox.files.WriteMode.overwrite)
+            log.info('Connection to dropbox: OK')
             return dbx
     except FileNotFoundError:
         log.error('Dropbox token file not found at %s' % token_fname)
@@ -70,17 +71,17 @@ def drop_box(token_fname):
         with open(token_fname) as f:
             token = json.loads(json.load(f))
             dbx = dropbox.Dropbox(token['access_token'])
-            log.info('connected to dropbox: OK')
+            log.info('Connection to dropbox: OK')
             return dbx
 
 def google(token_fname):
 
-    log.info('establishing connection to google')
+    log.info('Establishing connection to google')
     try:
         creds = service_account.Credentials.from_service_account_file(token_fname).with_scopes(['https://www.googleapis.com/auth/presentations'])
         slides = build('slides', 'v1', credentials=creds)
         snippets = google_snippets.SlidesSnippets(slides, creds)
-        log.info('connected to google: OK')
+        log.info('Connection to google: OK')
         return snippets
     except FileNotFoundError:
         log.error('Google token file not found at %s' % token_fname)

@@ -15,6 +15,7 @@ def init(args):
     if not os.path.exists(str(args.config)):
         config.write(args.config)
     else:
+        print("{0} already exists".format(args.config))
         log.error("{0} already exists".format(args.config))
 
 
@@ -46,7 +47,8 @@ def run_log(args):
             log.error("directory %s does not contain any file" % args.file_name)
     else:
         log.error("directory or File Name does not exist: %s" % args.file_name)
- 
+
+    config.write(args.config, args, sections=config.PARAMS)
 
 def main():
     parser = argparse.ArgumentParser()
