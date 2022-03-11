@@ -11,7 +11,7 @@ from copy import copy
 from pathlib import Path
 from collections import OrderedDict
 
-log = logging.getLogger(__name__)
+# log = logging.getLogger(__name__)
 
 LOGS_HOME = os.path.join(str(pathlib.Path.home()), 'logs')
 CONFIG_FILE_NAME = os.path.join(str(pathlib.Path.home()), 'logs', 'tomolog.conf')

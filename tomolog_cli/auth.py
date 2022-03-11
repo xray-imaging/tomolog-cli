@@ -8,10 +8,10 @@ from dotenv import load_dotenv
 from google.oauth2 import service_account
 from googleapiclient.discovery import build
 
-from tomolog_cli import logging
+from tomolog_cli import log
 from tomolog_cli import google_snippets
 
-log = logging.getLogger(__name__)
+# log = logging.getLogger(__name__)
 
 def drop_box(token_fname):
 

@@ -1,14 +1,15 @@
-import sys
-import argparse
 import os
-from pathlib import Path
+import sys
+import pathlib 
+import argparse
+
 from datetime import datetime
 
-from tomolog_cli import logging
+from tomolog_cli import log
 from tomolog_cli import config
 from tomolog_cli import TomoLog
 
-log = logging.getLogger(__name__)
+# log = logging.getLogger(__name__)
 
 
 def init(args):
@@ -25,7 +26,7 @@ def run_status(args):
 def run_log(args):
 
     log.warning('publication start')
-    file_path = Path(args.file_name)
+    file_path = pathlib.Path(args.file_name)
     if file_path.is_file():
         log.info("publishing a single file: %s" % args.file_name)
         TomoLog().run_log(args)
@@ -50,6 +51,21 @@ def run_log(args):
     config.write(args.config, args, sections=config.PARAMS)
 
 def main():
+
+    # make sure logs directory exists
+    logs_home = os.path.join(str(pathlib.Path.home()), 'logs')
+
+    # logs_home = args.logs_home
+    if not os.path.exists(logs_home):
+        os.makedirs(logs_home)
+
+    lfname = os.path.join(logs_home, 'tomolog_' +
+                          datetime.strftime(datetime.now(), "%Y-%m-%d_%H_%M_%S") + '.log')
+    # log_level = 'DEBUG' if args.verbose else "INFO"
+    log.setup_custom_logger(lfname)
+    log.info("Started tomolog")
+    log.info("Saving log at %s" % lfname)
+
     parser = argparse.ArgumentParser()
     parser.add_argument('--config', **config.SECTIONS['general']['config'])
     params = config.PARAMS
@@ -71,22 +87,12 @@ def main():
 
     args = config.parse_known_args(parser, subparser=True)
 
-    # make sure logs directory exists
-    logs_home = args.logs_home
-    if not os.path.exists(logs_home):
-        os.makedirs(logs_home)
+
 
     # make sure token directory exists
     token_home = args.token_home
     if not os.path.exists(token_home):
         os.makedirs(token_home)
-
-    lfname = os.path.join(logs_home, 'tomolog_' +
-                          datetime.strftime(datetime.now(), "%Y-%m-%d_%H_%M_%S") + '.log')
-    log_level = 'DEBUG' if args.verbose else "INFO"
-    logging.setup_custom_logger(lfname, level=log_level)
-    log.debug("Started tomolog")
-    log.info("Saving log at %s" % lfname)
 
     try:
         args._func(args)

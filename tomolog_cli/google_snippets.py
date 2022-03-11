@@ -1,9 +1,9 @@
 import uuid
 import time
 
-from tomolog_cli import logging
+from tomolog_cli import log
 
-log = logging.getLogger(__name__)
+# log = logging.getLogger(__name__)
 
 
 class SlidesSnippets(object):

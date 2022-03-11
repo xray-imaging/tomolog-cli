@@ -3,7 +3,7 @@ import h5py
 
 import numpy as np
 
-from tomolog_cli import logging
+from tomolog_cli import log
 from tomolog_cli import utils
 
 __author__ = "Viktor Nikitin"
@@ -12,7 +12,7 @@ __docformat__ = 'restructuredtext en'
 __all__ = ['read_scan_info', 'read_raw', 'read_recon']
 
 
-log = logging.getLogger(__name__)
+# log = logging.getLogger(__name__)
 
 def read_scan_info(args):
     '''Read acquistion parameters
