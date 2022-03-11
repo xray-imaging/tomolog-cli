@@ -15,7 +15,6 @@ def init(args):
     if not os.path.exists(str(args.config)):
         config.write(args.config)
     else:
-        print("{0} already exists".format(args.config))
         log.error("{0} already exists".format(args.config))
 
 
