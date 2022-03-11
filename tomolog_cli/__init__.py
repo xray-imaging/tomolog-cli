@@ -9,6 +9,7 @@ except DistributionNotFound:
 from tomolog_cli.config import *
 from tomolog_cli.logging import *
 from tomolog_cli.auth import *
+from tomolog_cli.google_snippets import *
 from tomolog_cli.plots import *
 from tomolog_cli.reads import *
 from tomolog_cli.tomolog import *
