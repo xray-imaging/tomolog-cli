@@ -7,20 +7,24 @@ from mpl_toolkits.axes_grid1 import make_axes_locatable
 from tomolog_cli import utils
 
 
-def plot_projection(args, meta, proj, file_name, instrument='nanoCT'):
+def plot_projection(args, meta, proj, file_name, scalebar=10):
     '''Plot the first projection with a scalebar and colorbar, and save it to FILENAME_PROJ
     '''
-    pixel_size    = 'measurement_instrument_detector_pixel_size'
-    magnification = 'measurement_instrument_detection_system_objective_camera_objective'
-    resolution    = 'measurement_instrument_detection_system_objective_resolution'
-    data_size     = 'exchange_data'
+    pixel_size_key    = 'measurement_instrument_detector_pixel_size'
+    magnification_key = 'measurement_instrument_detection_system_objective_camera_objective'
+    resolution_key    = 'measurement_instrument_detection_system_objective_resolution'
+    data_size_key     = 'exchange_data'
 
-    dims          = meta[data_size][0].replace("(", "").replace(")", "").split(',')
-    width         = int(dims[2])
-    height        = int(dims[1])
-    resolution    = float(meta[resolution][0])
-    pixel_size    = float(meta[pixel_size][0])
-    magnification = float(meta[magnification][0].replace("x", ""))
+    dims             = meta[data_size_key][0].replace("(", "").replace(")", "").split(',')
+    width            = int(dims[2])
+    height           = int(dims[1])
+    resolution       = float(meta[resolution_key][0])
+    resolution_units = float(meta[resolution_key][0])
+    pixel_size       = float(meta[pixel_size_key][0])
+    magnification    = float(meta[magnification_key][0].replace("x", ""))
+
+    if resolution_units == 'microns':
+        resolution = resolution*1000
 
     # auto-adjust colorbar values according to a histogram
     mmin, mmax = utils.find_min_max(proj, 0.005)
@@ -32,16 +36,15 @@ def plot_projection(args, meta, proj, file_name, instrument='nanoCT'):
     ax = fig.add_subplot()
     im = ax.imshow(proj, cmap='gray')
     # scale bar
-    if instrument=='nanoCT':
-        ax.plot([width*8.7/10, width*8.7/10+10000/resolution],
-                [height*9.5/10, height*9.5/10], 'r')
-        txt = ax.text(width*8.7/10, height *
-                      9.1/10, '10um', color='red', fontsize=14)
-    else:
-        ax.plot([width*8.7/10, width*8.7/10+100/(pixel_size /
-                magnification)], [height*9.5/10, height*9.5/10], 'r')
-        txt = ax.text(width*8.5/10, height *
-                      9.15/10, '100um', color='red', fontsize=14)
+    ax.plot([width*8.7/10, width*8.7/10+scalebar/resolution],
+            [height*9.5/10, height*9.5/10], 'r')
+    txt = ax.text(width*8.7/10, height *
+                  9.1/10, f'{scalebar}um', color='red', fontsize=14)
+    # else:
+    #     ax.plot([width*8.7/10, width*8.7/10+100/(pixel_size /
+    #             magnification)], [height*9.5/10, height*9.5/10], 'r')
+    #     txt = ax.text(width*8.5/10, height *
+    #                   9.15/10, '100um', color='red', fontsize=14)
 
     txt.set_path_effects([PathEffects.withStroke(linewidth=1, foreground='w')])
     divider = make_axes_locatable(ax)
@@ -55,18 +58,16 @@ def plot_projection(args, meta, proj, file_name, instrument='nanoCT'):
 def plot_recon(args, meta, recon, file_name, scalebar=10):
     '''Plot orthoslices with scalebars and colorbars, and save the figure as FILENAME_RECON
     '''
+    data_size_key    = 'exchange_data'
+    binning_key      = 'measurement_instrument_detector_binning_x'
+    resolution_key   = 'measurement_instrument_detection_system_objective_resolution'
 
-
-    data_size        = 'exchange_data'
-    binning_label    = 'measurement_instrument_detector_binning_x'
-    resolution_label = 'measurement_instrument_detection_system_objective_resolution'
-
-    dims             = meta[data_size][0].replace("(", "").replace(")", "").split(',')
+    dims             = meta[data_size_key][0].replace("(", "").replace(")", "").split(',')
     width            = int(dims[2])
     height           = int(dims[1])
-    binning          = int(meta[binning_label][0])
-    resolution       = float(meta[resolution_label][0])
-    resolution_units = meta[resolution_label][1]
+    binning          = int(meta[binning_key][0])
+    resolution       = float(meta[resolution_key][0])
+    resolution_units = meta[resolution_key][1]
 
     if resolution_units == 'microns':
         resolution = resolution*1000

@@ -98,15 +98,15 @@ class TomoLog():
         if(args.beamline == '32-id'):
             # 32-id datasets include both micro and nano CT data
             fname = FILE_NAME_PROJ0+'.jpg'
-            self.publish_projection(args, meta, fname, proj[0], presentation_id, page_id, instrument='nanoCT')
+            self.publish_projection(args, meta, fname, proj[0], presentation_id, page_id, scalebar=10)
             try:
                 fname = FILE_NAME_PROJ1+'.jpg'
-                self.publish_projection(args, meta, fname, proj[1], presentation_id, page_id, instrument='microCT')
+                self.publish_projection(args, meta, fname, proj[1], presentation_id, page_id, scalebar=100)
             except:
                 log.warning('No microCT data available')
         else:
             fname = FILE_NAME_PROJ1+'.jpg'
-            self.publish_projection(args, meta, fname, proj[0], presentation_id, page_id, instrument='microCT')
+            self.publish_projection(args, meta, fname, proj[0], presentation_id, page_id, scalebar=100)
 
         # publish reconstruction label
         self.snippets.create_textbox_with_text(
@@ -132,12 +132,12 @@ class TomoLog():
         self.snippets.create_textbox_with_text(
             presentation_id, page_id, 'Other info/screenshots', 30, 230, 480, 0, 10)
 
-    def publish_projection(self, args, meta, fname, proj, presentation_id, page_id, instrument):
-        plots.plot_projection(args, meta, proj, fname, instrument)
+    def publish_projection(self, args, meta, fname, proj, presentation_id, page_id, scalebar):
+        plots.plot_projection(args, meta, proj, fname, scalebar)
         with open(fname, 'rb') as f:
             self.dbx.files_upload(f.read(), '/'+fname, dropbox.files.WriteMode.overwrite)
             proj_url = self.dbx.files_get_temporary_link('/'+fname).link
-            if instrument == 'nanoCT':          
+            if scalebar == 10:          
                 self.snippets.create_image(presentation_id, page_id, proj_url, 210, 210, 0, 100)
             else:
                 self.snippets.create_image(presentation_id, page_id, proj_url, 210, 210, 0, 225)
