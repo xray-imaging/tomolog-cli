@@ -53,6 +53,8 @@ def plot_projection(args, meta, proj, file_name, scalebar=10):
     # plt.show()
     # save
     plt.savefig(file_name, bbox_inches='tight', pad_inches=0, dpi=300)
+    plt.cla()
+    plt.close(fig)
 
 
 def plot_recon(args, meta, recon, file_name, scalebar=10):
@@ -115,3 +117,5 @@ def plot_recon(args, meta, recon, file_name, scalebar=10):
     # plt.show()
     # save
     plt.savefig(file_name, bbox_inches='tight', pad_inches=0, dpi=300)
+    plt.cla()
+    plt.close(fig)
