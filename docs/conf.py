@@ -343,6 +343,7 @@ MOCK_MODULES = ['h5py',
                 'tifffile',
                 'epics',
                 'python-dotenv',
+                'matplotlib-scalebar',
                 ]
 
 for mod_name in MOCK_MODULES:

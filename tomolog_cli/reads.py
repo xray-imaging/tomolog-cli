@@ -26,10 +26,10 @@ def read_raw(args):
     proj = []
     with h5py.File(args.file_name) as fid:
         proj.append(fid['exchange/data'][0][:])
-        log.info('Adding CT projection')
+        log.info('Reading CT projection')
         try:
             proj.append(fid['exchange/data2'][0][:])
-            log.info('Adding microCT projection')
+            log.info('Reading microCT projection')
         except:            
             pass
 

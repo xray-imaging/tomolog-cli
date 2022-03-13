@@ -104,10 +104,6 @@ SECTIONS['parameters'] = {
         'type': int,
         'default': -1,
         'help': "Id of z slice for reconstruction visualization"},
-    'scale': {
-        'type': float,
-        'default': 0.01,
-        'help': "Colorbar histograms  scale for for reconstruction visualization"},
     'max': {
         'type': float,
         'default': 0.0,
