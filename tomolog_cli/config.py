@@ -1,16 +1,21 @@
+import os
 import sys
-from copy import copy
-from pathlib import Path
+import pathlib
+import logging
+import inspect
+import warnings
 import argparse
 import configparser
+
+from copy import copy
+from pathlib import Path
 from collections import OrderedDict
-import logging
-import warnings
-import inspect
 
+from tomolog_cli import log
 
-log = logging.getLogger(__name__)
-
+LOGS_HOME = os.path.join(str(pathlib.Path.home()), 'logs')
+CONFIG_FILE_NAME = os.path.join(str(pathlib.Path.home()), 'logs', 'tomolog.conf')
+TOKEN_HOME      = os.path.join(str(pathlib.Path.home()), 'tokens')
 
 def default_parameter(func, param):
     """Get the default value for a function parameter.
@@ -49,9 +54,6 @@ def default_parameter(func, param):
         return _param.default
 
 
-LOGS_HOME = Path.home()/'logs'
-CONFIG_FILE_NAME = Path.home()/'tomocupyon.conf'
-
 SECTIONS = OrderedDict()
 
 
@@ -66,6 +68,11 @@ SECTIONS['general'] = {
         'type': str,
         'help': "Log file directory",
         'metavar': 'FILE'},
+    'token-home': {
+        'default': TOKEN_HOME,
+        'type': str,
+        'help': "Token file directory",
+        'metavar': 'FILE'},    
     'verbose': {
         'default': False,
         'help': 'Verbose output',
@@ -74,6 +81,10 @@ SECTIONS['general'] = {
         'default': False,
         'help': 'When set, the content of the config file is updated using the current params values',
         'action': 'store_true'},
+    'double-fov': {
+        'default': False,
+        'action': 'store_true',
+        'help': "Set to true for 0-360 data sets"},
 }
 
 SECTIONS['file-reading'] = {
@@ -82,14 +93,6 @@ SECTIONS['file-reading'] = {
         'type': Path,
         'help': "Name of the hdf file",
         'metavar': 'PATH'},
-    'PV-prefix': {
-        'default': '32idcSP1:',
-        'type': str,
-        'help': "PV prefix for camera"},
-    'presentation-url': {
-        'default': None,
-        'type': str,
-        'help': "Google presention url"},
 }
 
 SECTIONS['parameters'] = {
@@ -105,10 +108,6 @@ SECTIONS['parameters'] = {
         'type': int,
         'default': -1,
         'help': "Id of z slice for reconstruction visualization"},
-    'scale': {
-        'type': float,
-        'default': 0.01,
-        'help': "Colorbar histograms  scale for for reconstruction visualization"},
     'max': {
         'type': float,
         'default': 0.0,
@@ -117,6 +116,24 @@ SECTIONS['parameters'] = {
         'type': float,
         'default': 0.0,
         'help': "Minimum threshold value for reconstruction visualization"},
+    'beamline': {
+        'default': '32-id',
+        'type': str,
+        'help': "Customized the goodle slide to the beamline selected",
+        'choices': ['None','2-bm', '7-bm', '32-id']},
+    'rec-type': {
+        'default': 'recgpu',
+        'type': str,
+        'help': "Specify the prefix of the recon folder",
+        'choices': ['recgpu','rec']},
+    'PV-prefix': {
+        'default': '32idcSP1:',
+        'type': str,
+        'help': "PV prefix for camera"},
+    'presentation-url': {
+        'default': None,
+        'type': str,
+        'help': "Google presention url"},
 }
 
 PARAMS = ('file-reading', 'parameters')

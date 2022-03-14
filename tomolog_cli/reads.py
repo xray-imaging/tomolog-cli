@@ -1,76 +1,103 @@
-
-from tomolog_cli import logging
-import dxchange
 import os
 import h5py
+
 import numpy as np
 
-log = logging.getLogger(__name__)
+from tomolog_cli import log
+from tomolog_cli import utils
 
-def read_scan_info(pars):
-    '''Read acquistion parameters and the first projection from an hdf5 file
+__author__ = "Viktor Nikitin"
+__copyright__ = "Copyright (c) 2022, UChicago Argonne, LLC."
+__docformat__ = 'restructuredtext en'
+__all__ = ['read_scan_info', 'read_raw', 'read_recon']
+
+
+def read_scan_info(args):
+    '''Read acquistion parameters
+    '''
+    _, meta = utils.read_hdf_meta(args.file_name, add_shape=True)
+
+    return meta
+
+
+def read_raw(args):
+    '''Read raw data from an hdf5 file
     '''
     proj = []
-    with h5py.File(pars['file_name']) as fid:
-        pars['energy'] = fid['measurement/instrument/monochromator/energy'][0]
-        pars['height'] = fid['exchange/data'].shape[1]
-        pars['width'] = fid['exchange/data'].shape[2]
-        pars['pixelsize'] = float(
-            fid['measurement/instrument/detector/pixel_size'][0])
-        pars['cameraobjective'] = float(
-            fid['measurement/instrument/detection_system/objective/camera_objective'][0])
-        pars['resolution'] = float(
-            fid['measurement/instrument/detection_system/objective/resolution'][0])
-        pars['ntheta'] = len(fid['exchange/theta'])
-        pars['exposure'] = fid['measurement/instrument/detector/exposure_time'][0]
-        pars['step'] = fid['exchange/theta'][1]-fid['exchange/theta'][0]
-        proj.append(fid['exchange/data'][0][:])
-        log.info('Adding nanoCT projection')
+    with h5py.File(args.file_name) as fid:
+        log.info('Reading CT projection')
+        if args.double_fov == True:
+            log.warning('hanling the data set as a double FOV')
+            image_0 = np.flip(fid['exchange/data'][0][:], axis=1)
+            image_1 = fid['exchange/data'][-1][:]
+            data = np.hstack((image_0, image_1))
+        else:
+            data = fid['exchange/data'][0][:]
+        proj.append(data)
+        log.info('Reading CT projection')
         try:
             proj.append(fid['exchange/data2'][0][:])
-            log.info('Adding microCT projection')
+            log.info('Reading microCT projection')
         except:            
-            log.warning('Skipping microCT projection')
-    
+            pass
     return proj
 
 
-def read_recon(pars):
-    '''Read reconstructed orho-slices
+def read_recon(args, meta):
+    '''Read reconstructed ortho-slices
     '''
 
+    data_size     = 'exchange_data'
+    binning       = 'measurement_instrument_detector_binning_x'
+
+    dims          = meta[data_size][0].replace("(", "").replace(")", "").split(',')
+    width         = int(dims[2])
+    height        = int(dims[1])
+    binning       = int(meta[binning][0])
+
     recon = []
+
     try:
-        basename = os.path.basename(pars['file_name'])[:-3]
-        dirname = os.path.dirname(pars['file_name'])
+        basename = os.path.basename(args.file_name)[:-3]
+        dirname = os.path.dirname(args.file_name)
         # shift from the middle
         shift = 0
         # read z slices
         # take size
-        tmp = dxchange.read_tiff(
-            f'{dirname}_recgpu/{basename}_rec/r_00000.tiff').copy()
-        pars['binning'] = pars['width']//tmp.shape[0]
-        w = pars['width']//pars['binning']
-        h = pars['height']//pars['binning']
+        rec_prefix = 'r'
+        if args.rec_type == 'rec':
+            rec_prefix = 'recon'
 
-        if pars['idz'] == -1:
-            pars['idz'] = int(h//2+shift)
-            pars['idy'] = int(w//2+shift)
-            pars['idx'] = int(w//2+shift)
-        idz = pars['idz']
-        z = dxchange.read_tiff(
-            f'{dirname}_recgpu/{basename}_rec/r_{idz:05}.tiff').copy()
+        top = os.path.join(dirname+'_'+args.rec_type, basename+'_rec')
+        tiff_file_list = list(filter(lambda x: x.endswith(('.tif', '.tiff')), os.listdir(top)))
+        # print(tiff_file_list[0])
+        z_start = int(tiff_file_list[0].split('.')[0].split('_')[1])
+        z_end   = int(tiff_file_list[-1].split('.')[0].split('_')[1]) + 1
+
+        height = z_end-z_start
+        fname_tmp = os.path.join(top, tiff_file_list[0])
+        tmp = utils.read_tiff(fname_tmp).copy()
+        w = width//binning
+        h = height//binning
+
+        args.idz = int(h//2+shift)
+        args.idy = int(w//2+shift)
+        args.idx = int(w//2+shift)
+
+        z = utils.read_tiff(
+            f'{dirname}_{args.rec_type}/{basename}_rec/{rec_prefix}_{args.idz:05}.tiff').copy()
         # read x,y slices by lines
         y = np.zeros((h, w), dtype='float32')
         x = np.zeros((h, w), dtype='float32')
-        for j in range(h):
-            zz = dxchange.read_tiff(
-                f'{dirname}_recgpu/{basename}_rec/r_{j:05}.tiff')
-            y[j, :] = zz[pars['idy']]
-            x[j, :] = zz[:, pars['idx']]
+        for j in range(z_start, z_end//binning):
+            zz = utils.read_tiff(
+                f'{dirname}_{args.rec_type}/{basename}_rec/{rec_prefix}_{j:05}.tiff')
+            y[j-z_start, :] = zz[args.idy]
+            x[j-z_start, :] = zz[:, args.idx]
+
         recon = [x,y,z]
         log.info('Adding reconstruction')
     except:
         log.warning('Skipping reconstruction')
-        
+
     return recon

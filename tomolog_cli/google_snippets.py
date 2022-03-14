@@ -1,6 +1,8 @@
-from __future__ import print_function
 import uuid
 import time
+
+from tomolog_cli import log
+
 
 class SlidesSnippets(object):
     def __init__(self, service, credentials):
@@ -31,7 +33,7 @@ class SlidesSnippets(object):
         }
         response = slides_service.presentations().batchUpdate(presentationId=presentation_id, body=body).execute()
         create_slide_response = response.get('replies')[0].get('createSlide')
-        print('Created slide with ID: {0}'.format(
+        log.info('Created slide with ID: {0}'.format(
             create_slide_response.get('objectId')))
         return response
     
@@ -93,7 +95,7 @@ class SlidesSnippets(object):
         response = slides_service.presentations() \
             .batchUpdate(presentationId=presentation_id, body=body).execute()
         create_shape_response = response.get('replies')[0].get('createShape')
-        print('Created textbox with ID: {0}'.format(
+        log.info('Created textbox with ID: {0}'.format(
             create_shape_response.get('objectId')))
         # [END slides_create_textbox_with_text]
         return response    
@@ -165,7 +167,7 @@ class SlidesSnippets(object):
         response = slides_service.presentations() \
             .batchUpdate(presentationId=presentation_id, body=body).execute()
         create_shape_response = response.get('replies')[0].get('createShape')
-        print('Created textbox bullets with ID: {0}'.format(
+        log.info('Created textbox bullets with ID: {0}'.format(
             create_shape_response.get('objectId')))
         return response            
     
@@ -204,49 +206,8 @@ class SlidesSnippets(object):
         response = slides_service.presentations() \
             .batchUpdate(presentationId=presentation_id, body=body).execute()
         create_image_response = response.get('replies')[0].get('createImage')
-        print('Created image with ID: {0}'.format(
+        log.info('Created image with ID: {0}'.format(
         create_image_response.get('objectId')))        
         return response
-            
-        
 
-    # def create_images(self, presentation_id, page_id, image_urls, magnitudex, magnitudey, posx, posy):
-    #     slides_service = self.service
-    #     # [START slides_create_image]
-    #     # Create a new image, using the supplied object ID,
-    #     print(image_urls)
-    #     requests = []
-    #     for k in range(len(image_urls)):
-    #         image_id = str(uuid.uuid4())
-    #         requests.append({
-    #             'createImage': {
-    #                 'objectId': image_id,
-    #                 'url': image_urls[k],
-    #                 'elementProperties': {
-    #                     'pageObjectId': page_id,
-    #                     'size': {
-    #                         'height': {'magnitude': magnitudey[k], 'unit': 'PT'},
-    #                         'width': {'magnitude': magnitudex[k], 'unit': 'PT'},
-    #                     },
-    #                     'transform': {
-    #                         'scaleX': 1,
-    #                         'scaleY': 1,
-    #                         'translateX': posx[k],
-    #                         'translateY': posy[k],
-    #                         'unit': 'PT'
-    #                     }
-    #                 }
-    #             }
-    #         })
-
-    #     # Execute the request.
-    #     body = {
-    #         'requests': requests
-    #     }
-    #     query = slides_service.presentations() \
-    #         .batchUpdate(presentationId=presentation_id, body=body)
-    #     response = query.execute()
-    #     create_image_response = response.get('replies')[0].get('createImage')
-    #     print('Created image with ID: {0}'.format(create_image_response.get('objectId')))        
-        
         

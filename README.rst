@@ -1,6 +1,6 @@
-==========
+===========
 tomolog-cli
-==========
-A command-line-interface for logging data in Google slides
+===========
 
-Documentation at: todo
+Documentation: at `tomolog cli <https://tomologcli.readthedocs.io/en/latest/>`_ 
+
