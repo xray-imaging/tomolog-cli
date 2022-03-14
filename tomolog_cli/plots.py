@@ -35,7 +35,7 @@ def plot_projection(proj, fname, resolution):
 
 
 
-def plot_recon(args, dims, recon, fname, resolution, binning):
+def plot_recon(args, dims, recon, fname, resolution):
     '''Plot orthoslices with scalebars and colorbars, and save the figure as FILENAME_RECON
     '''
     
@@ -51,9 +51,9 @@ def plot_recon(args, dims, recon, fname, resolution, binning):
     if args.min==args.max:
         args.min, args.max = utils.find_min_max(np.concatenate(recon), args.scale)
 
-    # plot 3 slices in a column
-    w = width//binning
-    h = height//binning
+    # # plot 3 slices in a column
+    # w = width//binning
+    # h = height//binning
 
     sl = [args.idx,args.idy,args.idz]#params['id'+slices[k]]
     for k in range(3):

@@ -84,7 +84,7 @@ class TomoLog():
         if meta[self.exposure_time_key][1] == None:
             log.warning('Exposure time units are missing assuming (s)')
             meta[self.exposure_time_key][1] = 's'
-        print(meta[self.exposure_time_key][1])
+
         # publish scan info
         descr =  f"Particle description: {meta[self.description_1_key][0]} {meta[self.description_2_key][0]} {meta[self.description_3_key][0]}\n"
         descr += f"Scan date: {meta[self.date_key][0]}\n"
@@ -133,14 +133,13 @@ class TomoLog():
 
         # read reconstructions
         recon = reads.read_recon(args, meta)    
-
         # publish reconstructions
         if len(recon) == 3:
             # prepare reconstruction
             if(args.beamline == '32-id'):
                 self.resolution = self.resolution / 1000.
-
-            plots.plot_recon(args, dims, recon, FILE_NAME_RECON, self.resolution, self.binning)
+            self.resolution = self.resolution * self.binning
+            plots.plot_recon(args, dims, recon, FILE_NAME_RECON, self.resolution)
             with open(FILE_NAME_RECON, 'rb') as f:
                 self.dbx.files_upload(f.read(), '/'+FILE_NAME_RECON, dropbox.files.WriteMode.overwrite)
             recon_url = self.dbx.files_get_temporary_link('/'+FILE_NAME_RECON).link            

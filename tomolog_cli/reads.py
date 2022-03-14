@@ -37,7 +37,7 @@ def read_raw(args):
 
 
 def read_recon(args, meta):
-    '''Read reconstructed orho-slices
+    '''Read reconstructed ortho-slices
     '''
 
     data_size     = 'exchange_data'
@@ -62,7 +62,6 @@ def read_recon(args, meta):
             rec_prefix = 'recon'
         tmp = utils.read_tiff(
             f'{dirname}_{args.rec_type}/{basename}_rec/{rec_prefix}_00000.tiff').copy()
-        binning = width//tmp.shape[0]
         w = width//binning
         h = height//binning
 
