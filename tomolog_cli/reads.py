@@ -13,7 +13,17 @@ __all__ = ['read_scan_info', 'read_raw', 'read_recon']
 
 
 def read_scan_info(args):
-    '''Read acquistion parameters
+    '''Read acquistion parameters from an hdf5 file
+
+    Parameters
+    ----------
+    args.file_name : string
+        The raw data tomography hdf file name
+
+    Returns
+    -------
+    meta
+        Dictionary containing all hdf file stored experiment meta data
     '''
     _, meta = utils.read_hdf_meta(args.file_name, add_shape=True)
 
@@ -22,6 +32,20 @@ def read_scan_info(args):
 
 def read_raw(args):
     '''Read raw data from an hdf5 file
+
+    Parameters
+    ----------
+    args.file_name : string
+        The raw data tomography hdf file name
+
+    Returns
+    -------
+    proj
+        list of ndarray(s) containing the first data set projection of 
+        each data set stored in the hdf file. Usually proj contains only
+        one image but in some nano CT measurement it may also contain 
+        a micro CT measurement of the same sample
+
     '''
     proj = []
     with h5py.File(args.file_name) as fid:
@@ -45,6 +69,26 @@ def read_raw(args):
 
 def read_recon(args, meta):
     '''Read reconstructed ortho-slices
+
+    Parameters
+    ----------
+    args.file_name : string
+        The raw data tomography hdf file name
+    args.rec_type
+        Prefix of the recon folder choices: recgpu,rec
+    args.idx
+        Id of x slice for reconstruction visualization
+    args.idy
+        Id of y slice for reconstruction visualization
+    args.idz
+        Id of z slice for reconstruction visualization
+    meta
+        Dictionary containing all hdf file stored experiment meta data    
+
+    Returns
+    -------
+    meta
+        Dictionary containing all hdf file stored experiment meta data
     '''
 
     data_size     = 'exchange_data'

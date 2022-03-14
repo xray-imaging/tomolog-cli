@@ -25,6 +25,10 @@ DROPBOX_TOKEN   = os.path.join(str(pathlib.Path.home()), 'tokens', 'dropbox_toke
 GOOGLE_TOKEN    = os.path.join(str(pathlib.Path.home()), 'tokens', 'google_token.json')
 
 class TomoLog():
+    '''
+    Class to publish experiment meta data, tomography projection and reconstruction on a 
+    google slide document.
+    '''
     def __init__(self):
 
         self.snippets  = auth.google(GOOGLE_TOKEN)
@@ -79,9 +83,6 @@ class TomoLog():
         full_file_name = meta[self.full_file_name_key][0]
         self.snippets.create_textbox_with_text(presentation_id, page_id, os.path.basename(
             full_file_name)[:-3], 50, 400, 0, 0, 18)
-        dims          = meta[self.data_size_key][0].replace("(", "").replace(")", "").split(',')
-        width         = int(dims[2])
-        height        = int(dims[1])
 
         if meta[self.exposure_time_key][1] == None:
             log.warning('Exposure time units are missing assuming (s)')

@@ -7,8 +7,19 @@ from mpl_toolkits.axes_grid1 import make_axes_locatable
 
 from tomolog_cli import utils
 
+
 def plot_projection(proj, fname, resolution):
-    '''Plot the first projection with a scalebar and colorbar, and save it to FILENAME_PROJ
+    '''Plot the a projection with a scalebar and colorbar and save the figure as fname
+
+    Parameters
+    ----------
+    proj : ndarray
+        2D projection
+    fname : str
+        File name where the plot will be saved
+    resolution : float
+        Pixel size used to generate the scalebar. Units is specified in um by
+        setting the ScaleBar units="um"
     '''
 
     # auto-adjust colorbar values according to a histogram
@@ -34,9 +45,24 @@ def plot_projection(proj, fname, resolution):
     plt.close(fig)
 
 
-
 def plot_recon(args, dims, recon, fname, resolution):
-    '''Plot orthoslices with scalebars and colorbars, and save the figure as FILENAME_RECON
+    '''Plot orthoslices with scalebars and colorbars and save the figure as fname
+
+    Parameters
+    ----------
+    args.min : float
+        Minimum threshold value for reconstruction visualization
+    args.max : float
+        Maximum threshold value for reconstruction visualization
+    dims : list
+        list containing the image width and height
+    recon : list
+        list contaiing 3 othrogonal slices through the sample
+    fname : str
+        File name where the plot will be saved
+    resolution : float
+        Pixel size used to generate the scalebar. Units is specified in um by
+        setting the ScaleBar units="um"
     '''
     
     width         = int(dims[2])
@@ -51,10 +77,6 @@ def plot_recon(args, dims, recon, fname, resolution):
     if args.min==args.max:
         args.min, args.max = utils.find_min_max(np.concatenate(recon), args.scale)
 
-    # # plot 3 slices in a column
-    # w = width//binning
-    # h = height//binning
-
     sl = [args.idx,args.idy,args.idz]#params['id'+slices[k]]
     for k in range(3):
         recon[k][recon[k] > args.max] = args.max
@@ -67,7 +89,6 @@ def plot_recon(args, dims, recon, fname, resolution):
         divider = make_axes_locatable(ax)
         cax = divider.append_axes("right", size="5%", pad=0.1)
         plt.colorbar(im, cax=cax)
-        #sl = params['id'+slices[k]]
         ax.set_ylabel(f'slice {slices[k]}={sl[k]}', fontsize=14)
 
     # plt.show()
