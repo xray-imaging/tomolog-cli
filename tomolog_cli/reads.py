@@ -42,6 +42,7 @@ def read_raw(args):
             pass
     return proj
 
+
 def read_recon(args, meta):
     '''Read reconstructed ortho-slices
     '''
@@ -91,3 +92,61 @@ def read_recon(args, meta):
         log.warning('Skipping reconstruction')
     return recon
 
+
+def read_recon_try(args, meta):
+    '''Read reconstructed ortho-slices
+    '''
+
+    data_size     = 'exchange_data'
+    binning       = 'measurement_instrument_detector_binning_x'
+
+    dims          = meta[data_size][0].replace("(", "").replace(")", "").split(',')
+    width         = int(dims[2])
+    height        = int(dims[1])
+    binning       = int(meta[binning][0])
+
+    recon = []
+
+    # try:
+    if 0==0:
+        basename = os.path.basename(args.file_name)[:-3]
+        dirname = os.path.dirname(args.file_name)
+        # shift from the middle
+        shift = 0
+        # read z slices
+        # take size
+        rec_prefix = 'r'
+        if args.rec_type == 'rec':
+            rec_prefix = 'recon'
+
+        top = os.path.join(dirname+'_'+args.rec_type, basename+'_rec')
+        tiff_file_list = list(filter(lambda x: x.endswith(('.tif', '.tiff')), os.listdir(top)))
+        print(len(tiff_file_list))
+        print(height)
+        height = len(tiff_file_list)
+        # exit()
+        fname_tmp = os.path.join(top, tiff_file_list[0])
+        tmp = utils.read_tiff(fname_tmp).copy()
+        w = width//binning
+        h = height//binning
+
+        # if args.idz == -1:
+        if 0==0:
+            args.idz = int(h//2+shift)
+            args.idy = int(w//2+shift)
+            args.idx = int(w//2+shift)
+        z = utils.read_tiff(
+            f'{dirname}_{args.rec_type}/{basename}_rec/{rec_prefix}_{args.idz:05}.tiff').copy()
+        # read x,y slices by lines
+        y = np.zeros((h, w), dtype='float32')
+        x = np.zeros((h, w), dtype='float32')
+        for j in range(h):
+            zz = utils.read_tiff(
+                f'{dirname}_{args.rec_type}/{basename}_rec/{rec_prefix}_{j:05}.tiff')
+            y[j, :] = zz[args.idy]
+            x[j, :] = zz[:, args.idx]
+        recon = [x,y,z]
+        log.info('Adding reconstruction')
+    # except:
+    #     log.warning('Skipping reconstruction')
+    return recon
