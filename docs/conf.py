@@ -328,22 +328,24 @@ class Mock(object):
         return Mock()
 
 MOCK_MODULES = ['h5py',
+                'uuid',
                 'numpy',
+                'epics',
+                'dotenv',
                 'dropbox',
+                'tifffile',
+                'mpl_toolkits',
+                'mpl_toolkits.axes_grid1',
                 'matplotlib',
                 'matplotlib.pyplot',
+                'matplotlib-scalebar',
+                'matplotlib_scalebar',
                 'matplotlib.patheffects',
-                'uuid',
-                'mpl_toolkits',
+                'matplotlib_scalebar.scalebar',
                 'google',
                 'googleapiclient',
                 'google.oauth2',
-                'mpl_toolkits.axes_grid1',
-                'googleapiclient.discovery',
-                'tifffile',
-                'epics',
-                'python-dotenv',
-                'matplotlib-scalebar',
+                'googleapiclient.discovery',                
                 ]
 
 for mod_name in MOCK_MODULES:

@@ -1,9 +1,9 @@
-google-api-python-client
-google-auth-oauthlib
+h5py
 dropbox
+pyepics
+tifffile
+python-dotenv
+google-auth-oauthlib
+google-api-python-client
 matplotlib
 matplotlib-scalebar
-pyepics
-python-dotenv
-h5py
-tifffile

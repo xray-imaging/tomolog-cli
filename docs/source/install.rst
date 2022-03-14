@@ -27,5 +27,5 @@ and install tomolog
 Requirements
 ============
 
-Please install all the packases listed in `requirements file <https://github.com/nikitinvv/tomolog-cli/blob/main/env/requirements.txt>`_. 
+Please install all the packases listed in `requirements file <https://github.com/nikitinvv/tomolog-cli/blob/main/envs/requirements.txt>`_. 
 

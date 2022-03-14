@@ -2,7 +2,7 @@
 tomolog-cli
 ===========
 
-**tomolog-cli** is a command-line-interface for logging experiment data in a Google slides
+**tomolog-cli** is a command-line-interface for publishing tomography experiment data and meta data in a stack of Google slides
 
 .. image:: source/img/slide_00.png
    :width: 720px
