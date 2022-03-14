@@ -45,6 +45,8 @@ class TomoLog():
         self.num_angle_key      = 'process_acquisition_rotation_num_angles'
         self.data_size_key      = 'exchange_data'
         self.binning_key        = 'measurement_instrument_detector_binning_x'
+        self.beamline_key       = 'measurement_instrument_source_beamline'
+        self.instrument_key     = 'measurement_instrument_instrument_name'
 
 
     def run_log(self, args):
@@ -86,7 +88,8 @@ class TomoLog():
             meta[self.exposure_time_key][1] = 's'
 
         # publish scan info
-        descr =  f"Particle description: {meta[self.description_1_key][0]} {meta[self.description_2_key][0]} {meta[self.description_3_key][0]}\n"
+        descr =  f"Beamline: {meta[self.beamline_key][0]} {meta[self.instrument_key][0]}\n"
+        descr +=  f"Particle description: {meta[self.description_1_key][0]} {meta[self.description_2_key][0]} {meta[self.description_3_key][0]}\n"
         descr += f"Scan date: {meta[self.date_key][0]}\n"
         descr += f"Scan energy: {meta[self.energy_key][0]} {meta[self.energy_key][1]}\n"
         descr += f"Pixel size: {meta[self.pixel_size_key][0]:.02f} {meta[self.pixel_size_key][1]}\n"
@@ -125,6 +128,7 @@ class TomoLog():
             except:
                 log.warning('No microCT data available')
         else:
+            log.info('plotting microCT projection')
             fname = FILE_NAME_PROJ0+'.jpg'
             plots.plot_projection(proj[0], fname, resolution=self.resolution)
             self.publish_projection(fname, presentation_id, page_id, 0, 100)

@@ -25,16 +25,22 @@ def read_raw(args):
     '''
     proj = []
     with h5py.File(args.file_name) as fid:
-        proj.append(fid['exchange/data'][0][:])
+        log.info('Reading CT projection')
+        if args.double_fov == True:
+            log.warning('hanling the data set as a double FOV')
+            image_0 = np.flip(fid['exchange/data'][0][:], axis=1)
+            image_1 = fid['exchange/data'][-1][:]
+            data = np.hstack((image_0, image_1))
+        else:
+            data = fid['exchange/data'][0][:]
+        proj.append(data)
         log.info('Reading CT projection')
         try:
             proj.append(fid['exchange/data2'][0][:])
             log.info('Reading microCT projection')
         except:            
             pass
-
     return proj
-
 
 def read_recon(args, meta):
     '''Read reconstructed ortho-slices
