@@ -87,8 +87,10 @@ def read_recon(args, meta):
 
     Returns
     -------
-    meta
-        Dictionary containing all hdf file stored experiment meta data
+    recon : list
+        List containing 3 orthogonal (x, y, z) slices through the sample
+    binning_rec : int
+        Binning factor calculated by comparing raw image width and recon size
     '''
 
     data_size     = 'exchange_data'
@@ -106,23 +108,24 @@ def read_recon(args, meta):
         dirname = os.path.dirname(args.file_name)
         # shift from the middle
         shift = 0
-        # read z slices
-        # take size
+        # set the correct prefix to find the reconstructions
         rec_prefix = 'r'
         if args.rec_type == 'rec':
             rec_prefix = 'recon'
 
         top = os.path.join(dirname+'_'+args.rec_type, basename+'_rec')
         tiff_file_list = list(filter(lambda x: x.endswith(('.tif', '.tiff')), os.listdir(top)))
-        # print(tiff_file_list[0])
         z_start = int(tiff_file_list[0].split('.')[0].split('_')[1])
         z_end   = int(tiff_file_list[-1].split('.')[0].split('_')[1]) + 1
 
         height = z_end-z_start
         fname_tmp = os.path.join(top, tiff_file_list[0])
+        # take size
         tmp = utils.read_tiff(fname_tmp).copy()
-        w = width//binning
-        h = height//binning
+        binning_rec = width//tmp.shape[0]
+
+        w = width//binning_rec
+        h = height//binning_rec
 
         args.idz = int(h//2+shift)
         args.idy = int(w//2+shift)
@@ -133,7 +136,7 @@ def read_recon(args, meta):
         # read x,y slices by lines
         y = np.zeros((h, w), dtype='float32')
         x = np.zeros((h, w), dtype='float32')
-        for j in range(z_start, z_end//binning):
+        for j in range(z_start, z_end//binning_rec):
             zz = utils.read_tiff(
                 f'{dirname}_{args.rec_type}/{basename}_rec/{rec_prefix}_{j:05}.tiff')
             y[j-z_start, :] = zz[args.idy]
@@ -144,4 +147,4 @@ def read_recon(args, meta):
     except:
         log.warning('Skipping reconstruction')
 
-    return recon
+    return recon, binning_rec

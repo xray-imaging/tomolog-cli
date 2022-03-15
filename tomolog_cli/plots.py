@@ -55,9 +55,9 @@ def plot_recon(args, dims, recon, fname, resolution):
     args.max : float
         Maximum threshold value for reconstruction visualization
     dims : list
-        list containing the image width and height
+        List containing the image width and height
     recon : list
-        list contaiing 3 othrogonal slices through the sample
+        List containing 3 orthogonal (x, y, z) slices through the sample
     fname : str
         File name where the plot will be saved
     resolution : float
