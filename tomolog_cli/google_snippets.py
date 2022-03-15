@@ -37,7 +37,7 @@ class SlidesSnippets(object):
             create_slide_response.get('objectId')))
         return response
     
-    def create_textbox_with_text(self, presentation_id, page_id, text, magnitudex, magnitudey, posx, posy, fontsize):
+    def create_textbox_with_text(self, presentation_id, page_id, text, magnitude_width, magnitude_height, posx, posy, fontsize):
         slides_service = self.service
         # [START slides_create_textbox_with_text]
         # Create a new square textbox, using the supplied element ID.
@@ -50,8 +50,8 @@ class SlidesSnippets(object):
                     'elementProperties': {
                         'pageObjectId': page_id,
                         'size': {
-                            'height': {'magnitude': magnitudex, 'unit': 'PT'},
-                            'width': {'magnitude': magnitudey, 'unit': 'PT'}
+                            'height': {'magnitude': magnitude_height, 'unit': 'PT'},
+                            'width': {'magnitude': magnitude_width, 'unit': 'PT'}
                         },
                         'transform': {
                             'scaleX': 1,
@@ -100,7 +100,7 @@ class SlidesSnippets(object):
         # [END slides_create_textbox_with_text]
         return response    
 
-    def create_textbox_with_bullets(self, presentation_id, page_id, text, magnitudex, magnitudey, posx, posy, fontsize):
+    def create_textbox_with_bullets(self, presentation_id, page_id, text, magnitude_width, magnitude_height, posx, posy, fontsize):
         slides_service = self.service
         # [START slides_create_textbox_with_text]
         # Create a new square textbox, using the supplied element ID.
@@ -113,8 +113,8 @@ class SlidesSnippets(object):
                     'elementProperties': {
                         'pageObjectId': page_id,
                         'size': {
-                            'height': {'magnitude': magnitudex, 'unit': 'PT'},
-                            'width': {'magnitude': magnitudey, 'unit': 'PT'}
+                            'height': {'magnitude': magnitude_height, 'unit': 'PT'},
+                            'width': {'magnitude': magnitude_width, 'unit': 'PT'}
                         },
                         'transform': {
                             'scaleX': 1,
@@ -171,7 +171,7 @@ class SlidesSnippets(object):
             create_shape_response.get('objectId')))
         return response            
     
-    def create_image(self, presentation_id, page_id, IMAGE_URL, magnitudex, magnitudey, posx, posy):
+    def create_image(self, presentation_id, page_id, IMAGE_URL, magnitude_width, magnitude_height, posx, posy):
         slides_service = self.service
         # [START slides_create_image]
         # Create a new image, using the supplied object ID,
@@ -185,8 +185,8 @@ class SlidesSnippets(object):
                 'elementProperties': {
                     'pageObjectId': page_id,
                     'size': {
-                        'height': {'magnitude': magnitudey, 'unit': 'PT'},
-                        'width': {'magnitude': magnitudex, 'unit': 'PT'},
+                        'height': {'magnitude': magnitude_height, 'unit': 'PT'},
+                        'width': {'magnitude': magnitude_width, 'unit': 'PT'},
                     },
                     'transform': {
                         'scaleX': 1,
