@@ -109,17 +109,12 @@ class TomoLog():
         self.snippets.create_textbox_with_bullets(
             presentation_id, page_id, descr, 240, 120, 0, 27, 8)
 
-        # publish projection label(s)
-        if(args.beamline == '32-id'):
-            self.snippets.create_textbox_with_text(
-                presentation_id, page_id, 'Nano-CT projection', 90, 20, 60, 265, 8)
-            self.snippets.create_textbox_with_text(
-                presentation_id, page_id, 'Micro-CT projection', 90, 20, 60, 385, 8)
-        
         # read projection(s)
         proj = reads.read_raw(args)
  
         if(args.beamline == '32-id'):
+            self.snippets.create_textbox_with_text(
+                presentation_id, page_id, 'Nano-CT projection', 90, 20, 60, 265, 8)
             log.info('Plotting nanoCT projection')
             # 32-id datasets may include both nanoCT and microCT data as proj[0] and proj[1] respectively
             fname = FILE_NAME_PROJ0+'.jpg'
@@ -132,6 +127,8 @@ class TomoLog():
                 mct_resolution = self.pixel_size / self.magnification
                 plots.plot_projection(proj[1], fname, resolution=mct_resolution)
                 self.publish_projection(fname, presentation_id, page_id, 0, 235)
+                self.snippets.create_textbox_with_text(
+                    presentation_id, page_id, 'Micro-CT projection', 90, 20, 60, 385, 8)
             except:
                 log.warning('No microCT data available')
         else:
