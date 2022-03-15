@@ -29,3 +29,31 @@ Requirements
 
 Please install all the packases listed in `requirements file <https://github.com/nikitinvv/tomolog-cli/blob/main/envs/requirements.txt>`_. 
 
+
+**tomolog** also requires access tokens from dropbox and google services.
+
+Dropbox
+-------
+
+Go to `dropbox developer site <https://www.dropbox.com/lp/developers>`_ and select "Create an App". Login using your google credentials and create a new App with the following permissions:
+
+.. image:: img/dropbox_01.png
+   :width: 720px
+   :alt: project
+
+the go to the setting tab and copy the App key and App secret in a file in your home directory called:
+
+::
+
+    $ ~/.tomologenv 
+
+    APP_KEY=....
+    APP_SECRET=....
+
+Google
+------
+
+Go to `google developer site <https://console.cloud.google.com/apis/dashboard?pli=1&project=usr32idc>`_ and create a service account, then copy the authorization token in a file called::
+
+    $ ~/tokens/google_token.json
+
