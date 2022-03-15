@@ -69,7 +69,18 @@ class TomoLog():
 
         meta = reads.read_scan_info(args)
         # print(meta)
-        self.dims             = meta[self.data_size_key][0].replace("(", "").replace(")", "").split(',')
+
+        # publish title
+        full_file_name = meta[self.full_file_name_key][0]
+        self.snippets.create_textbox_with_text(presentation_id, page_id, os.path.basename(
+            full_file_name)[:-3], 400, 50, 0, 0, 13)
+
+        try:
+            self.dims             = meta[self.data_size_key][0].replace("(", "").replace(")", "").split(',')
+        except AttributeError:
+            log.error('Data stored in exchange/data is not valid. Dims: (%d, %d, %d)' % (1, meta[self.data_size_key][0].shape[0], meta[self.data_size_key][0].shape[1]))
+            self.snippets.create_textbox_with_text(presentation_id, page_id, 'Data set is invalid', 90, 20, 270, 0, 10)
+            return
         self.width            = int(self.dims[2])
         self.height           = int(self.dims[1])
         self.resolution       = float(meta[self.resolution_key][0])
@@ -79,62 +90,57 @@ class TomoLog():
         self.magnification    = float(meta[self.magnification_key][0].replace("x", ""))
         self.binning          = int(meta[self.binning_key][0])
 
-        # publish title
-        full_file_name = meta[self.full_file_name_key][0]
-        self.snippets.create_textbox_with_text(presentation_id, page_id, os.path.basename(
-            full_file_name)[:-3], 50, 400, 0, 0, 18)
-
         if meta[self.exposure_time_key][1] == None:
             log.warning('Exposure time units are missing assuming (s)')
             meta[self.exposure_time_key][1] = 's'
 
         # publish scan info
-        descr =  f"Beamline: {meta[self.beamline_key][0]} {meta[self.instrument_key][0]}\n"
+        descr  =  f"Beamline: {meta[self.beamline_key][0]} {meta[self.instrument_key][0]}\n"
         descr +=  f"Particle description: {meta[self.description_1_key][0]} {meta[self.description_2_key][0]} {meta[self.description_3_key][0]}\n"
-        descr += f"Scan date: {meta[self.date_key][0]}\n"
-        descr += f"Scan energy: {meta[self.energy_key][0]} {meta[self.energy_key][1]}\n"
-        descr += f"Pixel size: {meta[self.pixel_size_key][0]:.02f} {meta[self.pixel_size_key][1]}\n"
-        descr += f"Lens magnification: {meta[self.magnification_key][0]}\n"
-        descr += f"Resolution: {meta[self.resolution_key][0]:.02f} {meta[self.resolution_key][1]}\n"
-        descr += f"Exposure time: {meta[self.exposure_time_key][0]:.02f} {meta[self.exposure_time_key][1]}\n"
-        descr += f"Angle step: {meta[self.angle_step_key][0]:.03f} {meta[self.angle_step_key][1]}\n"
-        descr += f"Number of angles: {meta[self.num_angle_key][0]}\n"
-        descr += f"Projection size: {self.width} x {self.height}"
+        descr +=  f"Scan date: {meta[self.date_key][0]}\n"
+        descr +=  f"Scan energy: {meta[self.energy_key][0]} {meta[self.energy_key][1]}\n"
+        descr +=  f"Pixel size: {meta[self.pixel_size_key][0]:.02f} {meta[self.pixel_size_key][1]}\n"
+        descr +=  f"Lens magnification: {meta[self.magnification_key][0]}\n"
+        descr +=  f"Resolution: {meta[self.resolution_key][0]:.02f} {meta[self.resolution_key][1]}\n"
+        descr +=  f"Exposure time: {meta[self.exposure_time_key][0]:.02f} {meta[self.exposure_time_key][1]}\n"
+        descr +=  f"Angle step: {meta[self.angle_step_key][0]:.03f} {meta[self.angle_step_key][1]}\n"
+        descr +=  f"Number of angles: {meta[self.num_angle_key][0]}\n"
+        descr +=  f"Projection size: {self.width} x {self.height}"
         self.snippets.create_textbox_with_bullets(
-            presentation_id, page_id, descr, 240, 200, 0, 27, 8)
+            presentation_id, page_id, descr, 240, 120, 0, 27, 8)
 
         # publish projection label(s)
         if(args.beamline == '32-id'):
             self.snippets.create_textbox_with_text(
-                presentation_id, page_id, 'Nano-CT projection', 30, 100, 60, 255, 8)
+                presentation_id, page_id, 'Nano-CT projection', 90, 20, 60, 265, 8)
             self.snippets.create_textbox_with_text(
-                presentation_id, page_id, 'Micro-CT projection', 30, 100, 60, 375, 8)
+                presentation_id, page_id, 'Micro-CT projection', 90, 20, 60, 385, 8)
         
         # read projection(s)
         proj = reads.read_raw(args)
  
         if(args.beamline == '32-id'):
-            log.info('plotting nanoCT projection')
+            log.info('Plotting nanoCT projection')
             # 32-id datasets may include both nanoCT and microCT data as proj[0] and proj[1] respectively
             fname = FILE_NAME_PROJ0+'.jpg'
             nct_resolution = self.resolution / 1000.
             plots.plot_projection(proj[0], fname, resolution=nct_resolution)
-            self.publish_projection(fname, presentation_id, page_id, 0, 100)
+            self.publish_projection(fname, presentation_id, page_id, 0, 110)
             try:
-                log.info('plotting microCT projection')
+                log.info('Plotting microCT projection')
                 fname = FILE_NAME_PROJ1+'.jpg'
                 mct_resolution = self.pixel_size / self.magnification
                 plots.plot_projection(proj[1], fname, resolution=mct_resolution)
-                self.publish_projection(fname, presentation_id, page_id, 0, 225)
+                self.publish_projection(fname, presentation_id, page_id, 0, 235)
             except:
                 log.warning('No microCT data available')
         else:
-            log.info('plotting microCT projection')
+            log.info('Plotting microCT projection')
             fname = FILE_NAME_PROJ0+'.jpg'
             plots.plot_projection(proj[0], fname, resolution=self.resolution)
-            self.publish_projection(fname, presentation_id, page_id, 0, 100)
+            self.publish_projection(fname, presentation_id, page_id, 0, 110)
         self.snippets.create_textbox_with_text(
-            presentation_id, page_id, 'Reconstruction', 30, 150, 270, 0, 10)
+            presentation_id, page_id, 'Reconstruction', 90, 20, 270, 0, 10)
 
         # read reconstructions
         recon = reads.read_recon(args, meta)    
@@ -152,7 +158,7 @@ class TomoLog():
 
         # publish other labels
         self.snippets.create_textbox_with_text(
-            presentation_id, page_id, 'Other info/screenshots', 30, 230, 480, 0, 10)
+            presentation_id, page_id, 'Other info/screenshots', 120, 20, 480, 0, 10)
 
     def publish_projection(self, fname, presentation_id, page_id, posx, posy):
         with open(fname, 'rb') as f:
