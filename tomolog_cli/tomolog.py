@@ -19,7 +19,7 @@ __all__ = ['TomoLog',]
 # tmp files to be created in dropbox
 FILE_NAME_PROJ0  = 'projection_google0'
 FILE_NAME_PROJ1  = 'projection_google1'
-FILE_NAME_RECON = 'reconstruction_google.jpg'
+FILE_NAME_RECON  = 'reconstruction_google'
 
 DROPBOX_TOKEN   = os.path.join(str(pathlib.Path.home()), 'tokens', 'dropbox_token.json')
 GOOGLE_TOKEN    = os.path.join(str(pathlib.Path.home()), 'tokens', 'google_token.json')
@@ -115,13 +115,13 @@ class TomoLog():
         if(args.beamline == '32-id'):
             log.info('Plotting nanoCT projection')
             # 32-id datasets may include both nanoCT and microCT data as proj[0] and proj[1] respectively
-            fname = FILE_NAME_PROJ0+'.jpg'
+            fname = FILE_NAME_PROJ0 + '.jpg'
             nct_resolution = self.resolution / 1000.
             plots.plot_projection(proj[0], fname, resolution=nct_resolution)
             self.publish_projection(fname, presentation_id, page_id, 0, 100)
             try:
                 log.info('Plotting microCT projection')
-                fname = FILE_NAME_PROJ1+'.jpg'
+                fname = FILE_NAME_PROJ1 + '.jpg'
                 mct_resolution = self.pixel_size / self.magnification
                 plots.plot_projection(proj[1], fname, resolution=mct_resolution)
                 self.publish_projection(fname, presentation_id, page_id, 0, 225)
@@ -129,7 +129,7 @@ class TomoLog():
                 log.warning('No microCT data available')
         else:
             log.info('Plotting microCT projection')
-            fname = FILE_NAME_PROJ0+'.jpg'
+            fname = FILE_NAME_PROJ0 + '.jpg'
             plots.plot_projection(proj[0], fname, resolution=self.resolution)
             self.publish_projection(fname, presentation_id, page_id, 0, 100)
         self.snippets.create_textbox_with_text(
@@ -137,17 +137,14 @@ class TomoLog():
 
         # read reconstructions
         recon, binning_rec = reads.read_recon(args, meta)    
-        # publish reconstructions
         if len(recon) == 3:
-            # prepare reconstruction
+            log.info('Plotting CT reconstructions')
             if(args.beamline == '32-id'):
                 self.resolution = self.resolution / 1000.
             self.resolution = self.resolution * self.binning * binning_rec
-            plots.plot_recon(args, dims, recon, FILE_NAME_RECON, self.resolution)
-            with open(FILE_NAME_RECON, 'rb') as f:
-                self.dbx.files_upload(f.read(), '/'+FILE_NAME_RECON, dropbox.files.WriteMode.overwrite)
-            recon_url = self.dbx.files_get_temporary_link('/'+FILE_NAME_RECON).link            
-            self.snippets.create_image(presentation_id, page_id, recon_url, 370, 370, 130, 30)
+            fname = FILE_NAME_RECON + '.jpg'
+            plots.plot_recon(args, dims, recon, fname, self.resolution)
+            self.publish_recon(fname, presentation_id, page_id, 130, 30)
 
         # publish other labels
         self.snippets.create_textbox_with_text(
@@ -160,8 +157,8 @@ class TomoLog():
             self.snippets.create_image(presentation_id, page_id, proj_url, 210, 210, posx, posy)
 
     def publish_recon(self, fname, presentation_id, page_id, posx, posy):
-        with open(fname, 'rb') as f:
+       with open(fname, 'rb') as f:
             self.dbx.files_upload(f.read(), '/'+fname, dropbox.files.WriteMode.overwrite)
-            proj_url = self.dbx.files_get_temporary_link('/'+fname).link
-            self.snippets.create_image(presentation_id, page_id, proj_url, 210, 210, posx, posy)
+            recon_url = self.dbx.files_get_temporary_link('/'+fname).link            
+            self.snippets.create_image(presentation_id, page_id, recon_url, 370, 370, posx, posy)
 

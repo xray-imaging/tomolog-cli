@@ -57,7 +57,7 @@ def plot_recon(args, dims, recon, fname, resolution):
     dims : list
         List containing the image width and height
     recon : list
-        List contaiing 3 othogonal (x, y, z)slices through the sample
+        List containing 3 orthogonal (x, y, z) slices through the sample
     fname : str
         File name where the plot will be saved
     resolution : float

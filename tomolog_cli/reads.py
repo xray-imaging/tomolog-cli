@@ -88,7 +88,7 @@ def read_recon(args, meta):
     Returns
     -------
     recon : list
-        List contaiing 3 othogonal (x, y, z)slices through the sample
+        List containing 3 orthogonal (x, y, z) slices through the sample
     binning_rec : int
         Binning factor calculated by comparing raw image width and recon size
     '''
