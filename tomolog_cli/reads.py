@@ -102,7 +102,8 @@ def read_recon(args, meta):
     binning       = int(meta[binning][0])
 
     recon = []
-
+    binning_rec = -1
+    
     try:
         basename = os.path.basename(args.file_name)[:-3]
         dirname = os.path.dirname(args.file_name)
