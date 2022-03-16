@@ -85,6 +85,13 @@ class TomoLog():
             self.snippets.create_textbox_with_text(presentation_id, page_id, 'Data set is invalid', 90, 20, 270, 0, 10)
             return
 
+        try:
+            meta[self.magnification_key][0].replace("x", "")
+        except:
+            log.error('Objective magnification was not stored [%s, %s]. Dataset skipped: %s' % (meta[self.magnification_key][0], meta[self.magnification_key][1], full_file_name))
+            print(meta[self.magnification_key])
+            return
+
         self.width            = int(self.dims[2])
         self.height           = int(self.dims[1])
         self.resolution       = float(meta[self.resolution_key][0])
