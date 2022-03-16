@@ -118,13 +118,14 @@ def read_recon(args, meta):
         tiff_file_list = list(filter(lambda x: x.endswith(('.tif', '.tiff')), os.listdir(top)))
         z_start = int(tiff_file_list[0].split('.')[0].split('_')[1])
         z_end   = int(tiff_file_list[-1].split('.')[0].split('_')[1]) + 1
-
         height = z_end-z_start
         fname_tmp = os.path.join(top, tiff_file_list[0])
+        # print(z_start, z_end, height, width)
+        # print(fname_tmp)
         # take size
         tmp = utils.read_tiff(fname_tmp).copy()
         binning_rec = width//tmp.shape[0]
-
+        # print(binning_rec)
         w = width//binning_rec
         h = height//binning_rec
 

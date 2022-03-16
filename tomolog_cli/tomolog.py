@@ -113,14 +113,14 @@ class TomoLog():
         proj = reads.read_raw(args)
  
         if(args.beamline == '32-id'):
-            self.snippets.create_textbox_with_text(
-                presentation_id, page_id, 'Nano-CT projection', 90, 20, 60, 265, 8)
             log.info('Plotting nanoCT projection')
             # 32-id datasets may include both nanoCT and microCT data as proj[0] and proj[1] respectively
             fname = FILE_NAME_PROJ0+'.jpg'
             nct_resolution = self.resolution / 1000.
             plots.plot_projection(proj[0], fname, resolution=nct_resolution)
             self.publish_projection(fname, presentation_id, page_id, 0, 110)
+            self.snippets.create_textbox_with_text(
+                presentation_id, page_id, 'Nano-CT projection', 90, 20, 60, 265, 8)
             try:
                 log.info('Plotting microCT projection')
                 fname = FILE_NAME_PROJ1+'.jpg'
@@ -134,24 +134,29 @@ class TomoLog():
         else:
             log.info('Plotting microCT projection')
             fname = FILE_NAME_PROJ0+'.jpg'
+            self.resolution = self.resolution * self.binning
             plots.plot_projection(proj[0], fname, resolution=self.resolution)
             self.publish_projection(fname, presentation_id, page_id, 0, 110)
-        self.snippets.create_textbox_with_text(
-            presentation_id, page_id, 'Reconstruction', 90, 20, 270, 0, 10)
+            self.snippets.create_textbox_with_text(
+                presentation_id, page_id, 'Micro-CT projection', 90, 20, 60, 295, 8)
 
         # read reconstructions
-        recon = reads.read_recon(args, meta)    
+        recon, binning_rec = reads.read_recon(args, meta)    
         # publish reconstructions
+        # print(len(recon))
         if len(recon) == 3:
             # prepare reconstruction
             if(args.beamline == '32-id'):
-                self.resolution = self.resolution / 1000.
-            self.resolution = self.resolution * self.binning
-            plots.plot_recon(args, dims, recon, FILE_NAME_RECON, self.resolution)
+                self.resolution = self.resolution / 1000. * binning_rec
+            else:
+                self.resolution = self.resolution * self.binning * binning_rec
+            plots.plot_recon(args, self.dims, recon, FILE_NAME_RECON, self.resolution)
             with open(FILE_NAME_RECON, 'rb') as f:
                 self.dbx.files_upload(f.read(), '/'+FILE_NAME_RECON, dropbox.files.WriteMode.overwrite)
             recon_url = self.dbx.files_get_temporary_link('/'+FILE_NAME_RECON).link            
             self.snippets.create_image(presentation_id, page_id, recon_url, 370, 370, 130, 30)
+            self.snippets.create_textbox_with_text(
+                presentation_id, page_id, 'Reconstruction', 90, 20, 270, 0, 10)
 
         # publish other labels
         self.snippets.create_textbox_with_text(
