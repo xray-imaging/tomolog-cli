@@ -143,7 +143,6 @@ class TomoLog():
         # read reconstructions
         recon, binning_rec = reads.read_recon(args, meta)    
         # publish reconstructions
-        # print(len(recon))
         if len(recon) == 3:
             # prepare reconstruction
             if(args.beamline == '32-id'):

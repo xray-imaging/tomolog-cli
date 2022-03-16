@@ -49,7 +49,6 @@ def read_raw(args):
     '''
     proj = []
     with h5py.File(args.file_name) as fid:
-        log.info('Reading CT projection')
         if args.double_fov == True:
             log.warning('hanling the data set as a double FOV')
             image_0 = np.flip(fid['exchange/data'][0][:], axis=1)
@@ -120,12 +119,9 @@ def read_recon(args, meta):
         z_end   = int(tiff_file_list[-1].split('.')[0].split('_')[1]) + 1
         height = z_end-z_start
         fname_tmp = os.path.join(top, tiff_file_list[0])
-        # print(z_start, z_end, height, width)
-        # print(fname_tmp)
         # take size
         tmp = utils.read_tiff(fname_tmp).copy()
         binning_rec = width//tmp.shape[0]
-        # print(binning_rec)
         w = width//binning_rec
         h = height//binning_rec
 
