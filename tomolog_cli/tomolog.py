@@ -69,18 +69,22 @@ class TomoLog():
 
         meta = reads.read_scan_info(args)
         # print(meta)
-
         # publish title
-        full_file_name = meta[self.full_file_name_key][0]
-        self.snippets.create_textbox_with_text(presentation_id, page_id, os.path.basename(
-            full_file_name)[:-3], 400, 50, 0, 0, 13)
-
+        try:
+            full_file_name = meta[self.full_file_name_key][0]
+            self.snippets.create_textbox_with_text(presentation_id, page_id, os.path.basename(
+                full_file_name)[:-3], 400, 50, 0, 0, 13)
+        except KeyError:
+            self.snippets.create_textbox_with_text(presentation_id, page_id, str(args.file_name), 400, 50, 0, 0, 13)
+            self.snippets.create_textbox_with_text(presentation_id, page_id, 'Unable to open file (truncated file)', 90, 20, 350, 0, 10)
+            return
         try:
             self.dims             = meta[self.data_size_key][0].replace("(", "").replace(")", "").split(',')
         except AttributeError:
             log.error('Data stored in exchange/data is not valid. Dims: (%d, %d, %d)' % (1, meta[self.data_size_key][0].shape[0], meta[self.data_size_key][0].shape[1]))
             self.snippets.create_textbox_with_text(presentation_id, page_id, 'Data set is invalid', 90, 20, 270, 0, 10)
             return
+
         self.width            = int(self.dims[2])
         self.height           = int(self.dims[1])
         self.resolution       = float(meta[self.resolution_key][0])
