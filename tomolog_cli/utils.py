@@ -43,10 +43,14 @@ def read_hdf_meta(fname, add_shape=True):
     tree = deque()
     meta = {}
 
-    with h5py.File(fname, 'r') as hdf_object:
-        _extract_hdf(tree, meta, hdf_object, add_shape=add_shape)
-    # for entry in tree:
-    #     print(entry)
+    try:
+    # if 0==0:
+        with h5py.File(fname, 'r') as hdf_object:
+            _extract_hdf(tree, meta, hdf_object, add_shape=add_shape)
+        # for entry in tree:
+        #     print(entry)
+    except:
+        log.error('Unable to open file: %s', fname)
     return tree, meta
 
 def _get_subgroups(hdf_object, key=None):

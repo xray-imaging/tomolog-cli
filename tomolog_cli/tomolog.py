@@ -69,18 +69,29 @@ class TomoLog():
 
         meta = reads.read_scan_info(args)
         # print(meta)
-
         # publish title
-        full_file_name = meta[self.full_file_name_key][0]
-        self.snippets.create_textbox_with_text(presentation_id, page_id, os.path.basename(
-            full_file_name)[:-3], 400, 50, 0, 0, 13)
-
+        try:
+            full_file_name = meta[self.full_file_name_key][0]
+            self.snippets.create_textbox_with_text(presentation_id, page_id, os.path.basename(
+                full_file_name)[:-3], 400, 50, 0, 0, 13)
+        except KeyError:
+            self.snippets.create_textbox_with_text(presentation_id, page_id, str(args.file_name), 400, 50, 0, 0, 13)
+            self.snippets.create_textbox_with_text(presentation_id, page_id, 'Unable to open file (truncated file)', 90, 20, 350, 0, 10)
+            return
         try:
             self.dims             = meta[self.data_size_key][0].replace("(", "").replace(")", "").split(',')
         except AttributeError:
             log.error('Data stored in exchange/data is not valid. Dims: (%d, %d, %d)' % (1, meta[self.data_size_key][0].shape[0], meta[self.data_size_key][0].shape[1]))
             self.snippets.create_textbox_with_text(presentation_id, page_id, 'Data set is invalid', 90, 20, 270, 0, 10)
             return
+
+        try:
+            meta[self.magnification_key][0].replace("x", "")
+        except:
+            log.error('Objective magnification was not stored [%s, %s]. Dataset skipped: %s' % (meta[self.magnification_key][0], meta[self.magnification_key][1], full_file_name))
+            print(meta[self.magnification_key])
+            return
+
         self.width            = int(self.dims[2])
         self.height           = int(self.dims[1])
         self.resolution       = float(meta[self.resolution_key][0])
@@ -143,7 +154,6 @@ class TomoLog():
         # read reconstructions
         recon, binning_rec = reads.read_recon(args, meta)    
         # publish reconstructions
-        # print(len(recon))
         if len(recon) == 3:
             # prepare reconstruction
             if(args.beamline == '32-id'):
