@@ -1,6 +1,8 @@
 h5py
+pandas
 dropbox
 pyepics
+tabulate
 tifffile
 python-dotenv
 google-auth-oauthlib

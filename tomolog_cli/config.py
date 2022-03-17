@@ -93,6 +93,10 @@ SECTIONS['file-reading'] = {
         'type': Path,
         'help': "Name of the hdf file",
         'metavar': 'PATH'},
+    'doc-dir': {
+        'type': str,
+        'default': '.',
+        'help': "sphinx/readthedocs documentation directory where the meta data table extracted from the hdf5 file should be saved, e.g. docs/source/..."},
 }
 
 SECTIONS['parameters'] = {
