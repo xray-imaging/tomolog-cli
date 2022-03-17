@@ -84,12 +84,10 @@ class TomoLog():
             log.error('Data stored in exchange/data is not valid. Dims: (%d, %d, %d)' % (1, meta[self.data_size_key][0].shape[0], meta[self.data_size_key][0].shape[1]))
             self.snippets.create_textbox_with_text(presentation_id, page_id, 'Data set is invalid', 90, 20, 270, 0, 10)
             return
-
         try:
             meta[self.magnification_key][0].replace("x", "")
         except:
             log.error('Objective magnification was not stored [%s, %s]. Dataset skipped: %s' % (meta[self.magnification_key][0], meta[self.magnification_key][1], full_file_name))
-            print(meta[self.magnification_key])
             return
 
         self.width            = int(self.dims[2])

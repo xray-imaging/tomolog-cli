@@ -121,10 +121,15 @@ def read_recon(args, meta):
         fname_tmp = os.path.join(top, tiff_file_list[0])
         # take size
         tmp = utils.read_tiff(fname_tmp).copy()
-        binning_rec = width//tmp.shape[0]
+
+        if args.double_fov == True:
+            width = width * 2
+            binning_rec = 1
+        else:
+            binning_rec = width//tmp.shape[0]
+
         w = width//binning_rec
         h = height//binning_rec
-
         args.idz = int(h//2+shift)
         args.idy = int(w//2+shift)
         args.idx = int(w//2+shift)
@@ -135,6 +140,7 @@ def read_recon(args, meta):
         y = np.zeros((h, w), dtype='float32')
         x = np.zeros((h, w), dtype='float32')
         for j in range(z_start, z_end//binning_rec):
+            # print(z_start, z_end//binning_rec)
             zz = utils.read_tiff(
                 f'{dirname}_{args.rec_type}/{basename}_rec/{rec_prefix}_{j:05}.tiff')
             y[j-z_start, :] = zz[args.idy]
@@ -142,6 +148,9 @@ def read_recon(args, meta):
 
         recon = [x,y,z]
         log.info('Adding reconstruction')
+    except ZeroDivisionError:
+        log.error('Reconstructions are larger than raw data image width. This is the case in a 0-360. Please use: --double-fov')
+        log.warning('Skipping reconstruction')
     except:
         log.warning('Skipping reconstruction')
 
