@@ -33,13 +33,14 @@ def run_log(args):
         log.info("publishing a multiple files in: %s" % args.file_name)
         top = os.path.join(args.file_name, '')
         h5_file_list = list(filter(lambda x: x.endswith(('.h5', '.hdf', 'hdf5')), os.listdir(top)))
+        h5_file_list_sorted = res = sorted(h5_file_list, key = lambda x: x.split('_')[-1])
         if (h5_file_list):
-            h5_file_list.sort()
-            log.info("found: %s" % h5_file_list) 
+            # h5_file_list.sort()
+            log.info("found: %s" % h5_file_list_sorted) 
             index=0
-            for fname in h5_file_list:
+            for fname in h5_file_list_sorted:
                 args.file_name = top + fname
-                log.warning("  *** file %d/%d;  %s" % (index, len(h5_file_list), fname))
+                log.warning("  *** file %d/%d;  %s" % (index, len(h5_file_list_sorted), fname))
                 index += 1
                 TomoLog().run_log(args)
         else:
