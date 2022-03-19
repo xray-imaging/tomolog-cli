@@ -63,6 +63,11 @@ def read_raw(args):
             log.info('Reading microCT projection')
         except:            
             pass
+        try:
+            proj.append(fid['exchange/web_camera_frame'][:])
+            log.info('Reading camera frame')
+        except:            
+            pass
     return proj
 
 
