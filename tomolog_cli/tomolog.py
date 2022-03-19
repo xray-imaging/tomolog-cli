@@ -86,16 +86,19 @@ class TomoLog():
             return
         try:
             meta[self.magnification_key][0].replace("x", "")
+            fontcolor = 0
         except:
-            log.error('Objective magnification was not stored [%s, %s]. Dataset skipped: %s' % (meta[self.magnification_key][0], meta[self.magnification_key][1], full_file_name))
+            log.error('Objective magnification was not stored [%s, %s] for dataset: %s' % (meta[self.magnification_key][0], meta[self.magnification_key][1], full_file_name))
             log.error('Using --magnification parameter: %s' % args.magnification)
-            meta[self.magnification_key][0] = '5x'
-            log.error('Using --resolution parameter: %f' % args.resolution)
-            meta[self.resolution_key][0] = args.resolution
-            meta[self.resolution_key][1] = 'um'
             log.error('Using --pixel-size parameter: %f' % args.pixel_size)
             meta[self.pixel_size_key][0] = args.pixel_size
             meta[self.pixel_size_key][1] ='um'
+            meta[self.magnification_key][0] = args.magnification
+            meta[self.resolution_key][0] = args.pixel_size / float(meta[self.magnification_key][0].replace("x", ""))
+            log.warning('Calculated resolution: %s' % meta[self.resolution_key][0])
+            meta[self.resolution_key][1] = 'um'
+            fontcolor = 1
+
             # return
 
         self.width            = int(self.dims[2])
@@ -124,7 +127,7 @@ class TomoLog():
         descr +=  f"Number of angles: {meta[self.num_angle_key][0]}\n"
         descr +=  f"Projection size: {self.width} x {self.height}"
         self.snippets.create_textbox_with_bullets(
-            presentation_id, page_id, descr, 240, 120, 0, 27, 8)
+            presentation_id, page_id, descr, 240, 120, 0, 27, 8, fontcolor)
 
         # read projection(s)
         proj = reads.read_raw(args)
