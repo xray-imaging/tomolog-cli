@@ -138,6 +138,14 @@ SECTIONS['parameters'] = {
         'default': None,
         'type': str,
         'help': "Google presention url"},
+    'magnification': {
+        'type': str,
+        'default': '5x',
+        'help': "Lens magnification. Overwrite value  to be used in case in missing from the hdf file"},
+    'pixel-size': {
+        'type': float,
+        'default': 3.45,
+        'help': "Detector pixel size. Overwrite value  to be used in case in missing from the hdf file"},
 }
 
 PARAMS = ('file-reading', 'parameters')
