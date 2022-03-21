@@ -107,7 +107,13 @@ def read_recon(args, meta):
 
     recon = []
     binning_rec = -1
-    
+    coeff_rec = 1
+
+    # check if inversion is needed for the phase-contrast imaging at 32id
+    if 'measurement_instrument_phase_ring_setup_phase_ring_y_dial' in meta.keys():
+      phase_ring_y = float(meta['measurement_instrument_phase_ring_setup_phase_ring_y_dial'][0])
+      if abs(phase_ring_y) < 1e-2:
+         coeff_rec = -1      
     try:
         basename = os.path.basename(args.file_name)[:-3]
         dirname = os.path.dirname(args.file_name)
@@ -151,10 +157,10 @@ def read_recon(args, meta):
             y[j-z_start, :] = zz[args.idy]
             x[j-z_start, :] = zz[:, args.idx]
 
-        recon = [x,y,z]
+        recon = [coeff_rec*x,coeff_rec*y,coeff_rec*z]
         log.info('Adding reconstruction')
     except ZeroDivisionError:
-        log.error('Reconstructions are larger than raw data image width. This is the case in a 0-360. Please use: --double-fov')
+        log.error('Reconstructions for %s are larger than raw data image width. This is the case in a 0-360. Please use: --double-fov' % top)
         log.warning('Skipping reconstruction')
     except:
         log.warning('Skipping reconstruction')
