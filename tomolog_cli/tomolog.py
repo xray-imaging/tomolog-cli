@@ -71,18 +71,31 @@ class TomoLog():
         # print(meta)
         # publish title
         try:
-            full_file_name = meta[self.full_file_name_key][0]
-            self.snippets.create_textbox_with_text(presentation_id, page_id, os.path.basename(
-                full_file_name)[:-3], 400, 50, 0, 0, 13)
+            instrument_name = meta[self.instrument_key][0]
+            log.info('Transmission X-Ray Microscope Instrument')
         except KeyError:
-            self.snippets.create_textbox_with_text(presentation_id, page_id, str(args.file_name), 400, 50, 0, 0, 13)
-            self.snippets.create_textbox_with_text(presentation_id, page_id, 'Unable to open file (truncated file)', 90, 20, 350, 0, 10)
+            log.error('Corrupted file: missing instrument name')
+            return
+        try:
+            full_file_name = meta[self.full_file_name_key][0]
+            # print(full_file_name)
+            self.snippets.create_textbox_with_text(presentation_id, page_id, os.path.basename(
+                full_file_name)[:-3], 400, 50, 0, 0, 13, 0)
+        except TypeError:
+            file_name =  os.path.basename(args.file_name)
+            self.snippets.create_textbox_with_text(presentation_id, page_id, file_name, 400, 50, 0, 0, 13, 1)
+            # print('red')  ### temp for 2021-10 Cooley TXM
+        except KeyError:
+            self.snippets.create_textbox_with_text(presentation_id, page_id, str(args.file_name), 400, 50, 0, 0, 13, 1)
+            self.snippets.create_textbox_with_text(presentation_id, page_id, 'Unable to open file (truncated file)', 90, 20, 350, 0, 10, 1)
+            # print('red')  ### temp for 2021-10 Cooley TXM
             return
         try:
             self.dims             = meta[self.data_size_key][0].replace("(", "").replace(")", "").split(',')
         except AttributeError:
             log.error('Data stored in exchange/data is not valid. Dims: (%d, %d, %d)' % (1, meta[self.data_size_key][0].shape[0], meta[self.data_size_key][0].shape[1]))
-            self.snippets.create_textbox_with_text(presentation_id, page_id, 'Data set is invalid', 90, 20, 270, 0, 10)
+            self.snippets.create_textbox_with_text(presentation_id, page_id, 'Data set is invalid', 90, 20, 270, 0, 10, 1)
+            # print('red')  ### temp for 2021-10 Cooley TXM
             return
         try:
             meta[self.magnification_key][0].replace("x", "")
@@ -99,21 +112,26 @@ class TomoLog():
             meta[self.resolution_key][1] = 'um'
             fontcolor = 1
 
-            # return
-
         self.width            = int(self.dims[2])
         self.height           = int(self.dims[1])
+        # meta[self.resolution_key][0] = 42.4 ### temp for 2021-10 Cooley TXM
         self.resolution       = float(meta[self.resolution_key][0])
+        # meta[self.resolution_key][1] = 'nm'  ### temp for 2021-10 Cooley TXM
         self.resolution_units = str(meta[self.resolution_key][1])
+        # meta[self.pixel_size_key][0] = 3.45 ### temp for 2021-10 Cooley TXM
         self.pixel_size       = float(meta[self.pixel_size_key][0])
+        # meta[self.pixel_size_key][1] = 'um' ### temp for 2021-10 Cooley TXM
         self.pixel_size_units = str(meta[self.pixel_size_key][1])
+        # meta[self.magnification_key][0] = '5x' ### temp for 2021-10 Cooley TXM
         self.magnification    = float(meta[self.magnification_key][0].replace("x", ""))
+        # meta[self.binning_key][0] = '1' ### temp for 2021-10 Cooley TXM
         self.binning          = int(meta[self.binning_key][0])
 
         if meta[self.exposure_time_key][1] == None:
             log.warning('Exposure time units are missing assuming (s)')
             meta[self.exposure_time_key][1] = 's'
 
+        # meta[self.exposure_time_key][0] = 2.0 ### temp for 2021-10 Cooley TXM
         # publish scan info
         descr  =  f"Beamline: {meta[self.beamline_key][0]} {meta[self.instrument_key][0]}\n"
         descr +=  f"Particle description: {meta[self.description_1_key][0]} {meta[self.description_2_key][0]} {meta[self.description_3_key][0]}\n"
@@ -132,7 +150,8 @@ class TomoLog():
         # read projection(s)
         proj = reads.read_raw(args)
  
-        if(args.beamline == '32-id'):
+        if(meta[self.instrument_key][0] == 'Transmission X-Ray Microscope'):
+            log.info('Transmission X-Ray Microscope Instrument')
             log.info('Plotting nanoCT projection')
             # 32-id datasets may include both nanoCT and microCT data as proj[0] and proj[1] respectively
             fname = FILE_NAME_PROJ0+'.jpg'
@@ -140,7 +159,7 @@ class TomoLog():
             plots.plot_projection(proj[0], fname, resolution=nct_resolution)
             self.publish_projection(fname, presentation_id, page_id, 0, 110)
             self.snippets.create_textbox_with_text(
-                presentation_id, page_id, 'Nano-CT projection', 90, 20, 60, 265, 8)
+                presentation_id, page_id, 'Nano-CT projection', 90, 20, 60, 265, 8, 0)
             try:
                 log.info('Plotting microCT projection')
                 fname = FILE_NAME_PROJ1+'.jpg'
@@ -148,26 +167,29 @@ class TomoLog():
                 plots.plot_projection(proj[1], fname, resolution=mct_resolution)
                 self.publish_projection(fname, presentation_id, page_id, 0, 235)
                 self.snippets.create_textbox_with_text(
-                    presentation_id, page_id, 'Micro-CT projection', 90, 20, 60, 385, 8)
+                    presentation_id, page_id, 'Micro-CT projection', 90, 20, 60, 385, 8, 0)
             except:
                 log.warning('No microCT data available')
         else:
+            log.info('Micro Tomography Instrument')
             log.info('Plotting microCT projection')
             fname = FILE_NAME_PROJ0+'.jpg'
             self.resolution = self.resolution * self.binning
             plots.plot_projection(proj[0], fname, resolution=self.resolution)
             self.publish_projection(fname, presentation_id, page_id, 0, 110)
             self.snippets.create_textbox_with_text(
-                presentation_id, page_id, 'Micro-CT projection', 90, 20, 60, 295, 8)                
+                presentation_id, page_id, 'Micro-CT projection', 90, 20, 60, 295, 8, 0)                
 
         # read reconstructions
         recon, binning_rec = reads.read_recon(args, meta)    
         # publish reconstructions
         if len(recon) == 3:
             # prepare reconstruction
-            if(args.beamline == '32-id'):
+            if(meta[self.instrument_key][0] == 'Transmission X-Ray Microscope'):
+                log.info('Transmission X-Ray Microscope Instrument')
                 self.resolution = self.resolution / 1000. * binning_rec
             else:
+                log.info('Micro Tomography Instrument')
                 self.resolution = self.resolution * self.binning * binning_rec
             plots.plot_recon(args, self.dims, recon, FILE_NAME_RECON, self.resolution)
             with open(FILE_NAME_RECON, 'rb') as f:
@@ -175,11 +197,11 @@ class TomoLog():
             recon_url = self.dbx.files_get_temporary_link('/'+FILE_NAME_RECON).link            
             self.snippets.create_image(presentation_id, page_id, recon_url, 370, 370, 130, 30)
             self.snippets.create_textbox_with_text(
-                presentation_id, page_id, 'Reconstruction', 90, 20, 270, 0, 10)
+                presentation_id, page_id, 'Reconstruction', 90, 20, 270, 0, 10, 0)
 
         # publish other labels
         self.snippets.create_textbox_with_text(
-            presentation_id, page_id, 'Other info/screenshots', 120, 20, 480, 0, 10)
+            presentation_id, page_id, 'Other info/screenshots', 120, 20, 480, 0, 10, 0)
 
     def publish_projection(self, fname, presentation_id, page_id, posx, posy):
         with open(fname, 'rb') as f:
