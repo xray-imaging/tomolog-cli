@@ -37,7 +37,7 @@ class SlidesSnippets(object):
             create_slide_response.get('objectId')))
         return response
     
-    def create_textbox_with_text(self, presentation_id, page_id, text, magnitude_width, magnitude_height, posx, posy, fontsize):
+    def create_textbox_with_text(self, presentation_id, page_id, text, magnitude_width, magnitude_height, posx, posy, fontsize, fontcolor):
         slides_service = self.service
         # [START slides_create_textbox_with_text]
         # Create a new square textbox, using the supplied element ID.
@@ -82,6 +82,15 @@ class SlidesSnippets(object):
                             'magnitude': fontsize,
                             'unit': 'PT'
                         },
+                        'foregroundColor': {
+                            'opaqueColor': {
+                                'rgbColor': {
+                                    'blue': 0.0,
+                                    'green': 0.0,
+                                    'red': fontcolor
+                                }
+                            }
+                        }                        
                     },
                     'fields': 'fontSize'
                 }

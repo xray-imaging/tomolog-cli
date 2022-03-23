@@ -44,8 +44,10 @@ def plot_projection(proj, fname, resolution):
     plt.cla()
     plt.close(fig)
 
+#def plot_cam(args)   to add camera image
+#    cv2.imwrite(image,'')
 
-def plot_recon(args, dims, recon, fname, resolution):
+def plot_recon(args, width, height, recon, fname, resolution):
     '''Plot orthoslices with scalebars and colorbars and save the figure as fname
 
     Parameters
@@ -54,8 +56,10 @@ def plot_recon(args, dims, recon, fname, resolution):
         Minimum threshold value for reconstruction visualization
     args.max : float
         Maximum threshold value for reconstruction visualization
-    dims : list
-        List containing the image width and height
+    width : int
+        image width
+    height : int
+        image height
     recon : list
         List containing 3 orthogonal (x, y, z) slices through the sample
     fname : str
@@ -65,9 +69,6 @@ def plot_recon(args, dims, recon, fname, resolution):
         setting the ScaleBar units="um"
     '''
     
-    width         = int(dims[2])
-    height        = int(dims[1])
-
     fig = plt.figure(constrained_layout=True, figsize=(6, 12))
     grid = fig.add_gridspec(3, 1, height_ratios=[
                             1, 1, width/height])
