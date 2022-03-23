@@ -81,10 +81,6 @@ SECTIONS['general'] = {
         'default': False,
         'help': 'When set, the content of the config file is updated using the current params values',
         'action': 'store_true'},
-    'double-fov': {
-        'default': False,
-        'action': 'store_true',
-        'help': "Set to true for 0-360 data sets"},
 }
 
 SECTIONS['file-reading'] = {
@@ -100,26 +96,10 @@ SECTIONS['file-reading'] = {
 }
 
 SECTIONS['parameters'] = {
-    'idx': {
-        'type': int,
-        'default': -1,
-        'help': "Id of x slice for reconstruction visualization"},
-    'idy': {
-        'type': int,
-        'default': -1,
-        'help': "Id of y slice for reconstruction visualization"},
-    'idz': {
-        'type': int,
-        'default': -1,
-        'help': "Id of z slice for reconstruction visualization"},
-    'max': {
+    'scale': {
         'type': float,
-        'default': 0.0,
-        'help': "Maximum threshold value for reconstruction visualization"},
-    'min': {
-        'type': float,
-        'default': 0.0,
-        'help': "Minimum threshold value for reconstruction visualization"},
+        'default': 0.01,
+        'help': "Colorbar histograms  scale for for reconstruction visualization"},
     'rec-type': {
         'default': 'rec',
         'type': str,

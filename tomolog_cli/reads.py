@@ -50,7 +50,7 @@ def read_raw(args):
     proj = []
     with h5py.File(args.file_name) as fid:
         if args.double_fov == True:
-            log.warning('hanling the data set as a double FOV')
+            log.warning('Data read: Handling the data set as a double FOV')
             image_0 = np.flip(fid['exchange/data'][0][:], axis=1)
             image_1 = fid['exchange/data'][-1][:]
             data = np.hstack((image_0, image_1))

@@ -54,8 +54,18 @@ class TomoLog():
         self.beamline_key        = 'measurement_instrument_source_beamline'
         self.instrument_key      = 'measurement_instrument_instrument_name'
         self.camera_distance_key = 'measurement_instrument_camera_motor_stack_setup_camera_distance'
+        self.sample_in_x_key     = 'process_acquisition_flat_fields_sample_in_x'
 
     def run_log(self, args):
+
+        args.double_fov = False # Set to true for 0-360 data sets
+        # id of (x, y, z) slices for reconstruction visualization
+        args.idz = -1
+        args.idy = -1
+        args.idx = -1
+        # min/max threshold value for reconstruction visualization
+        args.min = 0
+        args.max = 0
 
         if args.file_name is None:
             args.file_name = PV(args.PV_prefix.get(as_string=True))
@@ -70,23 +80,23 @@ class TomoLog():
         
 
         meta = reads.read_scan_info(args)
+        file_name =  os.path.basename(args.file_name)
         # print(meta)
         # publish title
         try:
             instrument_name = meta[self.instrument_key][0]
-            log.info('Transmission X-Ray Microscope Instrument')
+            log.info(instrument_name)
         except KeyError:
             log.error('Corrupted file: missing instrument name')
             log.error('or File locked by another program')
             return
         
         try:
-            full_file_name = meta[self.full_file_name_key][0]
-            # print(full_file_name)
+            original_full_file_name = meta[self.full_file_name_key][0]
+            # print(original_full_file_name)
             self.snippets.create_textbox_with_text(presentation_id, page_id, os.path.basename(
-                full_file_name)[:-3], 400, 50, 0, 0, 13, 0)
+                original_full_file_name)[:-3], 400, 50, 0, 0, 13, 0)
         except TypeError:
-            file_name =  os.path.basename(args.file_name)
             self.snippets.create_textbox_with_text(presentation_id, page_id, file_name, 400, 50, 0, 0, 13, 1)
             # print('red')  ### temp for 2021-10 Cooley TXM
         except KeyError:
@@ -99,7 +109,7 @@ class TomoLog():
             meta[self.magnification_key][0].replace("x", "")
             fontcolor = 0
         except:
-            log.error('Objective magnification was not stored [%s, %s] for dataset: %s' % (meta[self.magnification_key][0], meta[self.magnification_key][1], full_file_name))
+            log.error('Objective magnification was not stored [%s, %s] for dataset: %s' % (meta[self.magnification_key][0], meta[self.magnification_key][1], original_full_file_name))
             log.error('Using --magnification parameter: %s' % args.magnification)
             log.error('Using --pixel-size parameter: %f' % args.pixel_size)
             meta[self.pixel_size_key][0] = args.pixel_size
@@ -131,8 +141,9 @@ class TomoLog():
 
         # meta[self.exposure_time_key][0] = 2.0 ### temp for 2021-10 Cooley TXM
         # publish scan info
-        descr  =  f"Beamline: {meta[self.beamline_key][0]} {meta[self.instrument_key][0]}\n"
-        descr +=  f"Particle description: {meta[self.description_1_key][0]} {meta[self.description_2_key][0]} {meta[self.description_3_key][0]}\n"
+        descr  =  f"File name: {file_name}\n"
+        descr +=  f"Beamline: {meta[self.beamline_key][0]} {meta[self.instrument_key][0]}\n"
+        # descr +=  f"Particle description: {meta[self.description_1_key][0]} {meta[self.description_2_key][0]} {meta[self.description_3_key][0]}\n"
         descr +=  f"Scan date: {meta[self.date_key][0]}\n"
         descr +=  f"Scan energy: {meta[self.energy_key][0]} {meta[self.energy_key][1]}\n"
         descr +=  f"Camera pixel size: {meta[self.pixel_size_key][0]:.02f} {meta[self.pixel_size_key][1]}\n"
@@ -144,6 +155,10 @@ class TomoLog():
         descr +=  f"Projection size: {self.width} x {self.height}\n"
         if(meta[self.instrument_key][0] == 'Micro-tomography'):
             descr +=  f"Sample detector distance: {meta[self.camera_distance_key][0]} {meta[self.camera_distance_key][1]}"
+            # descr +=  f"Sample detector distance: 200 mm"
+            if (meta[self.sample_in_x_key][0] != 0):
+                args.double_fov = True
+                log.warning('Sample in x is off center: %s. Handling the data set as a double FOV' % meta[self.sample_in_x_key][0])
         self.snippets.create_textbox_with_bullets(
             presentation_id, page_id, descr, 240, 120, 0, 18, 8, fontcolor)
 
@@ -176,7 +191,7 @@ class TomoLog():
             fname = FILE_NAME_PROJ0+'.jpg'
             self.resolution = self.resolution * self.binning
             plots.plot_projection(proj[0], fname, resolution=self.resolution)
-            self.publish_projection(fname, presentation_id, page_id, 0, 110)
+            self.publish_projection(fname, presentation_id, page_id, 0, 120)
             self.snippets.create_textbox_with_text(
                 presentation_id, page_id, 'Micro-CT projection', 90, 20, 60, 295, 8, 0)                
 
