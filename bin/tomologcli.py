@@ -1,5 +1,6 @@
 import os
 import sys
+import time
 import pathlib 
 import argparse
 
@@ -43,6 +44,8 @@ def run_log(args):
                 log.warning("  *** file %d/%d;  %s" % (index, len(h5_file_list_sorted), fname))
                 index += 1
                 TomoLog().run_log(args)
+                time.sleep(20)
+
         else:
             log.error("directory %s does not contain any file" % args.file_name)
     else:

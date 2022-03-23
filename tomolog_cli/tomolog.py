@@ -47,7 +47,8 @@ class TomoLog():
         self.exposure_time_key  = 'measurement_instrument_detector_exposure_time'
         self.angle_step_key     = 'process_acquisition_rotation_rotation_step'
         self.num_angle_key      = 'process_acquisition_rotation_num_angles'
-        self.data_size_key      = 'exchange_data'
+        self.width_key          = 'measurement_instrument_detector_dimension_x'
+        self.height_key         = 'measurement_instrument_detector_dimension_y'
         self.binning_key        = 'measurement_instrument_detector_binning_x'
         self.beamline_key       = 'measurement_instrument_source_beamline'
         self.instrument_key     = 'measurement_instrument_instrument_name'
@@ -75,7 +76,9 @@ class TomoLog():
             log.info('Transmission X-Ray Microscope Instrument')
         except KeyError:
             log.error('Corrupted file: missing instrument name')
+            log.error('or File locked by another program')
             return
+        
         try:
             full_file_name = meta[self.full_file_name_key][0]
             # print(full_file_name)
@@ -90,13 +93,7 @@ class TomoLog():
             self.snippets.create_textbox_with_text(presentation_id, page_id, 'Unable to open file (truncated file)', 90, 20, 350, 0, 10, 1)
             # print('red')  ### temp for 2021-10 Cooley TXM
             return
-        try:
-            self.dims             = meta[self.data_size_key][0].replace("(", "").replace(")", "").split(',')
-        except AttributeError:
-            log.error('Data stored in exchange/data is not valid. Dims: (%d, %d, %d)' % (1, meta[self.data_size_key][0].shape[0], meta[self.data_size_key][0].shape[1]))
-            self.snippets.create_textbox_with_text(presentation_id, page_id, 'Data set is invalid', 90, 20, 270, 0, 10, 1)
-            # print('red')  ### temp for 2021-10 Cooley TXM
-            return
+
         try:
             meta[self.magnification_key][0].replace("x", "")
             fontcolor = 0
@@ -112,8 +109,11 @@ class TomoLog():
             meta[self.resolution_key][1] = 'um'
             fontcolor = 1
 
-        self.width            = int(self.dims[2])
-        self.height           = int(self.dims[1])
+        # self.width            = int(self.dims[2])
+        # self.height           = int(self.dims[1])
+        self.width            = int(meta[self.width_key][0])
+        self.height           = int(meta[self.height_key][0])
+        # meta[self.resolution_key][0] = 0.69 ### temp for 2021-10 Cooley 2-BM
         # meta[self.resolution_key][0] = 42.4 ### temp for 2021-10 Cooley TXM
         self.resolution       = float(meta[self.resolution_key][0])
         # meta[self.resolution_key][1] = 'nm'  ### temp for 2021-10 Cooley TXM
@@ -191,7 +191,7 @@ class TomoLog():
             else:
                 log.info('Micro Tomography Instrument')
                 self.resolution = self.resolution * self.binning * binning_rec
-            plots.plot_recon(args, self.dims, recon, FILE_NAME_RECON, self.resolution)
+            plots.plot_recon(args, self.width, self.height, recon, FILE_NAME_RECON, self.resolution)
             with open(FILE_NAME_RECON, 'rb') as f:
                 self.dbx.files_upload(f.read(), '/'+FILE_NAME_RECON, dropbox.files.WriteMode.overwrite)
             recon_url = self.dbx.files_get_temporary_link('/'+FILE_NAME_RECON).link            
