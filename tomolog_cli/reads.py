@@ -97,13 +97,13 @@ def read_recon(args, meta):
         Binning factor calculated by comparing raw image width and recon size
     '''
 
-    data_size     = 'exchange_data'
-    binning       = 'measurement_instrument_detector_binning_x'
+    binning_key = 'measurement_instrument_detector_binning_x'
+    width_key   = 'measurement_instrument_detector_dimension_x'
+    height_key  = 'measurement_instrument_detector_dimension_y'
 
-    dims          = meta[data_size][0].replace("(", "").replace(")", "").split(',')
-    width         = int(dims[2])
-    height        = int(dims[1])
-    binning       = int(meta[binning][0])
+    width         = int(meta[width_key][0])
+    height        = int(meta[height_key][0])
+    binning       = int(meta[binning_key][0])
 
     recon = []
     binning_rec = -1
