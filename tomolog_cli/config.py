@@ -96,6 +96,26 @@ SECTIONS['file-reading'] = {
 }
 
 SECTIONS['parameters'] = {
+    'idx': {
+        'type': int,
+        'default': -1,
+        'help': "Id of x slice for reconstruction visualization"},
+    'idy': {
+        'type': int,
+        'default': -1,
+        'help': "Id of y slice for reconstruction visualization"},
+    'idz': {
+        'type': int,
+        'default': -1,
+        'help': "Id of z slice for reconstruction visualization"},
+    'max': {
+        'type': float,
+        'default': 0.0,
+        'help': "Maximum threshold value for reconstruction visualization"},
+    'min': {
+        'type': float,
+        'default': 0.0,
+        'help': "Minimum threshold value for reconstruction visualization"},
     'scale': {
         'type': float,
         'default': 0.01,
