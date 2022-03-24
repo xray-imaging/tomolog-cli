@@ -165,17 +165,17 @@ class TomoLog():
             fname = FILE_NAME_PROJ0+'.jpg'
             nct_resolution = self.resolution / 1000.
             plots.plot_projection(proj[0], fname, resolution=nct_resolution)
-            self.publish_projection(fname, presentation_id, page_id, 210, 0, 110)
+            self.publish_projection(fname, presentation_id, page_id, 170, 0, 145)
             self.snippets.create_textbox_with_text(
-                presentation_id, page_id, 'Nano-CT projection', 90, 20, 60, 265, 8, 0)
+                presentation_id, page_id, 'Nano-CT projection', 90, 20, 50, 150, 8, 0)
             try:
                 log.info('Plotting microCT projection')
                 fname = FILE_NAME_PROJ1+'.jpg'
                 mct_resolution = self.pixel_size / self.magnification
                 plots.plot_projection(proj[1], fname, resolution=mct_resolution)
-                self.publish_projection(fname, presentation_id, page_id, 210, 0, 235)
+                self.publish_projection(fname, presentation_id, page_id, 170, 0, 270)
                 self.snippets.create_textbox_with_text(
-                    presentation_id, page_id, 'Micro-CT projection', 90, 20, 60, 385, 8, 0)
+                    presentation_id, page_id, 'Micro-CT projection', 160, 20, 10, 290, 8, 0)
             except:
                 log.warning('No microCT data available')
         else:
@@ -184,16 +184,16 @@ class TomoLog():
             fname = FILE_NAME_PROJ0+'.jpg'
             self.resolution = self.resolution * self.binning
             plots.plot_projection(proj[0], fname, resolution=self.resolution)
-            self.publish_projection(fname, presentation_id, page_id, 190, 0, 115)
+            self.publish_projection(fname, presentation_id, page_id, 170, 0, 145)
             self.snippets.create_textbox_with_text(
-                presentation_id, page_id, 'Micro-CT projection', 90, 20, 60, 269, 8, 0)                
+                presentation_id, page_id, 'Micro-CT projection', 90, 20, 50, 150, 8, 0)
             try:
                 log.info('Plotting frame the IP camera')
                 fname = FILE_NAME_PROJ1+'.jpg'
                 plots.plot_frame(proj[1], fname)
-                self.publish_projection(fname, presentation_id, page_id, 190, 0, 246)
+                self.publish_projection(fname, presentation_id, page_id, 170, 0, 270)
                 self.snippets.create_textbox_with_text(
-                    presentation_id, page_id, 'Frame from the IP camera in the hutch', 160, 20, 20, 388, 8, 0)
+                    presentation_id, page_id, 'Frame from the IP camera in the hutch', 160, 20, 10, 290, 8, 0)
             except:
                 log.warning('No frame from the IP camera')
         # read reconstructions
