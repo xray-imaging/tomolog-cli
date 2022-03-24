@@ -81,10 +81,6 @@ SECTIONS['general'] = {
         'default': False,
         'help': 'When set, the content of the config file is updated using the current params values',
         'action': 'store_true'},
-    'double-fov': {
-        'default': False,
-        'action': 'store_true',
-        'help': "Set to true for 0-360 data sets"},
 }
 
 SECTIONS['file-reading'] = {
@@ -120,6 +116,10 @@ SECTIONS['parameters'] = {
         'type': float,
         'default': 0.0,
         'help': "Minimum threshold value for reconstruction visualization"},
+    'scale': {
+        'type': float,
+        'default': 0.01,
+        'help': "Colorbar histograms  scale for for reconstruction visualization"},
     'rec-type': {
         'default': 'rec',
         'type': str,

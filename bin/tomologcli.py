@@ -34,7 +34,7 @@ def run_log(args):
         log.info("publishing a multiple files in: %s" % args.file_name)
         top = os.path.join(args.file_name, '')
         h5_file_list = list(filter(lambda x: x.endswith(('.h5', '.hdf', 'hdf5')), os.listdir(top)))
-        h5_file_list_sorted = res = sorted(h5_file_list, key = lambda x: x.split('_')[-1])
+        h5_file_list_sorted = sorted(h5_file_list, key = lambda x: x.split('_')[-1])
         if (h5_file_list):
             # h5_file_list.sort()
             log.info("found: %s" % h5_file_list_sorted) 

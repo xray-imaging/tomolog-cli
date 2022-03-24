@@ -50,7 +50,7 @@ def read_raw(args):
     proj = []
     with h5py.File(args.file_name) as fid:
         if args.double_fov == True:
-            log.warning('hanling the data set as a double FOV')
+            log.warning('Data read: Handling the data set as a double FOV')
             image_0 = np.flip(fid['exchange/data'][0][:], axis=1)
             image_1 = fid['exchange/data'][-1][:]
             data = np.hstack((image_0, image_1))
@@ -97,13 +97,13 @@ def read_recon(args, meta):
         Binning factor calculated by comparing raw image width and recon size
     '''
 
-    data_size     = 'exchange_data'
-    binning       = 'measurement_instrument_detector_binning_x'
+    binning_key = 'measurement_instrument_detector_binning_x'
+    width_key   = 'measurement_instrument_detector_dimension_x'
+    height_key  = 'measurement_instrument_detector_dimension_y'
 
-    dims          = meta[data_size][0].replace("(", "").replace(")", "").split(',')
-    width         = int(dims[2])
-    height        = int(dims[1])
-    binning       = int(meta[binning][0])
+    width         = int(meta[width_key][0])
+    height        = int(meta[height_key][0])
+    binning       = int(meta[binning_key][0])
 
     recon = []
     binning_rec = -1
@@ -166,3 +166,22 @@ def read_recon(args, meta):
         log.warning('Skipping reconstruction')
 
     return recon, binning_rec
+
+def read_rec_line(args):
+    '''Read the command line for reconstruction
+    Returns
+    -------
+    line : str
+        command line for reconstruction
+    '''
+    
+    line = None
+    try:
+        basename = os.path.basename(args.file_name)[:-3]
+        dirname = os.path.dirname(args.file_name)
+        with open(f'{dirname}_rec/{basename}_rec/rec_line.txt','r') as fid:
+            line = fid.readlines()[0]
+    except:
+        log.warning('Skipping the command line for reconstruction')
+
+    return line

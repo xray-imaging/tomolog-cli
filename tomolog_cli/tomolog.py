@@ -35,26 +35,30 @@ class TomoLog():
         self.dbx = auth.drop_box(DROPBOX_TOKEN)
         
         # hdf file key definitions
-        self.full_file_name_key = 'measurement_sample_full_file_name'
-        self.description_1_key  = 'measurement_sample_description_1'
-        self.description_2_key  = 'measurement_sample_description_2'
-        self.description_3_key  = 'measurement_sample_description_3'
-        self.date_key           = 'process_acquisition_start_date'
-        self.energy_key         = 'measurement_instrument_monochromator_energy'
-        self.pixel_size_key     = 'measurement_instrument_detector_pixel_size'
-        self.magnification_key  = 'measurement_instrument_detection_system_objective_camera_objective'
-        self.resolution_key     = 'measurement_instrument_detection_system_objective_resolution'
-        self.exposure_time_key  = 'measurement_instrument_detector_exposure_time'
-        self.angle_step_key     = 'process_acquisition_rotation_rotation_step'
-        self.num_angle_key      = 'process_acquisition_rotation_num_angles'
-        self.width_key          = 'measurement_instrument_detector_dimension_x'
-        self.height_key         = 'measurement_instrument_detector_dimension_y'
-        self.binning_key        = 'measurement_instrument_detector_binning_x'
-        self.beamline_key       = 'measurement_instrument_source_beamline'
-        self.instrument_key     = 'measurement_instrument_instrument_name'
-
+        self.full_file_name_key  = 'measurement_sample_full_file_name'
+        self.description_1_key   = 'measurement_sample_description_1'
+        self.description_2_key   = 'measurement_sample_description_2'
+        self.description_3_key   = 'measurement_sample_description_3'
+        self.date_key            = 'process_acquisition_start_date'
+        self.energy_key          = 'measurement_instrument_monochromator_energy'
+        self.pixel_size_key      = 'measurement_instrument_detector_pixel_size'
+        self.magnification_key   = 'measurement_instrument_detection_system_objective_camera_objective'
+        self.resolution_key      = 'measurement_instrument_detection_system_objective_resolution'
+        self.exposure_time_key   = 'measurement_instrument_detector_exposure_time'
+        self.rotation_start_key  = 'process_acquisition_rotation_rotation_start'
+        self.angle_step_key      = 'process_acquisition_rotation_rotation_step'
+        self.num_angle_key       = 'process_acquisition_rotation_num_angles'
+        self.width_key           = 'measurement_instrument_detector_dimension_x'
+        self.height_key          = 'measurement_instrument_detector_dimension_y'
+        self.binning_key         = 'measurement_instrument_detector_binning_x'
+        self.beamline_key        = 'measurement_instrument_source_beamline'
+        self.instrument_key      = 'measurement_instrument_instrument_name'
+        self.camera_distance_key = 'measurement_instrument_camera_motor_stack_setup_camera_distance'
+        self.sample_in_x_key     = 'process_acquisition_flat_fields_sample_in_x'
 
     def run_log(self, args):
+
+        args.double_fov = False # Set to true for 0-360 data sets
 
         if args.file_name is None:
             args.file_name = PV(args.PV_prefix.get(as_string=True))
@@ -69,23 +73,23 @@ class TomoLog():
         
 
         meta = reads.read_scan_info(args)
+        file_name =  os.path.basename(args.file_name)
         # print(meta)
         # publish title
         try:
             instrument_name = meta[self.instrument_key][0]
-            log.info('Transmission X-Ray Microscope Instrument')
+            log.info(instrument_name)
         except KeyError:
             log.error('Corrupted file: missing instrument name')
             log.error('or File locked by another program')
             return
         
         try:
-            full_file_name = meta[self.full_file_name_key][0]
-            # print(full_file_name)
+            original_full_file_name = meta[self.full_file_name_key][0]
+            # print(original_full_file_name)
             self.snippets.create_textbox_with_text(presentation_id, page_id, os.path.basename(
-                full_file_name)[:-3], 400, 50, 0, 0, 13, 0)
+                original_full_file_name)[:-3], 400, 50, 0, 0, 13, 0)
         except TypeError:
-            file_name =  os.path.basename(args.file_name)
             self.snippets.create_textbox_with_text(presentation_id, page_id, file_name, 400, 50, 0, 0, 13, 1)
             # print('red')  ### temp for 2021-10 Cooley TXM
         except KeyError:
@@ -98,7 +102,7 @@ class TomoLog():
             meta[self.magnification_key][0].replace("x", "")
             fontcolor = 0
         except:
-            log.error('Objective magnification was not stored [%s, %s] for dataset: %s' % (meta[self.magnification_key][0], meta[self.magnification_key][1], full_file_name))
+            log.error('Objective magnification was not stored [%s, %s] for dataset: %s' % (meta[self.magnification_key][0], meta[self.magnification_key][1], original_full_file_name))
             log.error('Using --magnification parameter: %s' % args.magnification)
             log.error('Using --pixel-size parameter: %f' % args.pixel_size)
             meta[self.pixel_size_key][0] = args.pixel_size
@@ -109,8 +113,6 @@ class TomoLog():
             meta[self.resolution_key][1] = 'um'
             fontcolor = 1
 
-        # self.width            = int(self.dims[2])
-        # self.height           = int(self.dims[1])
         self.width            = int(meta[self.width_key][0])
         self.height           = int(meta[self.height_key][0])
         # meta[self.resolution_key][0] = 0.69 ### temp for 2021-10 Cooley 2-BM
@@ -126,14 +128,14 @@ class TomoLog():
         self.magnification    = float(meta[self.magnification_key][0].replace("x", ""))
         # meta[self.binning_key][0] = '1' ### temp for 2021-10 Cooley TXM
         self.binning          = int(meta[self.binning_key][0])
-
         if meta[self.exposure_time_key][1] == None:
             log.warning('Exposure time units are missing assuming (s)')
             meta[self.exposure_time_key][1] = 's'
 
         # meta[self.exposure_time_key][0] = 2.0 ### temp for 2021-10 Cooley TXM
         # publish scan info
-        descr  =  f"Beamline: {meta[self.beamline_key][0]} {meta[self.instrument_key][0]}\n"
+        descr  =  f"File name: {file_name}\n"
+        descr +=  f"Beamline: {meta[self.beamline_key][0]} {meta[self.instrument_key][0]}\n"
         descr +=  f"Particle description: {meta[self.description_1_key][0]} {meta[self.description_2_key][0]} {meta[self.description_3_key][0]}\n"
         descr +=  f"Scan date: {meta[self.date_key][0]}\n"
         descr +=  f"Scan energy: {meta[self.energy_key][0]} {meta[self.energy_key][1]}\n"
@@ -143,9 +145,15 @@ class TomoLog():
         descr +=  f"Exposure time: {meta[self.exposure_time_key][0]:.02f} {meta[self.exposure_time_key][1]}\n"
         descr +=  f"Angle step: {meta[self.angle_step_key][0]:.03f} {meta[self.angle_step_key][1]}\n"
         descr +=  f"Number of angles: {meta[self.num_angle_key][0]}\n"
-        descr +=  f"Projection size: {self.width} x {self.height}"
+        descr +=  f"Projection size: {self.width} x {self.height}\n"
+        if(meta[self.instrument_key][0] == 'Micro-tomography'):
+            descr +=  f"Sample detector distance: {meta[self.camera_distance_key][0]} {meta[self.camera_distance_key][1]}"
+            # descr +=  f"Sample detector distance: 200 mm"
+            if (meta[self.sample_in_x_key][0] != 0):
+                args.double_fov = True
+                log.warning('Sample in x is off center: %s. Handling the data set as a double FOV' % meta[self.sample_in_x_key][0])
         self.snippets.create_textbox_with_bullets(
-            presentation_id, page_id, descr, 240, 120, 0, 27, 8, fontcolor)
+            presentation_id, page_id, descr, 240, 120, 0, 18, 8, fontcolor)
 
         # read projection(s)
         proj = reads.read_raw(args)
@@ -157,17 +165,17 @@ class TomoLog():
             fname = FILE_NAME_PROJ0+'.jpg'
             nct_resolution = self.resolution / 1000.
             plots.plot_projection(proj[0], fname, resolution=nct_resolution)
-            self.publish_projection(fname, presentation_id, page_id, 0, 110)
+            self.publish_projection(fname, presentation_id, page_id, 170, 0, 145)
             self.snippets.create_textbox_with_text(
-                presentation_id, page_id, 'Nano-CT projection', 90, 20, 60, 265, 8, 0)
+                presentation_id, page_id, 'Nano-CT projection', 90, 20, 50, 150, 8, 0)
             try:
                 log.info('Plotting microCT projection')
                 fname = FILE_NAME_PROJ1+'.jpg'
                 mct_resolution = self.pixel_size / self.magnification
                 plots.plot_projection(proj[1], fname, resolution=mct_resolution)
-                self.publish_projection(fname, presentation_id, page_id, 0, 235)
+                self.publish_projection(fname, presentation_id, page_id, 170, 0, 270)
                 self.snippets.create_textbox_with_text(
-                    presentation_id, page_id, 'Micro-CT projection', 90, 20, 60, 385, 8, 0)
+                    presentation_id, page_id, 'Micro-CT projection', 160, 20, 10, 290, 8, 0)
             except:
                 log.warning('No microCT data available')
         else:
@@ -176,12 +184,21 @@ class TomoLog():
             fname = FILE_NAME_PROJ0+'.jpg'
             self.resolution = self.resolution * self.binning
             plots.plot_projection(proj[0], fname, resolution=self.resolution)
-            self.publish_projection(fname, presentation_id, page_id, 0, 110)
+            self.publish_projection(fname, presentation_id, page_id, 170, 0, 145)
             self.snippets.create_textbox_with_text(
-                presentation_id, page_id, 'Micro-CT projection', 90, 20, 60, 295, 8, 0)                
-
+                presentation_id, page_id, 'Micro-CT projection', 90, 20, 50, 150, 8, 0)
+            try:
+                log.info('Plotting frame the IP camera')
+                fname = FILE_NAME_PROJ1+'.jpg'
+                plots.plot_frame(proj[1], fname)
+                self.publish_projection(fname, presentation_id, page_id, 170, 0, 270)
+                self.snippets.create_textbox_with_text(
+                    presentation_id, page_id, 'Frame from the IP camera in the hutch', 160, 20, 10, 290, 8, 0)
+            except:
+                log.warning('No frame from the IP camera')
         # read reconstructions
         recon, binning_rec = reads.read_recon(args, meta)    
+        rec_line = reads.read_rec_line(args)
         # publish reconstructions
         if len(recon) == 3:
             # prepare reconstruction
@@ -195,18 +212,20 @@ class TomoLog():
             with open(FILE_NAME_RECON, 'rb') as f:
                 self.dbx.files_upload(f.read(), '/'+FILE_NAME_RECON, dropbox.files.WriteMode.overwrite)
             recon_url = self.dbx.files_get_temporary_link('/'+FILE_NAME_RECON).link            
-            self.snippets.create_image(presentation_id, page_id, recon_url, 370, 370, 130, 30)
+            self.snippets.create_image(presentation_id, page_id, recon_url, 370, 370, 130, 25)
             self.snippets.create_textbox_with_text(
                 presentation_id, page_id, 'Reconstruction', 90, 20, 270, 0, 10, 0)
-
+        if rec_line is not None:
+            self.snippets.create_textbox_with_text(
+                    presentation_id, page_id, rec_line, 1000, 20, 185, 391, 6, 0)
         # publish other labels
         self.snippets.create_textbox_with_text(
             presentation_id, page_id, 'Other info/screenshots', 120, 20, 480, 0, 10, 0)
 
-    def publish_projection(self, fname, presentation_id, page_id, posx, posy):
+    def publish_projection(self, fname, presentation_id, page_id, size, posx, posy):
         with open(fname, 'rb') as f:
             self.dbx.files_upload(f.read(), '/'+fname, dropbox.files.WriteMode.overwrite)
             proj_url = self.dbx.files_get_temporary_link('/'+fname).link
-            self.snippets.create_image(presentation_id, page_id, proj_url, 210, 210, posx, posy)
+            self.snippets.create_image(presentation_id, page_id, proj_url, size, size, posx, posy)
 
 

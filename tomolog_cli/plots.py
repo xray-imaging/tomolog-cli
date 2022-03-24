@@ -1,7 +1,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.patheffects as PathEffects
-
+import cv2
 from matplotlib_scalebar.scalebar import ScaleBar
 from mpl_toolkits.axes_grid1 import make_axes_locatable
 
@@ -44,8 +44,18 @@ def plot_projection(proj, fname, resolution):
     plt.cla()
     plt.close(fig)
 
-#def plot_cam(args)   to add camera image
-#    cv2.imwrite(image,'')
+def plot_frame(frame, fname):
+    '''Plot frame from the IP camera
+
+     Parameters
+    ----------
+    frame : ndarray
+        RGB image from the camera
+    fname : str
+        File name where the plot will be saved
+    '''
+
+    cv2.imwrite(fname,frame)
 
 def plot_recon(args, width, height, recon, fname, resolution):
     '''Plot orthoslices with scalebars and colorbars and save the figure as fname
