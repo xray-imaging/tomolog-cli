@@ -59,13 +59,6 @@ class TomoLog():
     def run_log(self, args):
 
         args.double_fov = False # Set to true for 0-360 data sets
-        # id of (x, y, z) slices for reconstruction visualization
-        args.idz = -1
-        args.idy = -1
-        args.idx = -1
-        # min/max threshold value for reconstruction visualization
-        args.min = 0
-        args.max = 0
 
         if args.file_name is None:
             args.file_name = PV(args.PV_prefix.get(as_string=True))
@@ -143,7 +136,7 @@ class TomoLog():
         # publish scan info
         descr  =  f"File name: {file_name}\n"
         descr +=  f"Beamline: {meta[self.beamline_key][0]} {meta[self.instrument_key][0]}\n"
-        # descr +=  f"Particle description: {meta[self.description_1_key][0]} {meta[self.description_2_key][0]} {meta[self.description_3_key][0]}\n"
+        descr +=  f"Particle description: {meta[self.description_1_key][0]} {meta[self.description_2_key][0]} {meta[self.description_3_key][0]}\n"
         descr +=  f"Scan date: {meta[self.date_key][0]}\n"
         descr +=  f"Scan energy: {meta[self.energy_key][0]} {meta[self.energy_key][1]}\n"
         descr +=  f"Camera pixel size: {meta[self.pixel_size_key][0]:.02f} {meta[self.pixel_size_key][1]}\n"
@@ -205,6 +198,7 @@ class TomoLog():
                 log.warning('No frame from the IP camera')
         # read reconstructions
         recon, binning_rec = reads.read_recon(args, meta)    
+        rec_line = reads.read_rec_line(args)
         # publish reconstructions
         if len(recon) == 3:
             # prepare reconstruction
@@ -218,10 +212,12 @@ class TomoLog():
             with open(FILE_NAME_RECON, 'rb') as f:
                 self.dbx.files_upload(f.read(), '/'+FILE_NAME_RECON, dropbox.files.WriteMode.overwrite)
             recon_url = self.dbx.files_get_temporary_link('/'+FILE_NAME_RECON).link            
-            self.snippets.create_image(presentation_id, page_id, recon_url, 370, 370, 130, 30)
+            self.snippets.create_image(presentation_id, page_id, recon_url, 370, 370, 130, 25)
             self.snippets.create_textbox_with_text(
                 presentation_id, page_id, 'Reconstruction', 90, 20, 270, 0, 10, 0)
-
+        if rec_line is not None:
+            self.snippets.create_textbox_with_text(
+                    presentation_id, page_id, rec_line, 1000, 20, 185, 391, 6, 0)
         # publish other labels
         self.snippets.create_textbox_with_text(
             presentation_id, page_id, 'Other info/screenshots', 120, 20, 480, 0, 10, 0)

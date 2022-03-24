@@ -166,3 +166,22 @@ def read_recon(args, meta):
         log.warning('Skipping reconstruction')
 
     return recon, binning_rec
+
+def read_rec_line(args):
+    '''Read the command line for reconstruction
+    Returns
+    -------
+    line : str
+        command line for reconstruction
+    '''
+    
+    line = None
+    try:
+        basename = os.path.basename(args.file_name)[:-3]
+        dirname = os.path.dirname(args.file_name)
+        with open(f'{dirname}_rec/{basename}_rec/rec_line.txt','r') as fid:
+            line = fid.readlines()[0]
+    except:
+        log.warning('Skipping the command line for reconstruction')
+
+    return line
