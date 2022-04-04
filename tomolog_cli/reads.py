@@ -98,8 +98,8 @@ def read_recon(args, meta):
     '''
 
     binning_key = 'measurement_instrument_detector_binning_x'
-    width_key   = 'measurement_instrument_detector_dimension_x'
-    height_key  = 'measurement_instrument_detector_dimension_y'
+    width_key   = 'measurement_instrument_detector_roi_size_x'
+    height_key  = 'measurement_instrument_detector_roi_size_y'
 
     width         = int(meta[width_key][0])
     height        = int(meta[height_key][0])
@@ -117,15 +117,11 @@ def read_recon(args, meta):
     try:
         basename = os.path.basename(args.file_name)[:-3]
         dirname = os.path.dirname(args.file_name)
-        # shift from the middle
-        shift = 0
         # set the correct prefix to find the reconstructions
-        rec_prefix = 'r'
-        if args.rec_type == 'rec':
-            rec_prefix = 'recon'
+        rec_prefix = 'recon'
 
         top = os.path.join(dirname+'_'+args.rec_type, basename+'_rec')
-        tiff_file_list = list(filter(lambda x: x.endswith(('.tif', '.tiff')), os.listdir(top)))
+        tiff_file_list = sorted(list(filter(lambda x: x.endswith(('.tif', '.tiff')), os.listdir(top))))
         z_start = int(tiff_file_list[0].split('.')[0].split('_')[1])
         z_end   = int(tiff_file_list[-1].split('.')[0].split('_')[1]) + 1
         height = z_end-z_start
@@ -140,17 +136,21 @@ def read_recon(args, meta):
             binning_rec = width//tmp.shape[0]
 
         w = width//binning_rec
-        h = height//binning_rec
-        args.idz = int(h//2+shift)
-        args.idy = int(w//2+shift)
-        args.idx = int(w//2+shift)
+        h = height
+        if args.idz==-1:
+            args.idz = int(h//2)
+        if args.idy==-1:
+            args.idy = int(w//2)
+        if args.idx==-1:
+            args.idx = int(w//2)
 
         z = utils.read_tiff(
             f'{dirname}_{args.rec_type}/{basename}_rec/{rec_prefix}_{args.idz:05}.tiff').copy()
         # read x,y slices by lines
         y = np.zeros((h, w), dtype='float32')
         x = np.zeros((h, w), dtype='float32')
-        for j in range(z_start, z_end//binning_rec):
+
+        for j in range(z_start, z_end):
             # print(z_start, z_end//binning_rec)
             zz = utils.read_tiff(
                 f'{dirname}_{args.rec_type}/{basename}_rec/{rec_prefix}_{j:05}.tiff')
@@ -160,10 +160,10 @@ def read_recon(args, meta):
         recon = [coeff_rec*x,coeff_rec*y,coeff_rec*z]
         log.info('Adding reconstruction')
     except ZeroDivisionError:
-        log.error('Reconstructions for %s are larger than raw data image width. This is the case in a 0-360. Please use: --double-fov' % top)
-        log.warning('Skipping reconstruction')
+       log.error('Reconstructions for %s are larger than raw data image width. This is the case in a 0-360. Please use: --double-fov' % top)
+       log.warning('Skipping reconstruction')
     except:
-        log.warning('Skipping reconstruction')
+       log.warning('Skipping reconstruction')
 
     return recon, binning_rec
 
@@ -180,7 +180,7 @@ def read_rec_line(args):
         basename = os.path.basename(args.file_name)[:-3]
         dirname = os.path.dirname(args.file_name)
         with open(f'{dirname}_rec/{basename}_rec/rec_line.txt','r') as fid:
-            line = fid.readlines()[0]
+            line = fid.readlines()[0]            
     except:
         log.warning('Skipping the command line for reconstruction')
 
