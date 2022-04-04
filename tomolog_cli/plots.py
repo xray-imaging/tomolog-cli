@@ -23,7 +23,7 @@ def plot_projection(proj, fname, resolution):
     '''
 
     # auto-adjust colorbar values according to a histogram
-    mmin, mmax = utils.find_min_max(proj, 0.005)
+    mmin, mmax = utils.find_min_max(proj, 0.003)
     proj[proj > mmax] = mmax
     proj[proj < mmin] = mmin
 

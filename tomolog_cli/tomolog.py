@@ -48,8 +48,8 @@ class TomoLog():
         self.rotation_start_key  = 'process_acquisition_rotation_rotation_start'
         self.angle_step_key      = 'process_acquisition_rotation_rotation_step'
         self.num_angle_key       = 'process_acquisition_rotation_num_angles'
-        self.width_key           = 'measurement_instrument_detector_dimension_x'
-        self.height_key          = 'measurement_instrument_detector_dimension_y'
+        self.width_key           = 'measurement_instrument_detector_roi_size_x'
+        self.height_key          = 'measurement_instrument_detector_roi_size_y'
         self.binning_key         = 'measurement_instrument_detector_binning_x'
         self.beamline_key        = 'measurement_instrument_source_beamline'
         self.instrument_key      = 'measurement_instrument_instrument_name'
@@ -184,9 +184,9 @@ class TomoLog():
             fname = FILE_NAME_PROJ0+'.jpg'
             self.resolution = self.resolution * self.binning
             plots.plot_projection(proj[0], fname, resolution=self.resolution)
-            self.publish_projection(fname, presentation_id, page_id, 170, 0, 145)
+            self.publish_projection(fname, presentation_id, page_id, 150, 10, 157)
             self.snippets.create_textbox_with_text(
-                presentation_id, page_id, 'Micro-CT projection', 90, 20, 50, 150, 8, 0)
+                presentation_id, page_id, 'Micro-CT projection', 90, 20, 50, 153, 8, 0)
             try:
                 log.info('Plotting frame the IP camera')
                 fname = FILE_NAME_PROJ1+'.jpg'
