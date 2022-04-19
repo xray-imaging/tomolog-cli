@@ -115,7 +115,10 @@ class TomoLog():
 
         self.width  = int(meta[self.width_key][0])
         self.height = int(meta[self.height_key][0])
-
+        
+        args.idx    = self.width  // 2
+        args.idy    = self.width  // 2
+        args.idz    = self.height // 2
         # meta[self.resolution_key][0] = 0.69 ### temp for 2021-10 Cooley 2-BM
         # meta[self.resolution_key][0] = 42.4 ### temp for 2021-10 Cooley TXM
         self.resolution       = float(meta[self.resolution_key][0])
