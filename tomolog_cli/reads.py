@@ -78,8 +78,6 @@ def read_recon(args, meta):
     ----------
     args.file_name : string
         The raw data tomography hdf file name
-    args.rec_type
-        Prefix of the recon folder choices: recgpu,rec
     args.idx
         Id of x slice for reconstruction visualization
     args.idy
@@ -120,7 +118,7 @@ def read_recon(args, meta):
         # set the correct prefix to find the reconstructions
         rec_prefix = 'recon'
 
-        top = os.path.join(dirname+'_'+args.rec_type, basename+'_rec')
+        top = os.path.join(dirname+'_rec', basename+'_rec')
         tiff_file_list = sorted(list(filter(lambda x: x.endswith(('.tif', '.tiff')), os.listdir(top))))
         z_start = int(tiff_file_list[0].split('.')[0].split('_')[1])
         z_end   = int(tiff_file_list[-1].split('.')[0].split('_')[1]) + 1
@@ -145,14 +143,14 @@ def read_recon(args, meta):
             args.idx = int(w//2)
 
         z = utils.read_tiff(
-            f'{dirname}_{args.rec_type}/{basename}_rec/{rec_prefix}_{args.idz:05}.tiff').copy()
+            f'{dirname}_rec/{basename}_rec/{rec_prefix}_{args.idz:05}.tiff').copy()
         # read x,y slices by lines
         y = np.zeros((h, w), dtype='float32')
         x = np.zeros((h, w), dtype='float32')
 
         for j in range(z_start, z_end):
             zz = utils.read_tiff(
-                f'{dirname}_{args.rec_type}/{basename}_rec/{rec_prefix}_{j:05}.tiff')
+                f'{dirname}_rec/{basename}_rec/{rec_prefix}_{j:05}.tiff')
             y[j-z_start, :] = zz[args.idy]
             x[j-z_start, :] = zz[:, args.idx]
 

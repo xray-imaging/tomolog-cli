@@ -120,12 +120,7 @@ SECTIONS['parameters'] = {
         'type': float,
         'default': 0.01,
         'help': "Colorbar histograms  scale for for reconstruction visualization"},
-    'rec-type': {
-        'default': 'rec',
-        'type': str,
-        'help': "Specify the prefix of the recon folder",
-        'choices': ['recgpu','rec']},
-    'PV-prefix': {
+    'pv-prefix': {
         'default': '32idcSP1:',
         'type': str,
         'help': "PV prefix for camera"},
