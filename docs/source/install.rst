@@ -53,7 +53,11 @@ the go to the setting tab and copy the App key and App secret in a file in your 
 Google
 ------
 
-Go to `google developer site <https://console.cloud.google.com/apis/dashboard?pli=1&project=usr32idc>`_ and create a service account, then copy the authorization token in a file called::
+Go to `google developer site <https://console.cloud.google.com/apis/dashboard?pli=1&project=usr32idc>`_ and 
+
+- create a new project  
+- select it and then go to Service Accounts/Create service account
+- copy the authorization token in a file called::
 
     $ ~/tokens/google_token.json
 

@@ -81,6 +81,18 @@ SECTIONS['general'] = {
         'default': False,
         'help': 'When set, the content of the config file is updated using the current params values',
         'action': 'store_true'},
+    'idx': {
+        'type': int,
+        'default': -1,
+        'help': "Id of x slice for reconstruction visualization"},
+    'idy': {
+        'type': int,
+        'default': -1,
+        'help': "Id of y slice for reconstruction visualization"},
+    'idz': {
+        'type': int,
+        'default': -1,
+        'help': "Id of z slice for reconstruction visualization"},
 }
 
 SECTIONS['file-reading'] = {
@@ -96,18 +108,6 @@ SECTIONS['file-reading'] = {
 }
 
 SECTIONS['parameters'] = {
-    'idx': {
-        'type': int,
-        'default': -1,
-        'help': "Id of x slice for reconstruction visualization"},
-    'idy': {
-        'type': int,
-        'default': -1,
-        'help': "Id of y slice for reconstruction visualization"},
-    'idz': {
-        'type': int,
-        'default': -1,
-        'help': "Id of z slice for reconstruction visualization"},
     'max': {
         'type': float,
         'default': 0.0,
@@ -120,12 +120,7 @@ SECTIONS['parameters'] = {
         'type': float,
         'default': 0.01,
         'help': "Colorbar histograms  scale for for reconstruction visualization"},
-    'rec-type': {
-        'default': 'rec',
-        'type': str,
-        'help': "Specify the prefix of the recon folder",
-        'choices': ['recgpu','rec']},
-    'PV-prefix': {
+    'pv-prefix': {
         'default': '32idcSP1:',
         'type': str,
         'help': "PV prefix for camera"},
