@@ -151,7 +151,6 @@ def read_recon(args, meta):
         x = np.zeros((h, w), dtype='float32')
 
         for j in range(z_start, z_end):
-            # print(z_start, z_end//binning_rec)
             zz = utils.read_tiff(
                 f'{dirname}_{args.rec_type}/{basename}_rec/{rec_prefix}_{j:05}.tiff')
             y[j-z_start, :] = zz[args.idy]
