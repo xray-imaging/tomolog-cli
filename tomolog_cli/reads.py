@@ -108,8 +108,8 @@ def read_recon(args, meta):
     coeff_rec = 1
 
     # check if inversion is needed for the phase-contrast imaging at 32id
-    if 'measurement_instrument_phase_ring_setup_phase_ring_y_dial' in meta.keys():
-      phase_ring_y = float(meta['measurement_instrument_phase_ring_setup_phase_ring_y_dial'][0])
+    if 'measurement_instrument_phase_ring_setup_phase_ring_y' in meta.keys():
+      phase_ring_y = float(meta['measurement_instrument_phase_ring_setup_phase_ring_y'][0])
       if abs(phase_ring_y) < 1e-2:
          coeff_rec = -1      
     try:

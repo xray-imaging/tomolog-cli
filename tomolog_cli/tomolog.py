@@ -48,13 +48,17 @@ class TomoLog():
         self.rotation_start_key  = 'process_acquisition_rotation_rotation_start'
         self.angle_step_key      = 'process_acquisition_rotation_rotation_step'
         self.num_angle_key       = 'process_acquisition_rotation_num_angles'
-        self.width_key           = 'measurement_instrument_detector_roi_size_x'
-        self.height_key          = 'measurement_instrument_detector_roi_size_y'
+        self.width_key           = 'measurement_instrument_detector_array_size_x'
+        self.height_key          = 'measurement_instrument_detector_array_size_y'
+        # self.width_key           = 'measurement_instrument_detector_roi_size_x'
+        # self.height_key          = 'measurement_instrument_detector_roi_size_y'
         self.binning_key         = 'measurement_instrument_detector_binning_x'
         self.beamline_key        = 'measurement_instrument_source_beamline'
         self.instrument_key      = 'measurement_instrument_instrument_name'
         self.camera_distance_key = 'measurement_instrument_camera_motor_stack_setup_camera_distance'
         self.sample_in_x_key     = 'process_acquisition_flat_fields_sample_in_x'
+
+
 
     def run_log(self, args):
 
@@ -76,6 +80,7 @@ class TomoLog():
         file_name =  os.path.basename(args.file_name)
         # print(meta)
         # publish title
+        # exit()
         try:
             instrument_name = meta[self.instrument_key][0]
             log.info(instrument_name)
@@ -116,9 +121,6 @@ class TomoLog():
         self.width  = int(meta[self.width_key][0])
         self.height = int(meta[self.height_key][0])
         
-        args.idx    = self.width  // 2
-        args.idy    = self.width  // 2
-        args.idz    = self.height // 2
         # meta[self.resolution_key][0] = 0.69 ### temp for 2021-10 Cooley 2-BM
         # meta[self.resolution_key][0] = 42.4 ### temp for 2021-10 Cooley TXM
         self.resolution       = float(meta[self.resolution_key][0])
@@ -168,7 +170,8 @@ class TomoLog():
             # 32-id datasets may include both nanoCT and microCT data as proj[0] and proj[1] respectively
             fname = FILE_NAME_PROJ0+'.jpg'
             nct_resolution = self.resolution / 1000.
-            plots.plot_projection(proj[0], fname, resolution=nct_resolution)
+            
+            plots.plot_projection(proj[0], fname, resolution=nct_resolution) 
             self.publish_projection(fname, presentation_id, page_id, 170, 0, 145)
             self.snippets.create_textbox_with_text(
                 presentation_id, page_id, 'Nano-CT projection', 90, 20, 50, 150, 8, 0)
