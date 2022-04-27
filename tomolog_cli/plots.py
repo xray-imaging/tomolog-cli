@@ -90,6 +90,8 @@ def plot_recon(args, width, height, recon, fname, resolution):
 
     sl = [args.idx,args.idy,args.idz]#params['id'+slices[k]]
     for k in range(3):
+        recon[k][0,0] = args.max
+        recon[k][0,1] = args.min
         recon[k][recon[k] > args.max] = args.max
         recon[k][recon[k] < args.min] = args.min
         ax = fig.add_subplot(grid[k])
