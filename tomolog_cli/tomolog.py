@@ -34,31 +34,51 @@ class TomoLog():
         self.snippets  = auth.google(GOOGLE_TOKEN)
         self.dbx = auth.drop_box(DROPBOX_TOKEN)
         
-        # hdf file key definitions
-        self.full_file_name_key  = 'measurement_sample_full_file_name'
+        # # hdf file key old definitions
+        # self.full_file_name_key  = 'measurement_sample_full_file_name'
+        # self.description_1_key   = 'measurement_sample_description_1'
+        # self.description_2_key   = 'measurement_sample_description_2'
+        # self.description_3_key   = 'measurement_sample_description_3'
+        # self.date_key            = 'process_acquisition_start_date'
+        # self.energy_key          = 'measurement_instrument_monochromator_energy'
+        # self.pixel_size_key      = 'measurement_instrument_detector_pixel_size'
+        # self.magnification_key   = 'measurement_instrument_detection_system_objective_camera_objective'
+        # self.resolution_key      = 'measurement_instrument_detection_system_objective_resolution'
+        # self.exposure_time_key   = 'measurement_instrument_detector_exposure_time'
+        # self.rotation_start_key  = 'process_acquisition_rotation_rotation_start'
+        # self.angle_step_key      = 'process_acquisition_rotation_rotation_step'
+        # self.num_angle_key       = 'process_acquisition_rotation_num_angles'
+        # self.width_key           = 'measurement_instrument_detector_array_size_x'
+        # self.height_key          = 'measurement_instrument_detector_array_size_y'
+        # # self.width_key           = 'measurement_instrument_detector_roi_size_x'
+        # # self.height_key          = 'measurement_instrument_detector_roi_size_y'
+        # self.binning_key         = 'measurement_instrument_detector_binning_x'
+        # self.beamline_key        = 'measurement_instrument_source_beamline'
+        # self.instrument_key      = 'measurement_instrument_instrument_name'
+        # self.camera_distance_key = 'measurement_instrument_camera_motor_stack_setup_camera_distance'
+        # self.sample_in_x_key     = 'process_acquisition_flat_fields_sample_in_x'
+
+        # hdf file key standardized definitions
+        self.full_file_name_key  = 'measurement_sample_file_full_name'
         self.description_1_key   = 'measurement_sample_description_1'
         self.description_2_key   = 'measurement_sample_description_2'
         self.description_3_key   = 'measurement_sample_description_3'
         self.date_key            = 'process_acquisition_start_date'
         self.energy_key          = 'measurement_instrument_monochromator_energy'
         self.pixel_size_key      = 'measurement_instrument_detector_pixel_size'
-        self.magnification_key   = 'measurement_instrument_detection_system_objective_camera_objective'
+        self.magnification_key   = 'measurement_instrument_detection_system_objective_magnification'
         self.resolution_key      = 'measurement_instrument_detection_system_objective_resolution'
         self.exposure_time_key   = 'measurement_instrument_detector_exposure_time'
-        self.rotation_start_key  = 'process_acquisition_rotation_rotation_start'
-        self.angle_step_key      = 'process_acquisition_rotation_rotation_step'
+        self.rotation_start_key  = 'process_acquisition_rotation_start'
+        self.angle_step_key      = 'process_acquisition_rotation_step'
         self.num_angle_key       = 'process_acquisition_rotation_num_angles'
-        self.width_key           = 'measurement_instrument_detector_array_size_x'
-        self.height_key          = 'measurement_instrument_detector_array_size_y'
-        # self.width_key           = 'measurement_instrument_detector_roi_size_x'
-        # self.height_key          = 'measurement_instrument_detector_roi_size_y'
+        self.width_key           = 'measurement_instrument_detector_arraysize_x'
+        self.height_key          = 'measurement_instrument_detector_arraysize_y'
         self.binning_key         = 'measurement_instrument_detector_binning_x'
         self.beamline_key        = 'measurement_instrument_source_beamline'
-        self.instrument_key      = 'measurement_instrument_instrument_name'
+        self.instrument_key      = 'measurement_instrument_name'
         self.camera_distance_key = 'measurement_instrument_camera_motor_stack_setup_camera_distance'
         self.sample_in_x_key     = 'process_acquisition_flat_fields_sample_in_x'
-
-
 
     def run_log(self, args):
 
