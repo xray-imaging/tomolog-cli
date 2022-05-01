@@ -77,7 +77,7 @@ class TomoLog():
         self.binning_key         = 'measurement_instrument_detector_binning_x'
         self.beamline_key        = 'measurement_instrument_source_beamline'
         self.instrument_key      = 'measurement_instrument_name'
-        self.camera_distance_key = 'measurement_instrument_camera_motor_stack_setup_camera_distance'
+        self.camera_distance_key = 'measurement_instrument_camera_motor_stack_setup_z'
         self.sample_in_x_key     = 'process_acquisition_flat_fields_sample_in_x'
 
     def run_log(self, args):
@@ -175,6 +175,11 @@ class TomoLog():
         if(meta[self.instrument_key][0] == 'Micro-tomography'):
             descr +=  f"Sample detector distance: {meta[self.camera_distance_key][0]} {meta[self.camera_distance_key][1]}"
             # descr +=  f"Sample detector distance: 200 mm"
+            print('************************************')
+            print('************************************')
+            print(meta[self.sample_in_x_key][0])
+            print('************************************')
+            print('************************************')
             if (meta[self.sample_in_x_key][0] != 0):
                 args.double_fov = True
                 log.warning('Sample in x is off center: %s. Handling the data set as a double FOV' % meta[self.sample_in_x_key][0])
