@@ -175,11 +175,6 @@ class TomoLog():
         if(meta[self.instrument_key][0] == 'Micro-tomography'):
             descr +=  f"Sample detector distance: {meta[self.camera_distance_key][0]} {meta[self.camera_distance_key][1]}"
             # descr +=  f"Sample detector distance: 200 mm"
-            print('************************************')
-            print('************************************')
-            print(meta[self.sample_in_x_key][0])
-            print('************************************')
-            print('************************************')
             if (meta[self.sample_in_x_key][0] != 0):
                 args.double_fov = True
                 log.warning('Sample in x is off center: %s. Handling the data set as a double FOV' % meta[self.sample_in_x_key][0])
