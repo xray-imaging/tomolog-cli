@@ -53,10 +53,6 @@ def run_log(args):
 
     config.write(args.config, args, sections=config.PARAMS)
 
-def run_docs(args):
-    utils.create_rst_file(args)
-
-
 def main():
 
     # make sure logs directory exists
@@ -80,7 +76,6 @@ def main():
     cmd_parsers = [
         ('init',        init,            (),     "Create configuration file"),
         ('run',         run_log,         params, "Run data logging to google slides"),
-        ('docs',        run_docs,        params, "Create in --doc-dir an rst file compatible with sphinx/readthedocs containing the DataExchange hdf file meta data"),
         ('status',      run_status,      params, "Show the tomolog status"),
     ]
 

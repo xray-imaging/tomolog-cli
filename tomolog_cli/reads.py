@@ -147,9 +147,10 @@ def read_recon(args, meta):
             args.idy = int(w//2)
         if args.idx==-1:
             args.idx = int(w//2)
-
+        
         z = utils.read_tiff(
             f'{dirname}_rec/{basename}_rec/{rec_prefix}_{args.idz:05}.tiff').copy()
+        
         # read x,y slices by lines
         y = np.zeros((h, w), dtype='float32')
         x = np.zeros((h, w), dtype='float32')
