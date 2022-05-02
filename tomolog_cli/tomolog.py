@@ -72,12 +72,12 @@ class TomoLog():
         self.rotation_start_key  = 'process_acquisition_rotation_start'
         self.angle_step_key      = 'process_acquisition_rotation_step'
         self.num_angle_key       = 'process_acquisition_rotation_num_angles'
-        self.width_key           = 'measurement_instrument_detector_arraysize_x'
-        self.height_key          = 'measurement_instrument_detector_arraysize_y'
+        self.width_key           = 'measurement_instrument_detector_array_size_x'
+        self.height_key          = 'measurement_instrument_detector_array_size_y'
         self.binning_key         = 'measurement_instrument_detector_binning_x'
         self.beamline_key        = 'measurement_instrument_source_beamline'
         self.instrument_key      = 'measurement_instrument_name'
-        self.camera_distance_key = 'measurement_instrument_camera_motor_stack_setup_z'
+        self.camera_distance_key = 'measurement_instrument_detector_motor_stack_setup_z'
         self.sample_in_x_key     = 'process_acquisition_flat_fields_sample_in_x'
 
     def run_log(self, args):
