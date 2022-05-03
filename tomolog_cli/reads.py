@@ -1,6 +1,6 @@
 import os
 import h5py
-
+import meta
 import numpy as np
 
 from tomolog_cli import log
@@ -22,12 +22,12 @@ def read_scan_info(args):
 
     Returns
     -------
-    meta
-        Dictionary containing all hdf file stored experiment meta data
+    meta_data
+        Dictionary containing all hdf file stored experiment meta_data data
     '''
-    _, meta = utils.read_hdf_meta(args.file_name, add_shape=True)
+    _, meta_data = meta.read_hdf(args.file_name, add_shape=True)
 
-    return meta
+    return meta_data
 
 
 def read_raw(args):
@@ -71,7 +71,7 @@ def read_raw(args):
     return proj
 
 
-def read_recon(args, meta):
+def read_recon(args, meta_data):
     '''Read reconstructed ortho-slices
 
     Parameters
@@ -84,8 +84,8 @@ def read_recon(args, meta):
         Id of y slice for reconstruction visualization
     args.idz
         Id of z slice for reconstruction visualization
-    meta
-        Dictionary containing all hdf file stored experiment meta data    
+    meta_data
+        Dictionary containing all hdf file stored experiment meta_data data    
 
     Returns
     -------
@@ -99,9 +99,9 @@ def read_recon(args, meta):
     width_key   = 'measurement_instrument_detector_roi_size_x'
     height_key  = 'measurement_instrument_detector_roi_size_y'
 
-    width         = int(meta[width_key][0])
-    height        = int(meta[height_key][0])
-    binning       = int(meta[binning_key][0])
+    width         = int(meta_data[width_key][1])
+    height        = int(meta_data[height_key][1])
+    binning       = int(meta_data[binning_key][1])
 
     recon = []
     binning_rec = -1
@@ -110,12 +110,12 @@ def read_recon(args, meta):
     # check if inversion is needed for the phase-contrast imaging at 32id
 
     # hdf file key old definitions
-    # if 'measurement_instrument_phase_ring_setup_phase_ring_y' in meta.keys():
-    #   phase_ring_y = float(meta['measurement_instrument_phase_ring_setup_phase_ring_y'][0])
+    # if 'measurement_instrument_phase_ring_setup_phase_ring_y' in meta_data.keys():
+    #   phase_ring_y = float(meta_data['measurement_instrument_phase_ring_setup_phase_ring_y'][0])
 
     # hdf file key standardized definitions
-    if 'measurement_instrument_phase_ring_setup_y' in meta.keys():
-      phase_ring_y = float(meta['measurement_instrument_phase_ring_setup_y'][0])
+    if 'measurement_instrument_phase_ring_setup_y' in meta_data.keys():
+      phase_ring_y = float(meta_data['measurement_instrument_phase_ring_setup_y'][0])
       if abs(phase_ring_y) < 1e-2:
          coeff_rec = -1      
     try:
