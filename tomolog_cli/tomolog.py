@@ -4,8 +4,6 @@ import uuid
 import dropbox
 import pathlib
 
-from epics import PV
-
 from tomolog_cli import log
 from tomolog_cli import plots
 from tomolog_cli import reads
@@ -84,8 +82,6 @@ class TomoLog():
 
         args.double_fov = False # Set to true for 0-360 data sets
 
-        if args.file_name is None:
-            args.file_name = PV(args.PV_prefix.get(as_string=True))
         try:
             presentation_id = args.presentation_url.split('/')[-2]
         except AttributeError:
@@ -102,7 +98,7 @@ class TomoLog():
         # publish title
         # exit()
         try:
-            instrument_name = meta[self.instrument_key][0]
+            instrument_name = meta[self.instrument_key][1]
             log.info(instrument_name)
         except KeyError:
             log.error('Corrupted file: missing instrument name')
@@ -110,7 +106,7 @@ class TomoLog():
             return
         
         try:
-            original_full_file_name = meta[self.full_file_name_key][0]
+            original_full_file_name = meta[self.full_file_name_key][1]
             # print(original_full_file_name)
             self.snippets.create_textbox_with_text(presentation_id, page_id, os.path.basename(
                 original_full_file_name)[:-3], 400, 50, 0, 0, 13, 0)
@@ -124,67 +120,67 @@ class TomoLog():
             return
 
         try:
-            meta[self.magnification_key][0].replace("x", "")
+            meta[self.magnification_key][1].replace("x", "")
             fontcolor = 0
         except:
-            log.error('Objective magnification was not stored [%s, %s] for dataset: %s' % (meta[self.magnification_key][0], meta[self.magnification_key][1], original_full_file_name))
+            log.error('Objective magnification was not stored [%s, %s] for dataset: %s' % (meta[self.magnification_key][1], meta[self.magnification_key][2], original_full_file_name))
             log.error('Using --magnification parameter: %s' % args.magnification)
             log.error('Using --pixel-size parameter: %f' % args.pixel_size)
-            meta[self.pixel_size_key][0] = args.pixel_size
-            meta[self.pixel_size_key][1] ='um'
-            meta[self.magnification_key][0] = args.magnification
-            meta[self.resolution_key][0] = args.pixel_size / float(meta[self.magnification_key][0].replace("x", ""))
-            log.warning('Calculated resolution: %s' % meta[self.resolution_key][0])
-            meta[self.resolution_key][1] = 'um'
+            meta[self.pixel_size_key][1] = args.pixel_size
+            meta[self.pixel_size_key][2] ='um'
+            meta[self.magnification_key][1] = args.magnification
+            meta[self.resolution_key][1] = args.pixel_size / float(meta[self.magnification_key][1].replace("x", ""))
+            log.warning('Calculated resolution: %s' % meta[self.resolution_key][1])
+            meta[self.resolution_key][2] = 'um'
             fontcolor = 1
 
-        self.width  = int(meta[self.width_key][0])
-        self.height = int(meta[self.height_key][0])
+        self.width  = int(meta[self.width_key][1])
+        self.height = int(meta[self.height_key][1])
         
-        # meta[self.resolution_key][0] = 0.69 ### temp for 2021-10 Cooley 2-BM
-        # meta[self.resolution_key][0] = 42.4 ### temp for 2021-10 Cooley TXM
-        self.resolution       = float(meta[self.resolution_key][0])
-        # meta[self.resolution_key][1] = 'nm'  ### temp for 2021-10 Cooley TXM
-        self.resolution_units = str(meta[self.resolution_key][1])
-        # meta[self.pixel_size_key][0] = 3.45 ### temp for 2021-10 Cooley TXM
-        self.pixel_size       = float(meta[self.pixel_size_key][0])
-        # meta[self.pixel_size_key][1] = 'um' ### temp for 2021-10 Cooley TXM
-        self.pixel_size_units = str(meta[self.pixel_size_key][1])
-        # meta[self.magnification_key][0] = '5x' ### temp for 2021-10 Cooley TXM
-        self.magnification    = float(meta[self.magnification_key][0].replace("x", ""))
-        # meta[self.binning_key][0] = '1' ### temp for 2021-10 Cooley TXM
-        self.binning          = int(meta[self.binning_key][0])
-        if meta[self.exposure_time_key][1] == None:
+        # meta[self.resolution_key][1] = 0.69 ### temp for 2021-10 Cooley 2-BM
+        # meta[self.resolution_key][1] = 42.4 ### temp for 2021-10 Cooley TXM
+        self.resolution       = float(meta[self.resolution_key][1])
+        # meta[self.resolution_key][2] = 'nm'  ### temp for 2021-10 Cooley TXM
+        self.resolution_units = str(meta[self.resolution_key][2])
+        # meta[self.pixel_size_key][1] = 3.45 ### temp for 2021-10 Cooley TXM
+        self.pixel_size       = float(meta[self.pixel_size_key][1])
+        # meta[self.pixel_size_key][2] = 'um' ### temp for 2021-10 Cooley TXM
+        self.pixel_size_units = str(meta[self.pixel_size_key][2])
+        # meta[self.magnification_key][1] = '5x' ### temp for 2021-10 Cooley TXM
+        self.magnification    = float(meta[self.magnification_key][1].replace("x", ""))
+        # meta[self.binning_key][1] = '1' ### temp for 2021-10 Cooley TXM
+        self.binning          = int(meta[self.binning_key][1])
+        if meta[self.exposure_time_key][2] == None:
             log.warning('Exposure time units are missing assuming (s)')
-            meta[self.exposure_time_key][1] = 's'
+            meta[self.exposure_time_key][2] = 's'
 
-        # meta[self.exposure_time_key][0] = 2.0 ### temp for 2021-10 Cooley TXM
+        # meta[self.exposure_time_key][1] = 2.0 ### temp for 2021-10 Cooley TXM
         # publish scan info
         descr  =  f"File name: {file_name}\n"
-        descr +=  f"Beamline: {meta[self.beamline_key][0]} {meta[self.instrument_key][0]}\n"
-        descr +=  f"Particle description: {meta[self.description_1_key][0]} {meta[self.description_2_key][0]} {meta[self.description_3_key][0]}\n"
-        descr +=  f"Scan date: {meta[self.date_key][0]}\n"
-        descr +=  f"Scan energy: {meta[self.energy_key][0]} {meta[self.energy_key][1]}\n"
-        descr +=  f"Camera pixel size: {meta[self.pixel_size_key][0]:.02f} {meta[self.pixel_size_key][1]}\n"
-        descr +=  f"Lens magnification: {meta[self.magnification_key][0]}\n"
-        descr +=  f"Resolution: {meta[self.resolution_key][0]:.02f} {meta[self.resolution_key][1]}\n"
-        descr +=  f"Exposure time: {meta[self.exposure_time_key][0]:.02f} {meta[self.exposure_time_key][1]}\n"
-        descr +=  f"Angle step: {meta[self.angle_step_key][0]:.03f} {meta[self.angle_step_key][1]}\n"
-        descr +=  f"Number of angles: {meta[self.num_angle_key][0]}\n"
+        descr +=  f"Beamline: {meta[self.beamline_key][1]} {meta[self.instrument_key][1]}\n"
+        descr +=  f"Particle description: {meta[self.description_1_key][1]} {meta[self.description_2_key][1]} {meta[self.description_3_key][1]}\n"
+        descr +=  f"Scan date: {meta[self.date_key][1]}\n"
+        descr +=  f"Scan energy: {meta[self.energy_key][1]} {meta[self.energy_key][2]}\n"
+        descr +=  f"Camera pixel size: {meta[self.pixel_size_key][1]:.02f} {meta[self.pixel_size_key][2]}\n"
+        descr +=  f"Lens magnification: {meta[self.magnification_key][1]}\n"
+        descr +=  f"Resolution: {meta[self.resolution_key][1]:.02f} {meta[self.resolution_key][2]}\n"
+        descr +=  f"Exposure time: {meta[self.exposure_time_key][1]:.02f} {meta[self.exposure_time_key][2]}\n"
+        descr +=  f"Angle step: {meta[self.angle_step_key][1]:.03f} {meta[self.angle_step_key][2]}\n"
+        descr +=  f"Number of angles: {meta[self.num_angle_key][1]}\n"
         descr +=  f"Projection size: {self.width} x {self.height}\n"
-        if(meta[self.instrument_key][0] == 'Micro-tomography'):
-            descr +=  f"Sample detector distance: {meta[self.camera_distance_key][0]} {meta[self.camera_distance_key][1]}"
+        if(meta[self.instrument_key][1] == 'Micro-tomography'):
+            descr +=  f"Sample detector distance: {meta[self.camera_distance_key][1]} {meta[self.camera_distance_key][2]}"
             # descr +=  f"Sample detector distance: 200 mm"
-            if (meta[self.sample_in_x_key][0] != 0):
+            if (meta[self.sample_in_x_key][1] != 0):
                 args.double_fov = True
-                log.warning('Sample in x is off center: %s. Handling the data set as a double FOV' % meta[self.sample_in_x_key][0])
+                log.warning('Sample in x is off center: %s. Handling the data set as a double FOV' % meta[self.sample_in_x_key][1])
         self.snippets.create_textbox_with_bullets(
             presentation_id, page_id, descr, 240, 120, 0, 18, 8, fontcolor)
 
         # read projection(s)
         proj = reads.read_raw(args)
  
-        if(meta[self.instrument_key][0] == 'Transmission X-Ray Microscope'):
+        if(meta[self.instrument_key][1] == 'Transmission X-Ray Microscope'):
             log.info('Transmission X-Ray Microscope Instrument')
             log.info('Plotting nanoCT projection')
             # 32-id datasets may include both nanoCT and microCT data as proj[0] and proj[1] respectively
@@ -229,7 +225,7 @@ class TomoLog():
         # publish reconstructions
         if len(recon) == 3:
             # prepare reconstruction
-            if(meta[self.instrument_key][0] == 'Transmission X-Ray Microscope'):
+            if(meta[self.instrument_key][1] == 'Transmission X-Ray Microscope'):
                 log.info('Transmission X-Ray Microscope Instrument')
                 self.resolution = self.resolution / 1000. * binning_rec
             else:

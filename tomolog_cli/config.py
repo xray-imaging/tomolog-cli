@@ -120,10 +120,6 @@ SECTIONS['parameters'] = {
         'type': float,
         'default': 0.01,
         'help': "Colorbar histograms  scale for for reconstruction visualization"},
-    'pv-prefix': {
-        'default': '32idcSP1:',
-        'type': str,
-        'help': "PV prefix for camera"},
     'presentation-url': {
         'default': None,
         'type': str,

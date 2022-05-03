@@ -27,8 +27,7 @@ and install tomolog
 Requirements
 ============
 
-Please install all the packases listed in `requirements file <https://github.com/nikitinvv/tomolog-cli/blob/main/envs/requirements.txt>`_. 
-
+Please install all the packages listed in `requirements file <https://github.com/nikitinvv/tomolog-cli/blob/main/envs/requirements.txt>`_. 
 
 **tomolog** also requires access tokens from dropbox and google services.
 
