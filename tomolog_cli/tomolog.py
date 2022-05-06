@@ -33,50 +33,50 @@ class TomoLog():
         self.dbx = auth.drop_box(DROPBOX_TOKEN)
         
         # # hdf file key old definitions
-        # self.full_file_name_key  = 'measurement_sample_full_file_name'
-        # self.description_1_key   = 'measurement_sample_description_1'
-        # self.description_2_key   = 'measurement_sample_description_2'
-        # self.description_3_key   = 'measurement_sample_description_3'
-        # self.date_key            = 'process_acquisition_start_date'
-        # self.energy_key          = 'measurement_instrument_monochromator_energy'
-        # self.pixel_size_key      = 'measurement_instrument_detector_pixel_size'
-        # self.magnification_key   = 'measurement_instrument_detection_system_objective_camera_objective'
-        # self.resolution_key      = 'measurement_instrument_detection_system_objective_resolution'
-        # self.exposure_time_key   = 'measurement_instrument_detector_exposure_time'
-        # self.rotation_start_key  = 'process_acquisition_rotation_rotation_start'
-        # self.angle_step_key      = 'process_acquisition_rotation_rotation_step'
-        # self.num_angle_key       = 'process_acquisition_rotation_num_angles'
-        # self.width_key           = 'measurement_instrument_detector_array_size_x'
-        # self.height_key          = 'measurement_instrument_detector_array_size_y'
-        # # self.width_key           = 'measurement_instrument_detector_roi_size_x'
-        # # self.height_key          = 'measurement_instrument_detector_roi_size_y'
-        # self.binning_key         = 'measurement_instrument_detector_binning_x'
-        # self.beamline_key        = 'measurement_instrument_source_beamline'
+        # self.full_file_name_key  = '/measurement/sample/full/file_name'
+        # self.description_1_key   = '/measurement/sample/description_1'
+        # self.description_2_key   = '/measurement/sample/description_2'
+        # self.description_3_key   = '/measurement/sample/description_3'
+        # self.date_key            = '/process/acquisition/start_date'
+        # self.energy_key          = '/measurement/instrument/monochromator_energy'
+        # self.pixel_size_key      = '/measurement/instrument/detector/pixel_size'
+        # self.magnification_key   = '/measurement/instrument/detection_system/objective/camera_objective'
+        # self.resolution_key      = '/measurement/instrument/detection_system/objective/resolution'
+        # self.exposure_time_key   = '/measurement/instrument/detector/exposure_time'
+        # self.rotation_start_key  = '/process/acquisition/rotation_rotation_start'
+        # self.angle_step_key      = '/process/acquisition/rotation_rotation_step'
+        # self.num_angle_key       = '/process/acquisition/rotation_num_angles'
+        # self.width_key           = '/measurement/instrument/detector/array_size_x'
+        # self.height_key          = '/measurement/instrument/detector/array_size_y'
+        # # self.width_key           = '/measurement/instrument/detector/roi_size_x'
+        # # self.height_key          = '/measurement/instrument/detector/roi_size_y'
+        # self.binning_key         = '/measurement/instrument/detector/binning_x'
+        # self.beamline_key        = '/measurement/instrument/source/beamline'
         # self.instrument_key      = 'measurement_instrument_instrument_name'
         # self.camera_distance_key = 'measurement_instrument_camera_motor_stack_setup_camera_distance'
-        # self.sample_in_x_key     = 'process_acquisition_flat_fields_sample_in_x'
+        # self.sample_in_x_key     = '/process/acquisition/flat_fields_sample_in_x'
 
         # hdf file key standardized definitions
-        self.full_file_name_key  = 'measurement_sample_file_full_name'
-        self.description_1_key   = 'measurement_sample_description_1'
-        self.description_2_key   = 'measurement_sample_description_2'
-        self.description_3_key   = 'measurement_sample_description_3'
-        self.date_key            = 'process_acquisition_start_date'
-        self.energy_key          = 'measurement_instrument_monochromator_energy'
-        self.pixel_size_key      = 'measurement_instrument_detector_pixel_size'
-        self.magnification_key   = 'measurement_instrument_detection_system_objective_magnification'
-        self.resolution_key      = 'measurement_instrument_detection_system_objective_resolution'
-        self.exposure_time_key   = 'measurement_instrument_detector_exposure_time'
-        self.rotation_start_key  = 'process_acquisition_rotation_start'
-        self.angle_step_key      = 'process_acquisition_rotation_step'
-        self.num_angle_key       = 'process_acquisition_rotation_num_angles'
-        self.width_key           = 'measurement_instrument_detector_array_size_x'
-        self.height_key          = 'measurement_instrument_detector_array_size_y'
-        self.binning_key         = 'measurement_instrument_detector_binning_x'
-        self.beamline_key        = 'measurement_instrument_source_beamline'
-        self.instrument_key      = 'measurement_instrument_name'
-        self.camera_distance_key = 'measurement_instrument_detector_motor_stack_setup_z'
-        self.sample_in_x_key     = 'process_acquisition_flat_fields_sample_in_x'
+        self.full_file_name_key  = '/measurement/sample/file/full_name'
+        self.description_1_key   = '/measurement/sample/description_1'
+        self.description_2_key   = '/measurement/sample/description_2'
+        self.description_3_key   = '/measurement/sample/description_3'
+        self.date_key            = '/process/acquisition/start_date'
+        self.energy_key          = '/measurement/instrument/monochromator/energy'
+        self.pixel_size_key      = '/measurement/instrument/detector/pixel_size'
+        self.magnification_key   = '/measurement/instrument/detection_system/objective/magnification'
+        self.resolution_key      = '/measurement/instrument/detection_system/objective/resolution'
+        self.exposure_time_key   = '/measurement/instrument/detector/exposure_time'
+        self.rotation_start_key  = '/process/acquisition/rotation/start'
+        self.angle_step_key      = '/process/acquisition/rotation/step'
+        self.num_angle_key       = '/process/acquisition/rotation/num_angles'
+        self.width_key           = '/measurement/instrument/detector/array_size_x'
+        self.height_key          = '/measurement/instrument/detector/array_size_y'
+        self.binning_key         = '/measurement/instrument/detector/binning_x'
+        self.beamline_key        = '/measurement/instrument/source/beamline'
+        self.instrument_key      = '/measurement/instrument/name'
+        self.camera_distance_key = '/measurement/instrument/detector_motor_stack/setup/z'
+        self.sample_in_x_key     = '/process/acquisition/flat_fields/sample/in_x'
 
     def run_log(self, args):
 
@@ -98,89 +98,90 @@ class TomoLog():
         # publish title
         # exit()
         try:
-            instrument_name = meta[self.instrument_key][1]
+            instrument_name = meta[self.instrument_key][0]
             log.info(instrument_name)
         except KeyError:
             log.error('Corrupted file: missing instrument name')
             log.error('or File locked by another program')
             return
         
-        try:
-            original_full_file_name = meta[self.full_file_name_key][1]
+        # try:
+        if 0==0:
+            original_full_file_name = meta[self.full_file_name_key][0]
             # print(original_full_file_name)
             self.snippets.create_textbox_with_text(presentation_id, page_id, os.path.basename(
                 original_full_file_name)[:-3], 400, 50, 0, 0, 13, 0)
-        except TypeError:
-            self.snippets.create_textbox_with_text(presentation_id, page_id, file_name, 400, 50, 0, 0, 13, 1)
-            # print('red')  ### temp for 2021-10 Cooley TXM
-        except KeyError:
-            self.snippets.create_textbox_with_text(presentation_id, page_id, str(args.file_name), 400, 50, 0, 0, 13, 1)
-            self.snippets.create_textbox_with_text(presentation_id, page_id, 'Unable to open file (truncated file)', 90, 20, 350, 0, 10, 1)
-            # print('red')  ### temp for 2021-10 Cooley TXM
-            return
+        # except TypeError:
+        #     self.snippets.create_textbox_with_text(presentation_id, page_id, file_name, 400, 50, 0, 0, 13, 1)
+        #     # print('red')  ### temp for 2021-10 Cooley TXM
+        # except KeyError:
+        #     self.snippets.create_textbox_with_text(presentation_id, page_id, str(args.file_name), 400, 50, 0, 0, 13, 1)
+        #     self.snippets.create_textbox_with_text(presentation_id, page_id, 'Unable to open file (truncated file)', 90, 20, 350, 0, 10, 1)
+        #     # print('red')  ### temp for 2021-10 Cooley TXM
+        #     return
 
         try:
-            meta[self.magnification_key][1].replace("x", "")
+            meta[self.magnification_key][0].replace("x", "")
             fontcolor = 0
         except:
-            log.error('Objective magnification was not stored [%s, %s] for dataset: %s' % (meta[self.magnification_key][1], meta[self.magnification_key][2], original_full_file_name))
+            log.error('Objective magnification was not stored [%s, %s] for dataset: %s' % (meta[self.magnification_key][0], meta[self.magnification_key][1], original_full_file_name))
             log.error('Using --magnification parameter: %s' % args.magnification)
             log.error('Using --pixel-size parameter: %f' % args.pixel_size)
-            meta[self.pixel_size_key][1] = args.pixel_size
-            meta[self.pixel_size_key][2] ='um'
-            meta[self.magnification_key][1] = args.magnification
-            meta[self.resolution_key][1] = args.pixel_size / float(meta[self.magnification_key][1].replace("x", ""))
-            log.warning('Calculated resolution: %s' % meta[self.resolution_key][1])
-            meta[self.resolution_key][2] = 'um'
+            meta[self.pixel_size_key][0] = args.pixel_size
+            meta[self.pixel_size_key][1] ='um'
+            meta[self.magnification_key][0] = args.magnification
+            meta[self.resolution_key][0] = args.pixel_size / float(meta[self.magnification_key][0].replace("x", ""))
+            log.warning('Calculated resolution: %s' % meta[self.resolution_key][0])
+            meta[self.resolution_key][1] = 'um'
             fontcolor = 1
 
-        self.width  = int(meta[self.width_key][1])
-        self.height = int(meta[self.height_key][1])
+        self.width  = int(meta[self.width_key][0])
+        self.height = int(meta[self.height_key][0])
         
-        # meta[self.resolution_key][1] = 0.69 ### temp for 2021-10 Cooley 2-BM
-        # meta[self.resolution_key][1] = 42.4 ### temp for 2021-10 Cooley TXM
-        self.resolution       = float(meta[self.resolution_key][1])
-        # meta[self.resolution_key][2] = 'nm'  ### temp for 2021-10 Cooley TXM
-        self.resolution_units = str(meta[self.resolution_key][2])
-        # meta[self.pixel_size_key][1] = 3.45 ### temp for 2021-10 Cooley TXM
-        self.pixel_size       = float(meta[self.pixel_size_key][1])
-        # meta[self.pixel_size_key][2] = 'um' ### temp for 2021-10 Cooley TXM
-        self.pixel_size_units = str(meta[self.pixel_size_key][2])
-        # meta[self.magnification_key][1] = '5x' ### temp for 2021-10 Cooley TXM
-        self.magnification    = float(meta[self.magnification_key][1].replace("x", ""))
-        # meta[self.binning_key][1] = '1' ### temp for 2021-10 Cooley TXM
-        self.binning          = int(meta[self.binning_key][1])
-        if meta[self.exposure_time_key][2] == None:
+        # meta[self.resolution_key][0] = 0.69 ### temp for 2021-10 Cooley 2-BM
+        # meta[self.resolution_key][0] = 42.4 ### temp for 2021-10 Cooley TXM
+        self.resolution       = float(meta[self.resolution_key][0])
+        # meta[self.resolution_key][1] = 'nm'  ### temp for 2021-10 Cooley TXM
+        self.resolution_units = str(meta[self.resolution_key][1])
+        # meta[self.pixel_size_key][0] = 3.45 ### temp for 2021-10 Cooley TXM
+        self.pixel_size       = float(meta[self.pixel_size_key][0])
+        # meta[self.pixel_size_key][1] = 'um' ### temp for 2021-10 Cooley TXM
+        self.pixel_size_units = str(meta[self.pixel_size_key][1])
+        # meta[self.magnification_key][0] = '5x' ### temp for 2021-10 Cooley TXM
+        self.magnification    = float(meta[self.magnification_key][0].replace("x", ""))
+        # meta[self.binning_key][0] = '1' ### temp for 2021-10 Cooley TXM
+        self.binning          = int(meta[self.binning_key][0])
+        if meta[self.exposure_time_key][1] == None:
             log.warning('Exposure time units are missing assuming (s)')
-            meta[self.exposure_time_key][2] = 's'
+            meta[self.exposure_time_key][1] = 's'
 
-        # meta[self.exposure_time_key][1] = 2.0 ### temp for 2021-10 Cooley TXM
+        # meta[self.exposure_time_key][0] = 2.0 ### temp for 2021-10 Cooley TXM
         # publish scan info
         descr  =  f"File name: {file_name}\n"
-        descr +=  f"Beamline: {meta[self.beamline_key][1]} {meta[self.instrument_key][1]}\n"
-        descr +=  f"Particle description: {meta[self.description_1_key][1]} {meta[self.description_2_key][1]} {meta[self.description_3_key][1]}\n"
-        descr +=  f"Scan date: {meta[self.date_key][1]}\n"
-        descr +=  f"Scan energy: {meta[self.energy_key][1]} {meta[self.energy_key][2]}\n"
-        descr +=  f"Camera pixel size: {meta[self.pixel_size_key][1]:.02f} {meta[self.pixel_size_key][2]}\n"
-        descr +=  f"Lens magnification: {meta[self.magnification_key][1]}\n"
-        descr +=  f"Resolution: {meta[self.resolution_key][1]:.02f} {meta[self.resolution_key][2]}\n"
-        descr +=  f"Exposure time: {meta[self.exposure_time_key][1]:.02f} {meta[self.exposure_time_key][2]}\n"
-        descr +=  f"Angle step: {meta[self.angle_step_key][1]:.03f} {meta[self.angle_step_key][2]}\n"
-        descr +=  f"Number of angles: {meta[self.num_angle_key][1]}\n"
+        descr +=  f"Beamline: {meta[self.beamline_key][0]} {meta[self.instrument_key][0]}\n"
+        descr +=  f"Particle description: {meta[self.description_1_key][0]} {meta[self.description_2_key][0]} {meta[self.description_3_key][0]}\n"
+        descr +=  f"Scan date: {meta[self.date_key][0]}\n"
+        descr +=  f"Scan energy: {meta[self.energy_key][0]} {meta[self.energy_key][1]}\n"
+        descr +=  f"Camera pixel size: {meta[self.pixel_size_key][0]:.02f} {meta[self.pixel_size_key][1]}\n"
+        descr +=  f"Lens magnification: {meta[self.magnification_key][0]}\n"
+        descr +=  f"Resolution: {meta[self.resolution_key][0]:.02f} {meta[self.resolution_key][1]}\n"
+        descr +=  f"Exposure time: {meta[self.exposure_time_key][0]:.02f} {meta[self.exposure_time_key][1]}\n"
+        descr +=  f"Angle step: {meta[self.angle_step_key][0]:.03f} {meta[self.angle_step_key][1]}\n"
+        descr +=  f"Number of angles: {meta[self.num_angle_key][0]}\n"
         descr +=  f"Projection size: {self.width} x {self.height}\n"
-        if(meta[self.instrument_key][1] == 'Micro-tomography'):
-            descr +=  f"Sample detector distance: {meta[self.camera_distance_key][1]} {meta[self.camera_distance_key][2]}"
+        if(meta[self.instrument_key][0] == 'Micro-tomography'):
+            descr +=  f"Sample detector distance: {meta[self.camera_distance_key][0]} {meta[self.camera_distance_key][1]}"
             # descr +=  f"Sample detector distance: 200 mm"
-            if (meta[self.sample_in_x_key][1] != 0):
+            if (meta[self.sample_in_x_key][0] != 0):
                 args.double_fov = True
-                log.warning('Sample in x is off center: %s. Handling the data set as a double FOV' % meta[self.sample_in_x_key][1])
+                log.warning('Sample in x is off center: %s. Handling the data set as a double FOV' % meta[self.sample_in_x_key][0])
         self.snippets.create_textbox_with_bullets(
             presentation_id, page_id, descr, 240, 120, 0, 18, 8, fontcolor)
 
         # read projection(s)
         proj = reads.read_raw(args)
  
-        if(meta[self.instrument_key][1] == 'Transmission X-Ray Microscope'):
+        if(meta[self.instrument_key][0] == 'Transmission X-Ray Microscope'):
             log.info('Transmission X-Ray Microscope Instrument')
             log.info('Plotting nanoCT projection')
             # 32-id datasets may include both nanoCT and microCT data as proj[0] and proj[1] respectively
@@ -225,7 +226,7 @@ class TomoLog():
         # publish reconstructions
         if len(recon) == 3:
             # prepare reconstruction
-            if(meta[self.instrument_key][1] == 'Transmission X-Ray Microscope'):
+            if(meta[self.instrument_key][0] == 'Transmission X-Ray Microscope'):
                 log.info('Transmission X-Ray Microscope Instrument')
                 self.resolution = self.resolution / 1000. * binning_rec
             else:
