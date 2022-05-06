@@ -32,30 +32,6 @@ class TomoLog():
         self.snippets  = auth.google(GOOGLE_TOKEN)
         self.dbx = auth.drop_box(DROPBOX_TOKEN)
         
-        # # hdf file key old definitions
-        # self.full_file_name_key  = '/measurement/sample/full/file_name'
-        # self.description_1_key   = '/measurement/sample/description_1'
-        # self.description_2_key   = '/measurement/sample/description_2'
-        # self.description_3_key   = '/measurement/sample/description_3'
-        # self.date_key            = '/process/acquisition/start_date'
-        # self.energy_key          = '/measurement/instrument/monochromator_energy'
-        # self.pixel_size_key      = '/measurement/instrument/detector/pixel_size'
-        # self.magnification_key   = '/measurement/instrument/detection_system/objective/camera_objective'
-        # self.resolution_key      = '/measurement/instrument/detection_system/objective/resolution'
-        # self.exposure_time_key   = '/measurement/instrument/detector/exposure_time'
-        # self.rotation_start_key  = '/process/acquisition/rotation_rotation_start'
-        # self.angle_step_key      = '/process/acquisition/rotation_rotation_step'
-        # self.num_angle_key       = '/process/acquisition/rotation_num_angles'
-        # self.width_key           = '/measurement/instrument/detector/array_size_x'
-        # self.height_key          = '/measurement/instrument/detector/array_size_y'
-        # # self.width_key           = '/measurement/instrument/detector/roi_size_x'
-        # # self.height_key          = '/measurement/instrument/detector/roi_size_y'
-        # self.binning_key         = '/measurement/instrument/detector/binning_x'
-        # self.beamline_key        = '/measurement/instrument/source/beamline'
-        # self.instrument_key      = 'measurement_instrument_instrument_name'
-        # self.camera_distance_key = 'measurement_instrument_camera_motor_stack_setup_camera_distance'
-        # self.sample_in_x_key     = '/process/acquisition/flat_fields_sample_in_x'
-
         # hdf file key standardized definitions
         self.full_file_name_key  = '/measurement/sample/file/full_name'
         self.description_1_key   = '/measurement/sample/description_1'
@@ -105,20 +81,18 @@ class TomoLog():
             log.error('or File locked by another program')
             return
         
-        # try:
-        if 0==0:
+        try:
             original_full_file_name = meta[self.full_file_name_key][0]
-            # print(original_full_file_name)
             self.snippets.create_textbox_with_text(presentation_id, page_id, os.path.basename(
                 original_full_file_name)[:-3], 400, 50, 0, 0, 13, 0)
-        # except TypeError:
-        #     self.snippets.create_textbox_with_text(presentation_id, page_id, file_name, 400, 50, 0, 0, 13, 1)
-        #     # print('red')  ### temp for 2021-10 Cooley TXM
-        # except KeyError:
-        #     self.snippets.create_textbox_with_text(presentation_id, page_id, str(args.file_name), 400, 50, 0, 0, 13, 1)
-        #     self.snippets.create_textbox_with_text(presentation_id, page_id, 'Unable to open file (truncated file)', 90, 20, 350, 0, 10, 1)
-        #     # print('red')  ### temp for 2021-10 Cooley TXM
-        #     return
+        except TypeError:
+            self.snippets.create_textbox_with_text(presentation_id, page_id, file_name, 400, 50, 0, 0, 13, 1)
+            # print('red')  ### temp for 2021-10 Cooley TXM
+        except KeyError:
+            self.snippets.create_textbox_with_text(presentation_id, page_id, str(args.file_name), 400, 50, 0, 0, 13, 1)
+            self.snippets.create_textbox_with_text(presentation_id, page_id, 'Unable to open file (truncated file)', 90, 20, 350, 0, 10, 1)
+            # print('red')  ### temp for 2021-10 Cooley TXM
+            return
 
         try:
             meta[self.magnification_key][0].replace("x", "")
