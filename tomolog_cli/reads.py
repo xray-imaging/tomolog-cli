@@ -6,7 +6,7 @@ import numpy as np
 from tomolog_cli import log
 from tomolog_cli import utils
 
-__author__ = "Viktor Nikitin"
+__author__ = "Viktor Nikitin, Francesco De Carlo"
 __copyright__ = "Copyright (c) 2022, UChicago Argonne, LLC."
 __docformat__ = 'restructuredtext en'
 __all__ = ['read_scan_info', 'read_raw', 'read_recon']
@@ -112,7 +112,7 @@ def read_recon(args, meta_data):
       phase_ring_y = float(meta_data['measurement_instrument_phase_ring_setup_y'][0])
       if abs(phase_ring_y) < 1e-2:
          coeff_rec = -1      
-    try:
+    if 1:
         basename = os.path.basename(args.file_name)[:-3]
         dirname = os.path.dirname(args.file_name)
         # set the correct prefix to find the reconstructions
@@ -157,11 +157,11 @@ def read_recon(args, meta_data):
 
         recon = [coeff_rec*x,coeff_rec*y,coeff_rec*z]
         log.info('Adding reconstruction')
-    except ZeroDivisionError:
-       log.error('Reconstructions for %s are larger than raw data image width. This is the case in a 0-360. Please use: --double-fov' % top)
-       log.warning('Skipping reconstruction')
-    except:
-       log.warning('Skipping reconstruction')
+    # except ZeroDivisionError:
+    #    log.error('Reconstructions for %s are larger than raw data image width. This is the case in a 0-360. Please use: --double-fov' % top)
+    #    log.warning('Skipping reconstruction')
+    # except:
+    #    log.warning('Skipping reconstruction')
 
     return recon, binning_rec
 

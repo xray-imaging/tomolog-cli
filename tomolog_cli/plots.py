@@ -23,7 +23,7 @@ def plot_projection(proj, fname, resolution):
     '''
 
     # auto-adjust colorbar values according to a histogram
-    mmin, mmax = utils.find_min_max(proj, 0.003)
+    mmin, mmax = utils.find_min_max(proj)
     proj[proj > mmax] = mmax
     proj[proj < mmin] = mmin
 
@@ -86,7 +86,7 @@ def plot_recon(args, width, height, recon, fname, resolution):
     # autoadjust colorbar values according to a histogram
 
     if args.min==args.max:
-        args.min, args.max = utils.find_min_max(np.concatenate(recon), args.scale)
+        args.min, args.max = utils.find_min_max(np.concatenate(recon))
 
     sl = [args.idx,args.idy,args.idz]#params['id'+slices[k]]
     for k in range(3):

@@ -1,7 +1,6 @@
 import os
 import json
 import uuid
-import dropbox
 import pathlib
 
 from tomolog_cli import log
@@ -9,14 +8,14 @@ from tomolog_cli import plots
 from tomolog_cli import reads
 from tomolog_cli import auth
 
-__author__ = "Viktor Nikitin"
+__author__ = "Viktor Nikitin,  Francesco De Carlo"
 __copyright__ = "Copyright (c) 2022, UChicago Argonne, LLC."
 __docformat__ = 'restructuredtext en'
 __all__ = ['TomoLog',]
 
 # tmp files to be created in dropbox
-FILE_NAME_PROJ0  = 'projection_google0'
-FILE_NAME_PROJ1  = 'projection_google1'
+FILE_NAME_PROJ0  = 'projection_google0.jpg'
+FILE_NAME_PROJ1  = 'projection_google1.jpg'
 FILE_NAME_RECON = 'reconstruction_google.jpg'
 
 DROPBOX_TOKEN   = os.path.join(str(pathlib.Path.home()), 'tokens', 'dropbox_token.json')
@@ -29,7 +28,7 @@ class TomoLog():
     '''
     def __init__(self):
 
-        self.snippets  = auth.google(GOOGLE_TOKEN)
+        self.google  = auth.google(GOOGLE_TOKEN)
         self.dbx = auth.drop_box(DROPBOX_TOKEN)
         
         # hdf file key standardized definitions
@@ -57,7 +56,6 @@ class TomoLog():
     def run_log(self, args):
 
         args.double_fov = False # Set to true for 0-360 data sets
-
         try:
             presentation_id = args.presentation_url.split('/')[-2]
         except AttributeError:
@@ -65,8 +63,7 @@ class TomoLog():
             exit()
         # Create a new Google slide
         page_id = str(uuid.uuid4())
-        self.snippets.create_slide(presentation_id, page_id)
-        
+        self.google.create_slide(presentation_id, page_id)
 
         meta = reads.read_scan_info(args)
         file_name =  os.path.basename(args.file_name)
@@ -80,18 +77,16 @@ class TomoLog():
             log.error('Corrupted file: missing instrument name')
             log.error('or File locked by another program')
             return
-        
+
         try:
             original_full_file_name = meta[self.full_file_name_key][0]
-            self.snippets.create_textbox_with_text(presentation_id, page_id, os.path.basename(
+            self.google.create_textbox_with_text(presentation_id, page_id, os.path.basename(
                 original_full_file_name)[:-3], 400, 50, 0, 0, 13, 0)
         except TypeError:
-            self.snippets.create_textbox_with_text(presentation_id, page_id, file_name, 400, 50, 0, 0, 13, 1)
-            # print('red')  ### temp for 2021-10 Cooley TXM
+            self.google.create_textbox_with_text(presentation_id, page_id, file_name, 400, 50, 0, 0, 13, 1)
         except KeyError:
-            self.snippets.create_textbox_with_text(presentation_id, page_id, str(args.file_name), 400, 50, 0, 0, 13, 1)
-            self.snippets.create_textbox_with_text(presentation_id, page_id, 'Unable to open file (truncated file)', 90, 20, 350, 0, 10, 1)
-            # print('red')  ### temp for 2021-10 Cooley TXM
+            self.google.create_textbox_with_text(presentation_id, page_id, str(args.file_name), 400, 50, 0, 0, 13, 1)
+            self.google.create_textbox_with_text(presentation_id, page_id, 'Unable to open file (truncated file)', 90, 20, 350, 0, 10, 1)
             return
 
         try:
@@ -112,24 +107,16 @@ class TomoLog():
         self.width  = int(meta[self.width_key][0])
         self.height = int(meta[self.height_key][0])
         
-        # meta[self.resolution_key][0] = 0.69 ### temp for 2021-10 Cooley 2-BM
-        # meta[self.resolution_key][0] = 42.4 ### temp for 2021-10 Cooley TXM
         self.resolution       = float(meta[self.resolution_key][0])
-        # meta[self.resolution_key][1] = 'nm'  ### temp for 2021-10 Cooley TXM
         self.resolution_units = str(meta[self.resolution_key][1])
-        # meta[self.pixel_size_key][0] = 3.45 ### temp for 2021-10 Cooley TXM
         self.pixel_size       = float(meta[self.pixel_size_key][0])
-        # meta[self.pixel_size_key][1] = 'um' ### temp for 2021-10 Cooley TXM
         self.pixel_size_units = str(meta[self.pixel_size_key][1])
-        # meta[self.magnification_key][0] = '5x' ### temp for 2021-10 Cooley TXM
         self.magnification    = float(meta[self.magnification_key][0].replace("x", ""))
-        # meta[self.binning_key][0] = '1' ### temp for 2021-10 Cooley TXM
         self.binning          = int(meta[self.binning_key][0])
         if meta[self.exposure_time_key][1] == None:
             log.warning('Exposure time units are missing assuming (s)')
             meta[self.exposure_time_key][1] = 's'
 
-        # meta[self.exposure_time_key][0] = 2.0 ### temp for 2021-10 Cooley TXM
         # publish scan info
         descr  =  f"File name: {file_name}\n"
         descr +=  f"Beamline: {meta[self.beamline_key][0]} {meta[self.instrument_key][0]}\n"
@@ -143,13 +130,13 @@ class TomoLog():
         descr +=  f"Angle step: {meta[self.angle_step_key][0]:.03f} {meta[self.angle_step_key][1]}\n"
         descr +=  f"Number of angles: {meta[self.num_angle_key][0]}\n"
         descr +=  f"Projection size: {self.width} x {self.height}\n"
+        
         if(meta[self.instrument_key][0] == 'Micro-tomography'):
             descr +=  f"Sample detector distance: {meta[self.camera_distance_key][0]} {meta[self.camera_distance_key][1]}"
-            # descr +=  f"Sample detector distance: 200 mm"
             if (meta[self.sample_in_x_key][0] != 0):
                 args.double_fov = True
                 log.warning('Sample in x is off center: %s. Handling the data set as a double FOV' % meta[self.sample_in_x_key][0])
-        self.snippets.create_textbox_with_bullets(
+        self.google.create_textbox_with_bullets(
             presentation_id, page_id, descr, 240, 120, 0, 18, 8, fontcolor)
 
         # read projection(s)
@@ -159,38 +146,41 @@ class TomoLog():
             log.info('Transmission X-Ray Microscope Instrument')
             log.info('Plotting nanoCT projection')
             # 32-id datasets may include both nanoCT and microCT data as proj[0] and proj[1] respectively
-            fname = FILE_NAME_PROJ0+'.jpg'
             nct_resolution = self.resolution / 1000.
             
-            plots.plot_projection(proj[0], fname, resolution=nct_resolution) 
-            self.publish_projection(fname, presentation_id, page_id, 170, 0, 145)
-            self.snippets.create_textbox_with_text(
+            plots.plot_projection(proj[0], FILE_NAME_PROJ0, resolution=nct_resolution) 
+            proj_url = self.dbx.upload(FILE_NAME_PROJ0)
+            self.google.create_image(presentation_id, page_id, proj_url, 170, 170, 0, 145)        
+
+            self.google.create_textbox_with_text(
                 presentation_id, page_id, 'Nano-CT projection', 90, 20, 50, 150, 8, 0)
             try:
                 log.info('Plotting microCT projection')
-                fname = FILE_NAME_PROJ1+'.jpg'
                 mct_resolution = self.pixel_size / self.magnification
-                plots.plot_projection(proj[1], fname, resolution=mct_resolution)
-                self.publish_projection(fname, presentation_id, page_id, 170, 0, 270)
-                self.snippets.create_textbox_with_text(
+                plots.plot_projection(proj[1], FILE_NAME_PROJ1, resolution=mct_resolution)
+                proj_url = self.dbx.upload(FILE_NAME_PROJ1)
+                self.google.create_image(presentation_id, page_id, proj_url, 170, 170, 0, 270)
+
+                self.google.create_textbox_with_text(
                     presentation_id, page_id, 'Micro-CT projection', 160, 20, 10, 290, 8, 0)
             except:
                 log.warning('No microCT data available')
         else:
             log.info('Micro Tomography Instrument')
             log.info('Plotting microCT projection')
-            fname = FILE_NAME_PROJ0+'.jpg'
             self.resolution = self.resolution * self.binning
-            plots.plot_projection(proj[0], fname, resolution=self.resolution)
-            self.publish_projection(fname, presentation_id, page_id, 150, 10, 157)
-            self.snippets.create_textbox_with_text(
+            plots.plot_projection(proj[0], FILE_NAME_PROJ0, resolution=self.resolution)
+            proj_url = self.dbx.upload(FILE_NAME_PROJ0)
+            self.google.create_image(presentation_id, page_id, proj_url, 150, 150, 10, 157)
+            
+            self.google.create_textbox_with_text(
                 presentation_id, page_id, 'Micro-CT projection', 90, 20, 50, 153, 8, 0)
             try:
                 log.info('Plotting frame the IP camera')
-                fname = FILE_NAME_PROJ1+'.jpg'
-                plots.plot_frame(proj[1], fname)
-                self.publish_projection(fname, presentation_id, page_id, 170, 0, 270)
-                self.snippets.create_textbox_with_text(
+                plots.plot_frame(proj[1], FILE_NAME_PROJ1)
+                proj_url = self.dbx.upload(FILE_NAME_PROJ1)
+                self.google.create_image(presentation_id, page_id, proj_url, 170, 170, 0, 270)
+                self.google.create_textbox_with_text(
                     presentation_id, page_id, 'Frame from the IP camera in the hutch', 160, 20, 10, 290, 8, 0)
             except:
                 log.warning('No frame from the IP camera')
@@ -207,23 +197,14 @@ class TomoLog():
                 log.info('Micro Tomography Instrument')
                 self.resolution = self.resolution * self.binning * binning_rec
             plots.plot_recon(args, self.width, self.height, recon, FILE_NAME_RECON, self.resolution)
-            with open(FILE_NAME_RECON, 'rb') as f:
-                self.dbx.files_upload(f.read(), '/'+FILE_NAME_RECON, dropbox.files.WriteMode.overwrite)
-            recon_url = self.dbx.files_get_temporary_link('/'+FILE_NAME_RECON).link            
-            self.snippets.create_image(presentation_id, page_id, recon_url, 370, 370, 130, 25)
-            self.snippets.create_textbox_with_text(
+            recon_url = self.dbx.upload(FILE_NAME_RECON)
+            self.google.create_image(presentation_id, page_id, recon_url, 370, 370, 130, 25)
+            self.google.create_textbox_with_text(
                 presentation_id, page_id, 'Reconstruction', 90, 20, 270, 0, 10, 0)
         if rec_line is not None:
-            self.snippets.create_textbox_with_text(
+            self.google.create_textbox_with_text(
                     presentation_id, page_id, rec_line, 1000, 20, 185, 391, 6, 0)
         # publish other labels
-        self.snippets.create_textbox_with_text(
+        self.google.create_textbox_with_text(
             presentation_id, page_id, 'Other info/screenshots', 120, 20, 480, 0, 10, 0)
-
-    def publish_projection(self, fname, presentation_id, page_id, size, posx, posy):
-        with open(fname, 'rb') as f:
-            self.dbx.files_upload(f.read(), '/'+fname, dropbox.files.WriteMode.overwrite)
-            proj_url = self.dbx.files_get_temporary_link('/'+fname).link
-            self.snippets.create_image(presentation_id, page_id, proj_url, size, size, posx, posy)
-
 

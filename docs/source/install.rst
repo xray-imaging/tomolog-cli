@@ -5,7 +5,7 @@ Installation
 First, you must have `Conda <https://docs.conda.io/en/latest/miniconda.html>`_
 installed and create a dedicated conda environment::
 
-    (base)$ conda create -n tomolog
+    (base)$ conda create -n tomolog python=3.9
 
 and::
 
@@ -14,7 +14,16 @@ and::
 
 then install all `requirements <https://github.com/xray-imaging/mosaic/blob/main/requirements.txt>`_ with::
 
-    (tomolog)$ conda install  -c conda-forge dxchange dxfile
+    (tomolog)$ conda install  -c conda-forge python=3.9 dropbox google-api-python-client matplotlib dxchange dxfile python-dotenv opencv matplotlib-scalebar
+
+
+install meta 
+::
+
+    (tomolog)$ git clone https://github.com/xray-imaging/meta.git
+    (tomolog)$ cd meta
+    (tomolog)$ python setup.py install
+
 
 and install tomolog
 ::

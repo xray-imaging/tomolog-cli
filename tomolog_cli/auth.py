@@ -10,6 +10,7 @@ from googleapiclient.discovery import build
 
 from tomolog_cli import log
 from tomolog_cli import google_snippets
+from tomolog_cli import dropbox_snippets
 
 def drop_box(token_fname):
 
@@ -25,6 +26,7 @@ def drop_box(token_fname):
                 dbx.files_upload(
                     fid.read(), '/tmp.txt', dropbox.files.WriteMode.overwrite)
             log.info('Connection to dropbox: OK')
+            dbx = dropbox_snippets.DropboxSnippets(dbx)
             return dbx
     except FileNotFoundError:
         log.error('Dropbox token file not found at %s' % token_fname)
@@ -70,6 +72,7 @@ def drop_box(token_fname):
             token = json.loads(json.load(f))
             dbx = dropbox.Dropbox(token['access_token'])
             log.info('Connection to dropbox: OK')
+            dbx = dropbox_snippets.DropboxSnippets(dbx)
             return dbx
 
 def google(token_fname):

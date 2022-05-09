@@ -116,10 +116,6 @@ SECTIONS['parameters'] = {
         'type': float,
         'default': 0.0,
         'help': "Minimum threshold value for reconstruction visualization"},
-    'scale': {
-        'type': float,
-        'default': 0.01,
-        'help': "Colorbar histograms  scale for for reconstruction visualization"},
     'presentation-url': {
         'default': None,
         'type': str,
