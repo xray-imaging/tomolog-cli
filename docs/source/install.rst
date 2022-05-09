@@ -49,7 +49,7 @@ Go to `dropbox developer site <https://www.dropbox.com/lp/developers>`_ and sele
    :width: 720px
    :alt: project
 
-the go to the setting tab and copy the App key and App secret in a file in your home directory called:
+then go to the setting tab and copy the App key and App secret in a file in your home directory called:
 
 ::
 
