@@ -7,8 +7,8 @@ API reference
 .. toctree::
 
    api/tomolog
-   api/reads
-   api/plots
+   api/tomolog_2bm
+   api/tomolog_32id
 
 .. automodule:: tomolog_cli
    :members:

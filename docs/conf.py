@@ -334,6 +334,7 @@ MOCK_MODULES = ['h5py',
                 'dotenv',
                 'dropbox',
                 'tifffile',
+                'meta',
                 'mpl_toolkits',
                 'mpl_toolkits.axes_grid1',
                 'matplotlib',
@@ -345,7 +346,8 @@ MOCK_MODULES = ['h5py',
                 'google',
                 'googleapiclient',
                 'google.oauth2',
-                'googleapiclient.discovery',                
+                'googleapiclient.discovery', 
+                'pandas'               
                 ]
 
 for mod_name in MOCK_MODULES:
