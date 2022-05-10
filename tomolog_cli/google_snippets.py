@@ -113,6 +113,8 @@ class SlidesSnippets(object):
         slides_service = self.service
         # [START slides_create_textbox_with_text]
         # Create a new square textbox, using the supplied element ID.
+        if text=="":
+            return
         element_id = str(uuid.uuid4())
         requests = [
             {

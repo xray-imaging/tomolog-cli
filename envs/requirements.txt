@@ -9,5 +9,6 @@ tifffile
 python-dotenv
 google-api-python-client
 matplotlib-scalebar
+dxfile 
 
 meta from https://github.com/xray-imaging/meta

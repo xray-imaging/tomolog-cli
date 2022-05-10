@@ -1,229 +1,248 @@
 import os
 import json
 import uuid
-import dropbox
 import pathlib
+import h5py
+import matplotlib.pyplot as plt
+import numpy as np
+from mpl_toolkits.axes_grid1 import make_axes_locatable
+import meta
 
 from tomolog_cli import log
 from tomolog_cli import plots
 from tomolog_cli import reads
 from tomolog_cli import auth
+from tomolog_cli import utils
 
-__author__ = "Viktor Nikitin"
+
+__author__ = "Viktor Nikitin,  Francesco De Carlo"
 __copyright__ = "Copyright (c) 2022, UChicago Argonne, LLC."
 __docformat__ = 'restructuredtext en'
-__all__ = ['TomoLog',]
+__all__ = ['TomoLog', ]
 
 # tmp files to be created in dropbox
-FILE_NAME_PROJ0  = 'projection_google0'
-FILE_NAME_PROJ1  = 'projection_google1'
+FILE_NAME_PROJ0 = 'projection_google0.jpg'
 FILE_NAME_RECON = 'reconstruction_google.jpg'
 
-DROPBOX_TOKEN   = os.path.join(str(pathlib.Path.home()), 'tokens', 'dropbox_token.json')
-GOOGLE_TOKEN    = os.path.join(str(pathlib.Path.home()), 'tokens', 'google_token.json')
+DROPBOX_TOKEN = os.path.join(
+    str(pathlib.Path.home()), 'tokens', 'dropbox_token.json')
+GOOGLE_TOKEN = os.path.join(
+    str(pathlib.Path.home()), 'tokens', 'google_token.json')
+
 
 class TomoLog():
     '''
     Class to publish experiment meta data, tomography projection and reconstruction on a 
     google slide document.
     '''
-    def __init__(self):
 
-        self.snippets  = auth.google(GOOGLE_TOKEN)
+    def __init__(self, args):
+        self.google = auth.google(GOOGLE_TOKEN)
         self.dbx = auth.drop_box(DROPBOX_TOKEN)
-        
-        # hdf file key standardized definitions
-        self.full_file_name_key  = '/measurement/sample/file/full_name'
-        self.description_1_key   = '/measurement/sample/description_1'
-        self.description_2_key   = '/measurement/sample/description_2'
-        self.description_3_key   = '/measurement/sample/description_3'
-        self.date_key            = '/process/acquisition/start_date'
-        self.energy_key          = '/measurement/instrument/monochromator/energy'
-        self.pixel_size_key      = '/measurement/instrument/detector/pixel_size'
-        self.magnification_key   = '/measurement/instrument/detection_system/objective/magnification'
-        self.resolution_key      = '/measurement/instrument/detection_system/objective/resolution'
-        self.exposure_time_key   = '/measurement/instrument/detector/exposure_time'
-        self.rotation_start_key  = '/process/acquisition/rotation/start'
-        self.angle_step_key      = '/process/acquisition/rotation/step'
-        self.num_angle_key       = '/process/acquisition/rotation/num_angles'
-        self.width_key           = '/measurement/instrument/detector/array_size_x'
-        self.height_key          = '/measurement/instrument/detector/array_size_y'
-        self.binning_key         = '/measurement/instrument/detector/binning_x'
-        self.beamline_key        = '/measurement/instrument/source/beamline'
-        self.instrument_key      = '/measurement/instrument/name'
-        self.camera_distance_key = '/measurement/instrument/detector_motor_stack/setup/z'
-        self.sample_in_x_key     = '/process/acquisition/flat_fields/sample/in_x'
+        self.args = args
 
-    def run_log(self, args):
+        self.file_name_proj0 = FILE_NAME_PROJ0
+        self.file_name_recon = FILE_NAME_RECON
+        self.full_file_name_key = '/measurement/sample/file/full_name'
+        self.description_1_key = '/measurement/sample/description_1'
+        self.description_2_key = '/measurement/sample/description_2'
+        self.description_3_key = '/measurement/sample/description_3'
+        self.date_key = '/process/acquisition/start_date'
+        self.energy_key = '/measurement/instrument/monochromator/energy'
+        self.pixel_size_key = '/measurement/instrument/detector/pixel_size'
+        self.magnification_key = '/measurement/instrument/detection_system/objective/magnification'
+        self.resolution_key = '/measurement/instrument/detection_system/objective/resolution'
+        self.exposure_time_key = '/measurement/instrument/detector/exposure_time'
+        self.rotation_start_key = '/process/acquisition/rotation/start'
+        self.angle_step_key = '/process/acquisition/rotation/step'
+        self.num_angle_key = '/process/acquisition/rotation/num_angles'
+        self.width_key = '/measurement/instrument/detector/array_size_x'
+        self.height_key = '/measurement/instrument/detector/array_size_y'
+        self.binning_key = '/measurement/instrument/detector/binning_x'
+        self.beamline_key = '/measurement/instrument/source/beamline'
+        self.instrument_key = '/measurement/instrument/name'
 
-        args.double_fov = False # Set to true for 0-360 data sets
+    def run_log(self):
+        _, self.meta = meta.read_hdf(self.args.file_name, add_shape=True)
 
+        presentation_id, page_id = self.init_slide()
+        self.publish_descr(presentation_id, page_id)
+        proj = self.read_raw()
+        recon, _ = self.read_recon()
+        self.publish_proj(presentation_id, page_id, proj)
+        self.publish_recon(presentation_id, page_id, recon)
+
+    def init_slide(self):
+        # create a slide and publish file name
+        file_name = os.path.basename(self.args.file_name)
         try:
-            presentation_id = args.presentation_url.split('/')[-2]
+            presentation_id = self.args.presentation_url.split('/')[-2]
         except AttributeError:
-            log.error("Set --presentation-url to point to a valid Google slide location")
+            log.error(
+                "Set --presentation-url to point to a valid Google slide location")
             exit()
         # Create a new Google slide
         page_id = str(uuid.uuid4())
-        self.snippets.create_slide(presentation_id, page_id)
-        
-
-        meta = reads.read_scan_info(args)
-        file_name =  os.path.basename(args.file_name)
-        # print(meta)
-        # publish title
-        # exit()
-        try:
-            instrument_name = meta[self.instrument_key][0]
-            log.info(instrument_name)
-        except KeyError:
-            log.error('Corrupted file: missing instrument name')
-            log.error('or File locked by another program')
-            return
-        
-        try:
-            original_full_file_name = meta[self.full_file_name_key][0]
-            self.snippets.create_textbox_with_text(presentation_id, page_id, os.path.basename(
-                original_full_file_name)[:-3], 400, 50, 0, 0, 13, 0)
-        except TypeError:
-            self.snippets.create_textbox_with_text(presentation_id, page_id, file_name, 400, 50, 0, 0, 13, 1)
-            # print('red')  ### temp for 2021-10 Cooley TXM
-        except KeyError:
-            self.snippets.create_textbox_with_text(presentation_id, page_id, str(args.file_name), 400, 50, 0, 0, 13, 1)
-            self.snippets.create_textbox_with_text(presentation_id, page_id, 'Unable to open file (truncated file)', 90, 20, 350, 0, 10, 1)
-            # print('red')  ### temp for 2021-10 Cooley TXM
-            return
-
-        try:
-            meta[self.magnification_key][0].replace("x", "")
-            fontcolor = 0
-        except:
-            log.error('Objective magnification was not stored [%s, %s] for dataset: %s' % (meta[self.magnification_key][0], meta[self.magnification_key][1], original_full_file_name))
-            log.error('Using --magnification parameter: %s' % args.magnification)
-            log.error('Using --pixel-size parameter: %f' % args.pixel_size)
-            meta[self.pixel_size_key][0] = args.pixel_size
-            meta[self.pixel_size_key][1] ='um'
-            meta[self.magnification_key][0] = args.magnification
-            meta[self.resolution_key][0] = args.pixel_size / float(meta[self.magnification_key][0].replace("x", ""))
-            log.warning('Calculated resolution: %s' % meta[self.resolution_key][0])
-            meta[self.resolution_key][1] = 'um'
-            fontcolor = 1
-
-        self.width  = int(meta[self.width_key][0])
-        self.height = int(meta[self.height_key][0])
-        
-        # meta[self.resolution_key][0] = 0.69 ### temp for 2021-10 Cooley 2-BM
-        # meta[self.resolution_key][0] = 42.4 ### temp for 2021-10 Cooley TXM
-        self.resolution       = float(meta[self.resolution_key][0])
-        # meta[self.resolution_key][1] = 'nm'  ### temp for 2021-10 Cooley TXM
-        self.resolution_units = str(meta[self.resolution_key][1])
-        # meta[self.pixel_size_key][0] = 3.45 ### temp for 2021-10 Cooley TXM
-        self.pixel_size       = float(meta[self.pixel_size_key][0])
-        # meta[self.pixel_size_key][1] = 'um' ### temp for 2021-10 Cooley TXM
-        self.pixel_size_units = str(meta[self.pixel_size_key][1])
-        # meta[self.magnification_key][0] = '5x' ### temp for 2021-10 Cooley TXM
-        self.magnification    = float(meta[self.magnification_key][0].replace("x", ""))
-        # meta[self.binning_key][0] = '1' ### temp for 2021-10 Cooley TXM
-        self.binning          = int(meta[self.binning_key][0])
-        if meta[self.exposure_time_key][1] == None:
-            log.warning('Exposure time units are missing assuming (s)')
-            meta[self.exposure_time_key][1] = 's'
-
-        # meta[self.exposure_time_key][0] = 2.0 ### temp for 2021-10 Cooley TXM
-        # publish scan info
-        descr  =  f"File name: {file_name}\n"
-        descr +=  f"Beamline: {meta[self.beamline_key][0]} {meta[self.instrument_key][0]}\n"
-        descr +=  f"Particle description: {meta[self.description_1_key][0]} {meta[self.description_2_key][0]} {meta[self.description_3_key][0]}\n"
-        descr +=  f"Scan date: {meta[self.date_key][0]}\n"
-        descr +=  f"Scan energy: {meta[self.energy_key][0]} {meta[self.energy_key][1]}\n"
-        descr +=  f"Camera pixel size: {meta[self.pixel_size_key][0]:.02f} {meta[self.pixel_size_key][1]}\n"
-        descr +=  f"Lens magnification: {meta[self.magnification_key][0]}\n"
-        descr +=  f"Resolution: {meta[self.resolution_key][0]:.02f} {meta[self.resolution_key][1]}\n"
-        descr +=  f"Exposure time: {meta[self.exposure_time_key][0]:.02f} {meta[self.exposure_time_key][1]}\n"
-        descr +=  f"Angle step: {meta[self.angle_step_key][0]:.03f} {meta[self.angle_step_key][1]}\n"
-        descr +=  f"Number of angles: {meta[self.num_angle_key][0]}\n"
-        descr +=  f"Projection size: {self.width} x {self.height}\n"
-        if(meta[self.instrument_key][0] == 'Micro-tomography'):
-            descr +=  f"Sample detector distance: {meta[self.camera_distance_key][0]} {meta[self.camera_distance_key][1]}"
-            # descr +=  f"Sample detector distance: 200 mm"
-            if (meta[self.sample_in_x_key][0] != 0):
-                args.double_fov = True
-                log.warning('Sample in x is off center: %s. Handling the data set as a double FOV' % meta[self.sample_in_x_key][0])
-        self.snippets.create_textbox_with_bullets(
-            presentation_id, page_id, descr, 240, 120, 0, 18, 8, fontcolor)
-
-        # read projection(s)
-        proj = reads.read_raw(args)
- 
-        if(meta[self.instrument_key][0] == 'Transmission X-Ray Microscope'):
-            log.info('Transmission X-Ray Microscope Instrument')
-            log.info('Plotting nanoCT projection')
-            # 32-id datasets may include both nanoCT and microCT data as proj[0] and proj[1] respectively
-            fname = FILE_NAME_PROJ0+'.jpg'
-            nct_resolution = self.resolution / 1000.
-            
-            plots.plot_projection(proj[0], fname, resolution=nct_resolution) 
-            self.publish_projection(fname, presentation_id, page_id, 170, 0, 145)
-            self.snippets.create_textbox_with_text(
-                presentation_id, page_id, 'Nano-CT projection', 90, 20, 50, 150, 8, 0)
-            try:
-                log.info('Plotting microCT projection')
-                fname = FILE_NAME_PROJ1+'.jpg'
-                mct_resolution = self.pixel_size / self.magnification
-                plots.plot_projection(proj[1], fname, resolution=mct_resolution)
-                self.publish_projection(fname, presentation_id, page_id, 170, 0, 270)
-                self.snippets.create_textbox_with_text(
-                    presentation_id, page_id, 'Micro-CT projection', 160, 20, 10, 290, 8, 0)
-            except:
-                log.warning('No microCT data available')
-        else:
-            log.info('Micro Tomography Instrument')
-            log.info('Plotting microCT projection')
-            fname = FILE_NAME_PROJ0+'.jpg'
-            self.resolution = self.resolution * self.binning
-            plots.plot_projection(proj[0], fname, resolution=self.resolution)
-            self.publish_projection(fname, presentation_id, page_id, 150, 10, 157)
-            self.snippets.create_textbox_with_text(
-                presentation_id, page_id, 'Micro-CT projection', 90, 20, 50, 153, 8, 0)
-            try:
-                log.info('Plotting frame the IP camera')
-                fname = FILE_NAME_PROJ1+'.jpg'
-                plots.plot_frame(proj[1], fname)
-                self.publish_projection(fname, presentation_id, page_id, 170, 0, 270)
-                self.snippets.create_textbox_with_text(
-                    presentation_id, page_id, 'Frame from the IP camera in the hutch', 160, 20, 10, 290, 8, 0)
-            except:
-                log.warning('No frame from the IP camera')
-        # read reconstructions
-        recon, binning_rec = reads.read_recon(args, meta)    
-        rec_line = reads.read_rec_line(args)
-        # publish reconstructions
-        if len(recon) == 3:
-            # prepare reconstruction
-            if(meta[self.instrument_key][0] == 'Transmission X-Ray Microscope'):
-                log.info('Transmission X-Ray Microscope Instrument')
-                self.resolution = self.resolution / 1000. * binning_rec
-            else:
-                log.info('Micro Tomography Instrument')
-                self.resolution = self.resolution * self.binning * binning_rec
-            plots.plot_recon(args, self.width, self.height, recon, FILE_NAME_RECON, self.resolution)
-            with open(FILE_NAME_RECON, 'rb') as f:
-                self.dbx.files_upload(f.read(), '/'+FILE_NAME_RECON, dropbox.files.WriteMode.overwrite)
-            recon_url = self.dbx.files_get_temporary_link('/'+FILE_NAME_RECON).link            
-            self.snippets.create_image(presentation_id, page_id, recon_url, 370, 370, 130, 25)
-            self.snippets.create_textbox_with_text(
-                presentation_id, page_id, 'Reconstruction', 90, 20, 270, 0, 10, 0)
-        if rec_line is not None:
-            self.snippets.create_textbox_with_text(
-                    presentation_id, page_id, rec_line, 1000, 20, 185, 391, 6, 0)
+        self.google.create_slide(presentation_id, page_id)
+        self.google.create_textbox_with_text(presentation_id, page_id, os.path.basename(
+            self.args.file_name)[:-3], 400, 50, 0, 0, 13, 1)
         # publish other labels
-        self.snippets.create_textbox_with_text(
+        self.google.create_textbox_with_text(
             presentation_id, page_id, 'Other info/screenshots', 120, 20, 480, 0, 10, 0)
+        return presentation_id, page_id
 
-    def publish_projection(self, fname, presentation_id, page_id, size, posx, posy):
-        with open(fname, 'rb') as f:
-            self.dbx.files_upload(f.read(), '/'+fname, dropbox.files.WriteMode.overwrite)
-            proj_url = self.dbx.files_get_temporary_link('/'+fname).link
-            self.snippets.create_image(presentation_id, page_id, proj_url, size, size, posx, posy)
+    def read_meta_item(self, template):
+        try:
+            str = eval(f"f'{template}'")+"\n"
+        except:
+            log.warning(f'meta item missing: {template}')
+            str = ""
+        return str
 
+    def publish_descr(self, presentation_id, page_id):
+        # publish scan info
+        descr = self.read_meta_item(
+            "File name: {os.path.basename(self.meta[self.full_file_name_key][0])}")
+        descr += self.read_meta_item(
+            "Beamline: {self.meta[self.beamline_key][0]} {self.meta[self.instrument_key][0]}")
+        descr += self.read_meta_item(
+            "Scan date: {self.meta[self.date_key][0]}")
+        descr += self.read_meta_item(
+            "Scan energy: {self.meta[self.energy_key][0]} {self.meta[self.energy_key][1]}")
+        descr += self.read_meta_item(
+            "Exposure time: {self.meta[self.exposure_time_key][0]:.02f} {self.meta[self.exposure_time_key][1]}")
+        descr += self.read_meta_item(
+            "Camera pixel size: {self.meta[self.pixel_size_key][0]:.02f} {self.meta[self.pixel_size_key][1]}")
+        descr += self.read_meta_item(
+            "Lens magnification: {self.meta[self.magnification_key][0]}")
+        descr += self.read_meta_item(
+            "Projection pixel size: {self.meta[self.resolution_key][0]:.02f} {self.meta[self.resolution_key][1]}")
+        descr += self.read_meta_item(
+            "Angle step: {self.meta[self.angle_step_key][0]:.03f} {self.meta[self.angle_step_key][1]}")
+        descr += self.read_meta_item(
+            "Number of angles: {self.meta[self.num_angle_key][0]}")
+        descr += self.read_meta_item(
+            "Projection size: {int(self.meta[self.width_key][0])} x {int(self.meta[self.height_key][0])}")
+        descr = descr[:-1]
+        self.google.create_textbox_with_bullets(
+            presentation_id, page_id, descr, 240, 120, 0, 18, 8, 0)
 
+    def read_raw(self):
+        proj = []
+        with h5py.File(self.args.file_name) as fid:
+            data = fid['exchange/data'][0][:]
+            proj.append(data)
+        return proj
+
+    def read_recon(self):
+        recon = []
+        binning_rec = -1
+        try:
+            basename = os.path.basename(self.args.file_name)[:-3]
+            dirname = os.path.dirname(self.args.file_name)
+            # set the correct prefix to find the reconstructions
+            rec_prefix = 'recon'
+            top = os.path.join(dirname+'_rec', basename+'_rec')
+            tiff_file_list = sorted(
+                list(filter(lambda x: x.endswith(('.tif', '.tiff')), os.listdir(top))))
+            z_start = int(tiff_file_list[0].split('.')[0].split('_')[1])
+            z_end = int(tiff_file_list[-1].split('.')[0].split('_')[1]) + 1
+            height = z_end-z_start
+            fname_tmp = os.path.join(top, tiff_file_list[0])
+            # take size
+            tmp = utils.read_tiff(fname_tmp).copy()
+
+            w = tmp.shape[0]
+            h = height
+            if self.args.idz == -1:
+                self.args.idz = int(h//2)
+            if self.args.idy == -1:
+                self.args.idy = int(w//2)
+            if self.args.idx == -1:
+                self.args.idx = int(w//2)
+
+            z = utils.read_tiff(
+                f'{dirname}_rec/{basename}_rec/{rec_prefix}_{self.args.idz:05}.tiff').copy()
+
+            # read x,y slices by lines
+            y = np.zeros((h, w), dtype='float32')
+            x = np.zeros((h, w), dtype='float32')
+
+            for j in range(z_start, z_end):
+                zz = utils.read_tiff(
+                    f'{dirname}_rec/{basename}_rec/{rec_prefix}_{j:05}.tiff')
+                y[j-z_start, :] = zz[self.args.idy]
+                x[j-z_start, :] = zz[:, self.args.idx]
+
+            recon = [x, y, z]
+            log.info('Adding reconstruction')
+        except ZeroDivisionError:
+            log.error(
+                'Reconstructions for %s are larger than raw data image width.')
+            log.warning('Skipping reconstruction')
+        except:
+            log.warning('Skipping reconstruction')
+
+        return recon, binning_rec
+
+    def publish_proj(self, presentation_id, page_id, proj, resolution=1):
+        log.info('Plotting projection')
+        self.plot_projection(proj[0], FILE_NAME_PROJ0)
+        proj_url = self.dbx.upload(FILE_NAME_PROJ0)
+        self.google.create_image(
+            presentation_id, page_id, proj_url, 150, 150, 10, 157)
+
+        self.google.create_textbox_with_text(
+            presentation_id, page_id, 'Projection', 90, 20, 50, 153, 8, 0)
+
+    def publish_recon(self, presentation_id, page_id, recon, resolution=1):
+        if len(recon) == 3:
+            self.plot_recon(recon, FILE_NAME_RECON)
+            recon_url = self.dbx.upload(FILE_NAME_RECON)
+            self.google.create_image(
+                presentation_id, page_id, recon_url, 370, 370, 130, 25)
+            self.google.create_textbox_with_text(
+                presentation_id, page_id, 'Reconstruction', 90, 20, 270, 0, 10, 0)
+
+    def plot_projection(self, proj, fname):
+        # auto-adjust colorbar values according to a histogram
+        mmin, mmax = utils.find_min_max(proj)
+        proj[proj > mmax] = mmax
+        proj[proj < mmin] = mmin
+
+        # plot
+        fig = plt.figure(constrained_layout=True, figsize=(6, 4))
+        ax = fig.add_subplot()
+        im = ax.imshow(proj, cmap='gray')
+        divider = make_axes_locatable(ax)
+        cax = divider.append_axes("right", size="5%", pad=0.1)
+        plt.colorbar(im, cax=cax)
+        plt.savefig(fname, bbox_inches='tight', pad_inches=0, dpi=300)
+        plt.cla()
+        plt.close(fig)
+
+    def plot_recon(self, recon, fname):
+        fig = plt.figure(constrained_layout=True, figsize=(6, 12))
+        grid = fig.add_gridspec(3, 1, height_ratios=[1, 1, 1])
+        slices = ['x', 'y', 'z']
+        # autoadjust colorbar values according to a histogram
+
+        if self.args.min == self.args.max:
+            self.args.min, self.args.max = utils.find_min_max(
+                np.concatenate(recon))
+
+        sl = [self.args.idx, self.args.idy, self.args.idz]
+        for k in range(3):
+            recon[k][0, 0] = self.args.max
+            recon[k][0, 1] = self.args.min
+            recon[k][recon[k] > self.args.max] = self.args.max
+            recon[k][recon[k] < self.args.min] = self.args.min
+            ax = fig.add_subplot(grid[k])
+            im = ax.imshow(recon[k], cmap='gray')
+            divider = make_axes_locatable(ax)
+            cax = divider.append_axes("right", size="5%", pad=0.1)
+            plt.colorbar(im, cax=cax)
+            ax.set_ylabel(f'slice {slices[k]}={sl[k]}', fontsize=14)
+        plt.savefig(fname, bbox_inches='tight', pad_inches=0, dpi=300)
+        plt.cla()
+        plt.close(fig)
