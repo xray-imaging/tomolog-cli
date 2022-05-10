@@ -9,8 +9,6 @@ from mpl_toolkits.axes_grid1 import make_axes_locatable
 import meta
 
 from tomolog_cli import log
-from tomolog_cli import plots
-from tomolog_cli import reads
 from tomolog_cli import auth
 from tomolog_cli import utils
 

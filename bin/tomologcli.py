@@ -11,6 +11,7 @@ from tomolog_cli import utils
 from tomolog_cli import config
 from tomolog_cli import TomoLog
 from tomolog_cli import TomoLog32ID
+from tomolog_cli import TomoLog2BM
 
 
 def init(args):
