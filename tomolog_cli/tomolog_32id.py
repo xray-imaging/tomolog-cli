@@ -31,9 +31,6 @@ class TomoLog32ID(TomoLog):
         super().__init__(args)
         self.sample_in_x_key = '/process/acquisition/flat_fields/sample/in_x'
         self.phase_ring_setup_y_key = '/measurement/instrument/phase_ring/setup/y'
-        self.binning_key = '/measurement/instrument/detector/binning_x'
-        self.width_key = '/measurement/instrument/detector/roi/size_x'
-        self.height_key = '/measurement/instrument/detector/roi/size_y'
 
         self.binning_rec = -1
         self.nct_resolution = -1
