@@ -10,6 +10,7 @@ from tomolog_cli import log
 from tomolog_cli import utils
 from tomolog_cli import config
 from tomolog_cli import TomoLog
+from tomolog_cli import TomoLog32ID
 
 
 def init(args):
@@ -29,7 +30,12 @@ def run_log(args):
     file_path = pathlib.Path(args.file_name)
     if file_path.is_file():
         log.info("publishing a single file: %s" % args.file_name)
-        TomoLog().run_log(args)
+        if args.beamline == '32-id':
+            TomoLog32ID(args).run_log()
+        elif args.beamline == '2-bm':
+            TomoLog2BM(args).run_log()
+        else:
+            TomoLog(args).run_log()
     elif file_path.is_dir():
         log.info("publishing a multiple files in: %s" % args.file_name)
         top = os.path.join(args.file_name, '')
@@ -43,7 +49,12 @@ def run_log(args):
                 args.file_name = top + fname
                 log.warning("  *** file %d/%d;  %s" % (index, len(h5_file_list_sorted), fname))
                 index += 1
-                TomoLog().run_log(args)
+                if args.beamline == '32-id':
+                    TomoLog32ID(args).run_log()
+                elif args.beamline == '2-bm':
+                    TomoLog2BM(args).run_log()
+                else:
+                    TomoLog(args).run_log()
                 time.sleep(20)
 
         else:
@@ -52,7 +63,8 @@ def run_log(args):
         log.error("directory or File Name does not exist: %s" % args.file_name)
 
     config.write(args.config, args, sections=config.PARAMS)
-
+    log.warning('publication end')
+    
 def main():
 
     # make sure logs directory exists

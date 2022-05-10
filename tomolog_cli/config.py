@@ -92,7 +92,12 @@ SECTIONS['general'] = {
     'idz': {
         'type': int,
         'default': -1,
-        'help': "Id of z slice for reconstruction visualization"},
+        'help': "Id of z slice for reconstruction visualization"},    
+    'beamline': {
+        'default': 'None',
+        'type': str,
+        'help': "When set adds the beamline name as a prefix to the slack channel name",
+        'choices': ['None','2-bm', '7-bm', '8-id', '20-bm', '29-id', '32-id']},    
 }
 
 SECTIONS['file-reading'] = {
