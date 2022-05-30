@@ -143,6 +143,11 @@ SECTIONS['general'] = {
         'type': str,
         'help': "When set adds the beamline name as a prefix to the slack channel name",
         'choices': ['None','2-bm', '7-bm', '8-id', '20-bm', '29-id', '32-id']},    
+    'save-format': {
+        'default': 'tiff',
+        'type': str,
+        'help': "Reconstruction save format",
+        'choices': ['tiff','h5']},    
 }
 
 SECTIONS['file-reading'] = {

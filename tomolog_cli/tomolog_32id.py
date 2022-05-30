@@ -121,63 +121,86 @@ class TomoLog32ID(TomoLog):
         return proj
 
     def read_recon(self):
-
+        
         width = int(self.meta[self.width_key][0])
         height = int(self.meta[self.height_key][0])
-        binning = int(self.meta[self.binning_key][0])
         recon = []
-        coeff_rec = 1
-
-        # check if inversion is needed for the phase-contrast imaging at 32id
-        phase_ring_y = float(self.meta[self.phase_ring_setup_y_key][0])
-        if abs(phase_ring_y) < 1e-2:
-            coeff_rec = -1
         try:
-            basename = os.path.basename(self.args.file_name)[:-3]
-            dirname = os.path.dirname(self.args.file_name)
-            # set the correct prefix to find the reconstructions
-            rec_prefix = 'recon'
+            if self.args.save_format == 'h5':
+                fname  = os.path.dirname(self.args.file_name)+'_rec/'+os.path.basename(self.args.file_name)[:-3]+'_rec.h5'
+                with h5py.File(fname,'r') as fid:
+                    data = fid['exchange/recon']
+                    h,w = data.shape[:2]
+                    if self.args.idz == -1:
+                        self.args.idz = int(h//2)
+                    if self.args.idy == -1:
+                        self.args.idy = int(w//2)
+                    if self.args.idx == -1:
+                        self.args.idx = int(w//2)
+                    if self.double_fov == True:
+                        binning_rec = np.log2(width//(w//2))
+                    else:
+                        binning_rec = np.log2(width//(w))
+                    x = data[:,:,self.args.idx]
+                    y = data[:,self.args.idy]
+                    z = data[self.args.idz]
+            else:                
+                basename = os.path.basename(self.args.file_name)[:-3]
+                dirname = os.path.dirname(self.args.file_name)
+                # set the correct prefix to find the reconstructions
+                rec_prefix = 'recon'
 
-            top = os.path.join(dirname+'_rec', basename+'_rec')
-            tiff_file_list = sorted(
-                list(filter(lambda x: x.endswith(('.tif', '.tiff')), os.listdir(top))))
-            z_start = int(tiff_file_list[0].split('.')[0].split('_')[1])
-            z_end = int(tiff_file_list[-1].split('.')[0].split('_')[1]) + 1
-            height = z_end-z_start
-            fname_tmp = os.path.join(top, tiff_file_list[0])
-            # take size
-            tmp = utils.read_tiff(fname_tmp).copy()
+                top = os.path.join(dirname+'_rec', basename+'_rec')
+                tiff_file_list = sorted(
+                    list(filter(lambda x: x.endswith(('.tif', '.tiff')), os.listdir(top))))
+                z_start = int(tiff_file_list[0].split('.')[0].split('_')[1])
+                z_end = int(tiff_file_list[-1].split('.')[0].split('_')[1]) + 1
+                height = z_end-z_start
+                fname_tmp = os.path.join(top, tiff_file_list[0])
+                # take size
+                tmp = utils.read_tiff(fname_tmp).copy()
 
-            if self.double_fov == True:
-                width = width * 2
-                binning_rec = 1
-            else:
-                binning_rec = width//tmp.shape[0]
+                if self.double_fov == True:
+                    width = width * 2
+                    binning_rec = 1
+                else:
+                    binning_rec = width//tmp.shape[0]
 
-            w = width//binning_rec
-            h = height
-            if self.args.idz == -1:
-                self.args.idz = int(h//2)
-            if self.args.idy == -1:
-                self.args.idy = int(w//2)
-            if self.args.idx == -1:
-                self.args.idx = int(w//2)
+                w = width//binning_rec
+                h = height
 
-            z = utils.read_tiff(
-                f'{dirname}_rec/{basename}_rec/{rec_prefix}_{self.args.idz:05}.tiff').copy()
+                if self.args.idz == -1:
+                    self.args.idz = int(h//2)
+                if self.args.idy == -1:
+                    self.args.idy = int(w//2)
+                if self.args.idx == -1:
+                    self.args.idx = int(w//2)
+                if self.double_fov == True:
+                    binning_rec = np.log2(width//(w//2))
+                else:
+                    binning_rec = np.log2(width//w)
+            
+                z = utils.read_tiff(
+                    f'{dirname}_rec/{basename}_rec/{rec_prefix}_{self.args.idz:05}.tiff').copy()
 
-            # read x,y slices by lines
-            y = np.zeros((h, w), dtype='float32')
-            x = np.zeros((h, w), dtype='float32')
+                # read x,y slices by lines
+                y = np.zeros((h, w), dtype='float32')
+                x = np.zeros((h, w), dtype='float32')
 
-            for j in range(z_start, z_end):
-                zz = utils.read_tiff(
-                    f'{dirname}_rec/{basename}_rec/{rec_prefix}_{j:05}.tiff')
-                y[j-z_start, :] = zz[self.args.idy]
-                x[j-z_start, :] = zz[:, self.args.idx]
-
+                for j in range(z_start, z_end):
+                    zz = utils.read_tiff(
+                        f'{dirname}_rec/{basename}_rec/{rec_prefix}_{j:05}.tiff')
+                    y[j-z_start, :] = zz[self.args.idy]
+                    x[j-z_start, :] = zz[:, self.args.idx]
+            
+            
+            # check if inversion is needed for the phase-contrast imaging at 32id
+            phase_ring_y = float(self.meta[self.phase_ring_setup_y_key][0])
+            coeff_rec = 1
+            if abs(phase_ring_y) < 1e-2:
+                coeff_rec = -1
+            
             recon = [coeff_rec*x, coeff_rec*y, coeff_rec*z]
-
             self.binning_rec = binning_rec
 
             log.info('Adding reconstruction')
@@ -191,15 +214,20 @@ class TomoLog32ID(TomoLog):
         return recon
 
     def read_rec_line(self):
-        line = None
         try:
-            basename = os.path.basename(self.args.file_name)[:-3]
-            dirname = os.path.dirname(self.args.file_name)
-            with open(f'{dirname}_rec/{basename}_rec/rec_line.txt', 'r') as fid:
-                line = fid.readlines()[0]
+            if self.args.save_format == 'h5':
+                fname  = os.path.dirname(self.args.file_name)+'_rec/'+os.path.basename(self.args.file_name)[:-3]+'_rec.h5'
+                with h5py.File(fname,'r') as fid:
+                    line = fid.attrs['rec_line'].decode("utf-8")
+            else:
+            
+                basename = os.path.basename(self.args.file_name)[:-3]
+                dirname = os.path.dirname(self.args.file_name)
+                with open(f'{dirname}_rec/{basename}_rec/rec_line.txt', 'r') as fid:
+                    line = fid.readlines()[0]
         except:
             log.warning('Skipping the command line for reconstruction')
-            line = ''
+            line = ' '
         return line
 
     def publish_proj(self, presentation_id, page_id, proj):
@@ -281,7 +309,7 @@ class TomoLog32ID(TomoLog):
             im = ax.imshow(recon[k], cmap='gray')
             # Create scale bar
             scalebar = ScaleBar(self.nct_resolution *
-                                self.binning_rec, "um", length_fraction=0.25)
+                                2**self.binning_rec, "um", length_fraction=0.25)
             ax.add_artist(scalebar)
             divider = make_axes_locatable(ax)
             cax = divider.append_axes("right", size="5%", pad=0.1)
