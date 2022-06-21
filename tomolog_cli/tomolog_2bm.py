@@ -211,7 +211,9 @@ class TomoLog2BM(TomoLog):
             presentation_id, page_id, 'Micro-CT projection', 90, 20, 50, 150, 8, 0)
         try:
             log.info('Plotting frame the IP camera')
-            self.plot_projection(proj[1], self.file_name_proj1)
+            plt.imshow(proj[1], cmap='gray')
+            plt.axis('off')
+            plt.savefig(self.file_name_proj1,dpi=300)
             proj_url = self.dbx.upload(self.file_name_proj1)
             self.google.create_image(
                 presentation_id, page_id, proj_url, 170, 170, 0, 270)
