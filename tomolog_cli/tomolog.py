@@ -107,7 +107,13 @@ class TomoLog():
 
     def run_log(self):
         _, self.meta = meta.read_hdf(self.args.file_name, add_shape=True)
-
+        if self.args.pixel_size!=-1:
+            self.meta[self.pixel_size_key][0]  = self.args.pixel_size
+        if self.args.magnification!=-1:
+            self.meta[self.magnification_key][0]  = f'{self.args.magnification}x'
+        if self.args.magnification!=-1 and self.args.pixel_size!=-1:
+            self.meta[self.resolution_key][0]  = self.args.pixel_size/self.args.magnification
+        
         presentation_id, page_id = self.init_slide()
         self.publish_descr(presentation_id, page_id)
         proj = self.read_raw()

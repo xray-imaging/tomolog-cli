@@ -87,11 +87,19 @@ class TomoLog2BM(TomoLog):
     def run_log(self):
         # read meta, calculate resolutions
         _, self.meta = meta.read_hdf(self.args.file_name, add_shape=True)
+        if self.args.pixel_size!=-1:
+            self.meta[self.pixel_size_key][0]  = self.args.pixel_size
+        if self.args.magnification!=-1:
+            self.meta[self.magnification_key][0]  = f'{self.args.magnification}x'
+        if self.args.magnification!=-1 and self.args.pixel_size!=-1:
+            self.meta[self.resolution_key][0]  = self.args.pixel_size/self.args.magnification
+        
         if (self.meta[self.sample_in_x_key][0] != 0):
             self.double_fov = True
             log.warning('Sample in x is off center: %s. Handling the data set as a double FOV' %
                         self.meta[self.sample_in_x_key][0])
-        self.mct_resolution = float(self.meta[self.resolution_key][0])
+        
+        
 
 
         presentation_id, page_id = self.init_slide()
