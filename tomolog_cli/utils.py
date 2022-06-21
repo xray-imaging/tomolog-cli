@@ -80,7 +80,7 @@ def read_tiff(fname):
     """
 
     try:
-        arr = tifffile.imread(fname, out='memmap')
+        arr = tifffile.imread(fname)
     except IOError:
         log.error('No such file or directory: %s', fname)
         return False
