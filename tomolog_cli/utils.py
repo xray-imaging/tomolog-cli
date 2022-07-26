@@ -54,11 +54,11 @@ import pandas as pd
 from collections import OrderedDict, deque
 from tomolog_cli import log
 
-def find_min_max(data):
+def find_min_max(data,th=0.003):
     """Find min and max values according to histogram"""
 
     h, e = np.histogram(data[:], 1000)
-    stend = np.where(h > np.max(h)*0.003)
+    stend = np.where(h > np.max(h)*th)
     st = stend[0][0]
     end = stend[0][-1]
     mmin = e[st]

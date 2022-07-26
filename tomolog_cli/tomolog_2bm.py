@@ -93,7 +93,7 @@ class TomoLog2BM(TomoLog):
             self.meta[self.magnification_key][0]  = f'{self.args.magnification}x'
         if self.args.magnification!=-1 and self.args.pixel_size!=-1:
             self.meta[self.resolution_key][0]  = self.args.pixel_size/self.args.magnification
-        
+        self.mct_resolution = float(self.meta[self.pixel_size_key][0]) / float(self.meta[self.magnification_key][0].replace("x", ""))
         if (self.meta[self.sample_in_x_key][0] != 0):
             self.double_fov = True
             log.warning('Sample in x is off center: %s. Handling the data set as a double FOV' %
@@ -219,7 +219,7 @@ class TomoLog2BM(TomoLog):
             presentation_id, page_id, 'Micro-CT projection', 90, 20, 50, 150, 8, 0)
         try:
             log.info('Plotting frame the IP camera')
-            plt.imshow(proj[1], cmap='gray')
+            plt.imshow(np.fliplr(proj[1].reshape(-1,3)).reshape(proj[1].shape))
             plt.axis('off')
             plt.savefig(self.file_name_proj1,dpi=300)
             proj_url = self.dbx.upload(self.file_name_proj1)
@@ -260,7 +260,7 @@ class TomoLog2BM(TomoLog):
         ax.add_artist(scalebar)
         divider = make_axes_locatable(ax)
         cax = divider.append_axes("right", size="5%", pad=0.1)
-        plt.colorbar(im, cax=cax)
+        plt.colorbar(im, cax=cax, format='%.1e')
         # plt.show()
         # save
         plt.savefig(fname, bbox_inches='tight', pad_inches=0, dpi=300)
@@ -291,7 +291,7 @@ class TomoLog2BM(TomoLog):
             ax.add_artist(scalebar)
             divider = make_axes_locatable(ax)
             cax = divider.append_axes("right", size="5%", pad=0.1)
-            plt.colorbar(im, cax=cax)
+            plt.colorbar(im, cax=cax, format='%.1e')
             ax.set_ylabel(f'slice {slices[k]}={sl[k]}', fontsize=14)
         # save
         plt.savefig(fname, bbox_inches='tight', pad_inches=0, dpi=300)

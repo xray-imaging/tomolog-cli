@@ -148,6 +148,14 @@ SECTIONS['general'] = {
         'type': str,
         'help': "Reconstruction save format",
         'choices': ['tiff','h5']},    
+    'magnification': {
+        'type': float,
+        'default': -1,
+        'help': "Lens magnification. Overwrite value  to be used in case in missing from the hdf file"},
+    'pixel-size': {
+        'type': float,
+        'default': -1,
+        'help': "Detector pixel size. Overwrite value  to be used in case in missing from the hdf file"},
 }
 
 SECTIONS['file-reading'] = {
@@ -175,14 +183,6 @@ SECTIONS['parameters'] = {
         'default': None,
         'type': str,
         'help': "Google presention url"},
-    'magnification': {
-        'type': float,
-        'default': -1,
-        'help': "Lens magnification. Overwrite value  to be used in case in missing from the hdf file"},
-    'pixel-size': {
-        'type': float,
-        'default': -1,
-        'help': "Detector pixel size. Overwrite value  to be used in case in missing from the hdf file"},
 }
 
 PARAMS = ('file-reading', 'parameters')

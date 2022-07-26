@@ -104,6 +104,7 @@ class TomoLog():
         self.binning_key = '/measurement/instrument/detector/binning_x'
         self.beamline_key = '/measurement/instrument/source/beamline'
         self.instrument_key = '/measurement/instrument/name'
+        self.sample_y_key = '/measurement/instrument/sample_motor_stack/setup/y'
 
     def run_log(self):
         _, self.meta = meta.read_hdf(self.args.file_name, add_shape=True)
@@ -113,6 +114,7 @@ class TomoLog():
             self.meta[self.magnification_key][0]  = f'{self.args.magnification}x'
         if self.args.magnification!=-1 and self.args.pixel_size!=-1:
             self.meta[self.resolution_key][0]  = self.args.pixel_size/self.args.magnification
+        self.mct_resolution = float(self.meta[self.pixel_size_key][0]) / float(self.meta[self.magnification_key][0].replace("x", ""))
         
         presentation_id, page_id = self.init_slide()
         self.publish_descr(presentation_id, page_id)
@@ -136,8 +138,8 @@ class TomoLog():
         self.google.create_textbox_with_text(presentation_id, page_id, os.path.basename(
             self.args.file_name)[:-3], 400, 50, 0, 0, 13, 1)
         # publish other labels
-        self.google.create_textbox_with_text(
-            presentation_id, page_id, 'Other info/screenshots', 120, 20, 480, 0, 10, 0)
+        #self.google.create_textbox_with_text(
+            #presentation_id, page_id, 'Other info/screenshots', 120, 20, 480, 0, 10, 0)
         return presentation_id, page_id
 
     def read_meta_item(self, template):
@@ -172,6 +174,8 @@ class TomoLog():
             "Number of angles: {self.meta[self.num_angle_key][0]}")
         descr += self.read_meta_item(
             "Projection size: {int(self.meta[self.width_key][0])} x {int(self.meta[self.height_key][0])}")
+        descr += self.read_meta_item(
+            "Sample Y: {self.meta[self.sample_y_key][0]:.02f} {self.meta[self.sample_y_key][1]}")
         descr = descr[:-1]
         self.google.create_textbox_with_bullets(
             presentation_id, page_id, descr, 240, 120, 0, 18, 8, 0)
