@@ -177,11 +177,14 @@ class TomoLog():
             "Projection size: {int(self.meta[self.width_key][0])} x {int(self.meta[self.height_key][0])}")
         descr += self.read_meta_item(
             "Sample Y: {self.meta[self.sample_y_key][0]:.02f} {self.meta[self.sample_y_key][1]}")
-        pitch_angle = float(self.meta[self.sample_pitch_angle_key][0])
-        if pitch_angle != 0:
-            pitch_angle = -float(self.read_meta_item(" {self.meta[self.sample_pitch_angle_key][0]:.02f}"))
-            pitch_angle_units = self.read_meta_item("{self.meta[self.sample_pitch_angle_key][1]}")
-            descr += "Pitch angle: " + str(pitch_angle) + pitch_angle_units
+        
+        pitch_angle = self.read_meta_item("{self.meta[self.sample_pitch_angle_key][0]:.02f}")
+        if pitch_angle is not '':
+            pitch_angle = float(pitch_angle)
+            if pitch_angle != 0:
+                pitch_angle = -pitch_angle
+                pitch_angle_units = self.read_meta_item("{self.meta[self.sample_pitch_angle_key][1]}")
+                descr += "Pitch angle: " + str(pitch_angle) + pitch_angle_units
         descr = descr[:-1]
         self.google.create_textbox_with_bullets(
             presentation_id, page_id, descr, 240, 120, 0, 18, 8, 0)
