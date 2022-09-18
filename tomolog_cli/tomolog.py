@@ -105,6 +105,7 @@ class TomoLog():
         self.beamline_key = '/measurement/instrument/source/beamline'
         self.instrument_key = '/measurement/instrument/name'
         self.sample_y_key = '/measurement/instrument/sample_motor_stack/setup/y'
+        self.sample_pitch_angle_key = '/measurement/instrument/sample_motor_stack/setup/pitch'
 
     def run_log(self):
         _, self.meta = meta.read_hdf(self.args.file_name, add_shape=True)
@@ -176,6 +177,11 @@ class TomoLog():
             "Projection size: {int(self.meta[self.width_key][0])} x {int(self.meta[self.height_key][0])}")
         descr += self.read_meta_item(
             "Sample Y: {self.meta[self.sample_y_key][0]:.02f} {self.meta[self.sample_y_key][1]}")
+        pitch_angle = float(self.meta[self.sample_pitch_angle_key][0])
+        if pitch_angle != 0:
+            pitch_angle = - pitch_angle
+            descr += self.read_meta_item(
+                "Pitch angle: {self.meta[self.sample_pitch_angle_key][0]:.02f} {self.meta[self.sample_pitch_angle_key][1]}")
         descr = descr[:-1]
         self.google.create_textbox_with_bullets(
             presentation_id, page_id, descr, 240, 120, 0, 18, 8, 0)
