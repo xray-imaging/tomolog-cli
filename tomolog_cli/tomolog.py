@@ -106,6 +106,7 @@ class TomoLog():
         self.instrument_key = '/measurement/instrument/name'
         self.sample_y_key = '/measurement/instrument/sample_motor_stack/setup/y'
         self.sample_pitch_angle_key = '/measurement/instrument/sample_motor_stack/setup/pitch'
+        self.propogation_distance_key = '/measurement/instrument/detector_motor_stack/setup/z'
 
     def run_log(self):
         _, self.meta = meta.read_hdf(self.args.file_name, add_shape=True)
@@ -177,6 +178,8 @@ class TomoLog():
             "Projection size: {int(self.meta[self.width_key][0])} x {int(self.meta[self.height_key][0])}")
         descr += self.read_meta_item(
             "Sample Y: {self.meta[self.sample_y_key][0]:.02f} {self.meta[self.sample_y_key][1]}")
+        descr += self.read_meta_item(
+            "Propagation dist.: {self.meta[self.propogation_distance_key][0]:.02f} {self.meta[self.propogation_distance_key][1]}")
         
         pitch_angle = self.read_meta_item("{self.meta[self.sample_pitch_angle_key][0]:.02f}")
         if pitch_angle is not '':
@@ -255,7 +258,7 @@ class TomoLog():
             presentation_id, page_id, proj_url, 150, 150, 10, 157)
 
         self.google.create_textbox_with_text(
-            presentation_id, page_id, 'Projection', 90, 20, 50, 153, 8, 0)
+            presentation_id, page_id, 'Projection', 90, 20, 50, 163, 8, 0)
 
     def publish_recon(self, presentation_id, page_id, recon, resolution=1):
         if len(recon) == 3:
