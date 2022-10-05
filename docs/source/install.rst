@@ -28,7 +28,7 @@ install meta
 and install tomolog
 ::
 
-    (tomolog)$ git clone https://github.com/nikitinvv/tomolog-cli.git
+    (tomolog)$ git clone https://github.com/xray-imaging/tomolog-cli.git
     (tomolog)$ cd tomolog
     (tomolog)$ python setup.py install
 
@@ -36,7 +36,7 @@ and install tomolog
 Requirements
 ============
 
-Please install all the packages listed in `requirements file <https://github.com/nikitinvv/tomolog-cli/blob/main/envs/requirements.txt>`_. 
+Please install all the packages listed in `requirements file <https://github.com/xray-imaging/tomolog-cli/blob/main/envs/requirements.txt>`_. 
 
 **tomolog** also requires access tokens from dropbox and google services.
 
@@ -45,9 +45,21 @@ Dropbox
 
 Go to `dropbox developer site <https://www.dropbox.com/lp/developers>`_ and select "Create an App". Login using your google credentials and create a new App with the following permissions:
 
+
+
+.. image:: img/dropbox_00.png
+   :width: 720px
+   :alt: project
+
 .. image:: img/dropbox_01.png
    :width: 720px
    :alt: project
+
+
+.. image:: img/dropbox_02.png
+   :width: 720px
+   :alt: project
+
 
 then go to the setting tab and copy the App key and App secret in a file in your home directory called:
 
@@ -61,10 +73,37 @@ then go to the setting tab and copy the App key and App secret in a file in your
 Google
 ------
 
-Go to `google developer site <https://console.cloud.google.com/apis/dashboard?pli=1&project=usr32idc>`_ and 
+Go to `google developer site <https://console.cloud.google.com/getting-started>`_ and 
 
-- create a new project  
-- select it and then go to Service Accounts/Create service account
+- create a new project
+
+.. image:: img/google_01.png
+   :width: 720px
+   :alt: project
+
+.. image:: img/google_02.png
+   :width: 720px
+   :alt: project
+
+- select it and then go to Create Credentials / Service Management API / User data
+
+.. image:: img/google_03.png
+   :width: 720px
+   :alt: project
+
+.. image:: img/google_04.png
+   :width: 720px
+   :alt: project
+
+.. image:: img/google_05.png
+   :width: 720px
+   :alt: project
+
+.. image:: img/google_06.png
+   :width: 720px
+   :alt: project
+
+
 - copy the authorization token in a file called::
 
     $ ~/tokens/google_token.json
