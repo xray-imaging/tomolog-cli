@@ -43,25 +43,20 @@ Please install all the packages listed in `requirements file <https://github.com
 Dropbox
 -------
 
-Go to `dropbox developer site <https://www.dropbox.com/lp/developers>`_ and select "Create an App". Login using your google credentials and create a new App with the following permissions:
-
+Go to `dropbox developer site <https://www.dropbox.com/lp/developers>`_ , login using your google credentials and select "Create an App":
 
 
 .. image:: img/dropbox_00.png
    :width: 720px
    :alt: project
 
+Take the App key and App secret from the Settings tab:
+
 .. image:: img/dropbox_01.png
    :width: 720px
    :alt: project
 
-
-.. image:: img/dropbox_02.png
-   :width: 720px
-   :alt: project
-
-
-then go to the setting tab and copy the App key and App secret in a file in your home directory called:
+an copy them in a file in your home directory called:
 
 ::
 
@@ -69,6 +64,13 @@ then go to the setting tab and copy the App key and App secret in a file in your
 
     APP_KEY=....
     APP_SECRET=....
+
+
+Set the following permissions:
+
+.. image:: img/dropbox_01.png
+   :width: 720px
+   :alt: project
 
 Google
 ------
