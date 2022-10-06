@@ -75,7 +75,17 @@ Set the following permissions:
 Google
 ------
 
-Go to `google developer site <https://console.cloud.google.com/getting-started>`_ and 
+https://developers.google.com/workspace/guides/create-project
+
+go to: 
+https://developers.google.com/workspace/guides/enable-apis
+
+and enable google slides
+
+got to: https://developers.google.com/workspace/guides/auth-overview
+
+
+Go to `google developer site <https://console.cloud.google.com/>`_ and 
 
 - create a new project
 
