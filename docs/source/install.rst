@@ -47,13 +47,13 @@ Go to `dropbox developer site <https://www.dropbox.com/lp/developers>`_ , login 
 
 
 .. image:: img/dropbox_00.png
-   :width: 720px
+   :width: 48px
    :alt: project
 
 Take the App key and App secret from the Settings tab:
 
 .. image:: img/dropbox_01.png
-   :width: 720px
+   :width: 480px
    :alt: project
 
 an copy them in a file in your home directory called:
@@ -69,54 +69,96 @@ an copy them in a file in your home directory called:
 Set the following permissions:
 
 .. image:: img/dropbox_01.png
-   :width: 720px
+   :width: 480px
    :alt: project
 
 Google
 ------
 
-https://developers.google.com/workspace/guides/create-project
+Next step is to authorize tomolog to create slides on the ...@gmail.com gmail account.
 
-go to: 
-https://developers.google.com/workspace/guides/enable-apis
-
-and enable google slides
-
-got to: https://developers.google.com/workspace/guides/auth-overview
-
-
-Go to `google developer site <https://console.cloud.google.com/>`_ and 
-
-- create a new project
+Open a web browser and login as ...@gmail.com then go to `google developer site <https://console.cloud.google.com/>`_ and press "Select a project" to create a new project
 
 .. image:: img/google_01.png
-   :width: 720px
+   :width: 480px
    :alt: project
 
 .. image:: img/google_02.png
-   :width: 720px
+   :width: 480px
    :alt: project
 
-- select it and then go to Create Credentials / Service Management API / User data
+Once the project is selected go to the project dashboard:
 
 .. image:: img/google_03.png
-   :width: 720px
+   :width: 256px
    :alt: project
+
+and select API & Services / Credentials
 
 .. image:: img/google_04.png
-   :width: 720px
+   :width: 480px
    :alt: project
+
+select it and then go to Create Credentials / Service account
 
 .. image:: img/google_05.png
-   :width: 720px
+   :width: 480px
    :alt: project
+
+where you enter the service account name, i.e. tomolog
 
 .. image:: img/google_06.png
-   :width: 720px
+   :width: 480px
    :alt: project
 
+Grant this service account access to project: Owner
 
-- copy the authorization token in a file called::
+Grant users access to this service account:: 
+   
+   service account user role: Google Account email: ....@gmail.com
+   service account admin role: Google Account email: ....@gmail.com
+
+Once the service account is selected you need to create the authorization key:
+
+.. image:: img/google_07.png
+   :width: 480px
+   :alt: project
+
+.. image:: img/google_08.png
+   :width: 480px
+   :alt: project
+
+open the json file and copy the authorization token in a file called::
 
     $ ~/tokens/google_token.json
+
+Go back to the project dashboard
+
+.. image:: img/google_09.png
+   :width: 480px
+   :alt: project
+
+and select "Go to the API overview"
+
+.. image:: img/google_10.png
+   :width: 480px
+   :alt: project
+
+and select "Enable API and Services"
+
+.. image:: img/google_11.png
+   :width: 480px
+   :alt: project
+
+search and add the "google slide api"
+
+.. image:: img/google_12.png
+   :width: 480px
+   :alt: project
+
+.. image:: img/google_13.png
+   :width: 480px
+   :alt: project
+
+Now tomolog will be able to create slides in the ...@gmail.com user account.
 
