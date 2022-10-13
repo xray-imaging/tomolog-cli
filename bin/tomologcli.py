@@ -12,6 +12,7 @@ from tomolog_cli import config
 from tomolog_cli import TomoLog
 from tomolog_cli import TomoLog32ID
 from tomolog_cli import TomoLog2BM
+from tomolog_cli import TomoLog7BM
 
 
 def init(args):
@@ -35,6 +36,8 @@ def run_log(args):
             TomoLog32ID(args).run_log()
         elif args.beamline == '2-bm':
             TomoLog2BM(args).run_log()
+        elif args.beamline == '7-bm':
+            TomoLog7BM(args).run_log()
         else:
             TomoLog(args).run_log()
     elif file_path.is_dir():
