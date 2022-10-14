@@ -181,13 +181,13 @@ class TomoLog():
             "Propagation dist.: {self.meta[self.propogation_distance_key][0]:.02f} {self.meta[self.propogation_distance_key][1]}")
         
         if(self.args.beamline == '2-bm'):
-        pitch_angle = self.read_meta_item("{self.meta[self.sample_pitch_angle_key][0]:.02f}")
-        if pitch_angle is not '':
-            pitch_angle = float(pitch_angle)
-            if pitch_angle != 0:
-                pitch_angle = -pitch_angle
-                pitch_angle_units = self.read_meta_item("{self.meta[self.sample_pitch_angle_key][1]}")
-                descr += "Pitch angle: " + str(pitch_angle) + pitch_angle_units
+            pitch_angle = self.read_meta_item("{self.meta[self.sample_pitch_angle_key][0]:.02f}")
+            if pitch_angle is not '':
+                pitch_angle = float(pitch_angle)
+                if pitch_angle != 0:
+                    pitch_angle = -pitch_angle
+                    pitch_angle_units = self.read_meta_item("{self.meta[self.sample_pitch_angle_key][1]}")
+                    descr += "Pitch angle: " + str(pitch_angle) + pitch_angle_units
         descr = descr[:-1]
         self.google.create_textbox_with_bullets(
             presentation_id, page_id, descr, 240, 120, 0, 18, 8, 0)
