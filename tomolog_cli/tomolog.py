@@ -116,7 +116,6 @@ class TomoLog():
             self.meta[self.magnification_key][0]  = f'{self.args.magnification}x'
         if self.args.magnification!=-1 and self.args.pixel_size!=-1:
             self.meta[self.resolution_key][0]  = self.args.pixel_size/self.args.magnification
-        self.mct_resolution = float(self.meta[self.pixel_size_key][0]) / float(self.meta[self.magnification_key][0].replace("x", ""))
         
         presentation_id, page_id = self.init_slide()
         self.publish_descr(presentation_id, page_id)
@@ -140,8 +139,8 @@ class TomoLog():
         self.google.create_textbox_with_text(presentation_id, page_id, os.path.basename(
             self.args.file_name)[:-3], 400, 50, 0, 0, 13, 1)
         # publish other labels
-        #self.google.create_textbox_with_text(
-            #presentation_id, page_id, 'Other info/screenshots', 120, 20, 480, 0, 10, 0)
+        # self.google.create_textbox_with_text(
+            # presentation_id, page_id, 'Other info/screenshots', 120, 20, 480, 0, 10, 0)
         return presentation_id, page_id
 
     def read_meta_item(self, template):
@@ -181,6 +180,7 @@ class TomoLog():
         descr += self.read_meta_item(
             "Propagation dist.: {self.meta[self.propogation_distance_key][0]:.02f} {self.meta[self.propogation_distance_key][1]}")
         
+        if(self.args.beamline == '2-bm'):
         pitch_angle = self.read_meta_item("{self.meta[self.sample_pitch_angle_key][0]:.02f}")
         if pitch_angle is not '':
             pitch_angle = float(pitch_angle)
