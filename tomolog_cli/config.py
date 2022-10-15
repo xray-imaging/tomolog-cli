@@ -138,11 +138,6 @@ SECTIONS['general'] = {
         'type': int,
         'default': -1,
         'help': "Id of z slice for reconstruction visualization"},    
-    'beamline': {
-        'default': 'None',
-        'type': str,
-        'help': "When set adds the beamline name as a prefix to the slack channel name",
-        'choices': ['None','2-bm', '7-bm', '8-id', '20-bm', '29-id', '32-id']},    
     'save-format': {
         'default': 'tiff',
         'type': str,
@@ -159,6 +154,11 @@ SECTIONS['general'] = {
 }
 
 SECTIONS['file-reading'] = {
+    'beamline': {
+        'default': 'None',
+        'type': str,
+        'help': "When set adds the beamline name as a prefix to the slack channel name",
+        'choices': ['None','2-bm', '7-bm', '8-id', '20-bm', '29-id', '32-id']},    
     'file-name': {
         'default': '.',
         'type': Path,

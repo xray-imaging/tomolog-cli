@@ -80,6 +80,7 @@ class TomoLog32ID(TomoLog):
         self.binning_rec = -1
         self.nct_resolution = -1
         self.mct_resolution = -1
+        
         self.double_fov = False
         self.file_name_proj1 = FILE_NAME_PROJ1
 
@@ -91,8 +92,8 @@ class TomoLog32ID(TomoLog):
             log.warning('Sample in x is off center: %s. Handling the data set as a double FOV' %
                         self.meta[self.sample_in_x_key][0])
         self.nct_resolution = float(self.meta[self.resolution_key][0])/1000
-        self.mct_resolution = float(self.meta[self.pixel_size_key][0]) / float(
-            self.meta[self.magnification_key][0].replace("x", ""))
+        self.mct_resolution = float(self.meta[self.pixel_size_key][0])# / float(
+            #self.meta[self.magnification_key][0].replace("x", ""))
 
         presentation_id, page_id = self.init_slide()
         self.publish_descr(presentation_id, page_id)
@@ -114,7 +115,7 @@ class TomoLog32ID(TomoLog):
             proj.append(data)
             log.info('Reading CT projection')
             try:
-                proj.append(fid['exchange/data2'][0][:])
+                proj.append(fid['exchange/data2'][:])
                 log.info('Reading microCT projection')
             except:
                 pass
@@ -122,7 +123,7 @@ class TomoLog32ID(TomoLog):
 
     def read_recon(self):
         
-        width = int(self.meta[self.width_key][0])
+        width = int(self.meta[self.width_key][0])  # temp
         height = int(self.meta[self.height_key][0])
         recon = []
         try:
@@ -168,6 +169,11 @@ class TomoLog32ID(TomoLog):
 
                 w = width//binning_rec
                 h = height
+
+                #tmp
+                binning_rec = 1
+                w = tmp.shape[-1]
+
 
                 if self.args.idz == -1:
                     self.args.idz = int(h//2)
@@ -240,16 +246,16 @@ class TomoLog32ID(TomoLog):
             presentation_id, page_id, proj_url, 170, 170, 0, 145)
 
         self.google.create_textbox_with_text(
-            presentation_id, page_id, 'Nano-CT projection', 90, 20, 50, 150, 8, 0)
+            presentation_id, page_id, 'Nano-CT projection', 90, 20, 10, 155, 8, 0)
         try:
             log.info('Plotting microCT projection')
-            self.plot_projection(proj[1], self.file_name_proj1)
+            self.plot_projection(proj[1], self.file_name_proj1,scalebar='micro')
             proj_url = self.dbx.upload(self.file_name_proj1)
             self.google.create_image(
                 presentation_id, page_id, proj_url, 170, 170, 0, 270)
 
             self.google.create_textbox_with_text(
-                presentation_id, page_id, 'Micro-CT projection', 160, 20, 10, 290, 8, 0)
+                presentation_id, page_id, 'Micro-CT projection', 90, 20, 10, 280, 8, 0)
         except:
             log.warning('No microCT data available')
 
@@ -266,7 +272,7 @@ class TomoLog32ID(TomoLog):
             self.google.create_textbox_with_text(
                 presentation_id, page_id, rec_line, 1000, 20, 185, 391, 6, 0)
 
-    def plot_projection(self, proj, fname):
+    def plot_projection(self, proj, fname,scalebar='nano'):
 
         # auto-adjust colorbar values according to a histogram
         mmin, mmax = utils.find_min_max(proj)
@@ -278,7 +284,10 @@ class TomoLog32ID(TomoLog):
         ax = fig.add_subplot()
         im = ax.imshow(proj, cmap='gray')
         # Create scale bar
-        scalebar = ScaleBar(self.nct_resolution, "um", length_fraction=0.25)
+        if scalebar=='nano':
+            scalebar = ScaleBar(self.nct_resolution, "um", length_fraction=0.25)
+        else:
+            scalebar = ScaleBar(self.mct_resolution, "um", length_fraction=0.25)
         ax.add_artist(scalebar)
         divider = make_axes_locatable(ax)
         cax = divider.append_axes("right", size="5%", pad=0.1)
