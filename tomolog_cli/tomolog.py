@@ -175,12 +175,13 @@ class TomoLog():
             "Number of angles: {self.meta[self.num_angle_key][0]}")
         descr += self.read_meta_item(
             "Projection size: {int(self.meta[self.width_key][0])} x {int(self.meta[self.height_key][0])}")
-        descr += self.read_meta_item(
-            "Sample Y: {self.meta[self.sample_y_key][0]:.02f} {self.meta[self.sample_y_key][1]}")
-        descr += self.read_meta_item(
-            "Propagation dist.: {self.meta[self.propogation_distance_key][0]:.02f} {self.meta[self.propogation_distance_key][1]}")
         
         if(self.args.beamline == '2-bm'):
+            descr += self.read_meta_item(
+                "Sample Y: {self.meta[self.sample_y_key][0]:.02f} {self.meta[self.sample_y_key][1]}")
+            descr += self.read_meta_item(
+                "Propagation dist.: {self.meta[self.propogation_distance_key][0]:.02f} {self.meta[self.propogation_distance_key][1]}")
+
             pitch_angle = self.read_meta_item("{self.meta[self.sample_pitch_angle_key][0]:.02f}")
             if pitch_angle is not '':
                 pitch_angle = float(pitch_angle)
