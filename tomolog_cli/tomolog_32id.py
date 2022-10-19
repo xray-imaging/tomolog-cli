@@ -74,7 +74,8 @@ class TomoLog32ID(TomoLog):
 
     def __init__(self, args):
         super().__init__(args)
-        self.sample_in_x_key = '/process/acquisition/flat_fields/sample/in_x'
+        self.energy_key             = '/measurement/instrument/monochromator/energy'
+        self.sample_in_x_key        = '/process/acquisition/flat_fields/sample/in_x'
         self.phase_ring_setup_y_key = '/measurement/instrument/phase_ring/setup/y'
 
         self.binning_rec = -1
@@ -83,6 +84,17 @@ class TomoLog32ID(TomoLog):
         
         self.double_fov = False
         self.file_name_proj1 = FILE_NAME_PROJ1
+
+    def publish_descr(self, presentation_id, page_id):
+        descr = super().publish_descr(presentation_id, page_id)
+        
+        # add here beamline dependent bullets
+        descr += self.read_meta_item(
+            "Scan energy: {self.meta[self.energy_key][0]} {self.meta[self.energy_key][1]}")
+
+        descr = descr[:-1]
+        self.google.create_textbox_with_bullets(
+            presentation_id, page_id, descr, 240, 120, 0, 18, 8, 0)
 
     def run_log(self):
         # read meta, calculate resolutions

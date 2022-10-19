@@ -86,27 +86,52 @@ class TomoLog():
 
         self.file_name_proj0 = FILE_NAME_PROJ0
         self.file_name_recon = FILE_NAME_RECON
+
+        # add here beamline independent keys
         self.full_file_name_key = '/measurement/sample/file/full_name'
-        self.description_1_key = '/measurement/sample/description_1'
-        self.description_2_key = '/measurement/sample/description_2'
-        self.description_3_key = '/measurement/sample/description_3'
-        self.date_key = '/process/acquisition/start_date'
-        self.energy_key = '/measurement/instrument/monochromator/energy'
-        self.pixel_size_key = '/measurement/instrument/detector/pixel_size'
-        self.magnification_key = '/measurement/instrument/detection_system/objective/magnification'
-        self.resolution_key = '/measurement/instrument/detection_system/objective/resolution'
-        self.exposure_time_key = '/measurement/instrument/detector/exposure_time'
+        self.beamline_key       = '/measurement/instrument/source/beamline'
+        self.date_key           = '/process/acquisition/start_date'
+        self.exposure_time_key  = '/measurement/instrument/detector/exposure_time'
+        self.pixel_size_key     = '/measurement/instrument/detector/pixel_size'
+        self.magnification_key  = '/measurement/instrument/detection_system/objective/magnification'
+        self.resolution_key     = '/measurement/instrument/detection_system/objective/resolution'
+        self.angle_step_key     = '/process/acquisition/rotation/step'
+        self.num_angle_key      = '/process/acquisition/rotation/num_angles'
         self.rotation_start_key = '/process/acquisition/rotation/start'
-        self.angle_step_key = '/process/acquisition/rotation/step'
-        self.num_angle_key = '/process/acquisition/rotation/num_angles'
-        self.width_key = '/measurement/instrument/detector/array_size_x'
-        self.height_key = '/measurement/instrument/detector/array_size_y'
-        self.binning_key = '/measurement/instrument/detector/binning_x'
-        self.beamline_key = '/measurement/instrument/source/beamline'
-        self.instrument_key = '/measurement/instrument/name'
-        self.sample_y_key = '/measurement/instrument/sample_motor_stack/setup/y'
-        self.sample_pitch_angle_key = '/measurement/instrument/sample_motor_stack/setup/pitch'
-        self.propogation_distance_key = '/measurement/instrument/detector_motor_stack/setup/z'
+        self.width_key          = '/measurement/instrument/detector/array_size_x'
+        self.height_key         = '/measurement/instrument/detector/array_size_y'
+        self.binning_key        = '/measurement/instrument/detector/binning_x'
+        self.instrument_key     = '/measurement/instrument/name'
+
+    def publish_descr(self, presentation_id, page_id):
+        # add here beamline independent bullets
+        descr = self.read_meta_item(
+            "File name: {os.path.basename(self.meta[self.full_file_name_key][0])}")
+        descr += self.read_meta_item(
+            "Beamline: {self.meta[self.beamline_key][0]} {self.meta[self.instrument_key][0]}")
+        descr += self.read_meta_item(
+            "Scan date: {self.meta[self.date_key][0]}")
+        descr += self.read_meta_item(
+            "Exposure time: {self.meta[self.exposure_time_key][0]:.02f} {self.meta[self.exposure_time_key][1]}")
+        descr += self.read_meta_item(
+            "Camera pixel size: {self.meta[self.pixel_size_key][0]:.02f} {self.meta[self.pixel_size_key][1]}")
+        descr += self.read_meta_item(
+            "Lens magnification: {self.meta[self.magnification_key][0]}")
+        descr += self.read_meta_item(
+            "Projection pixel size: {self.meta[self.resolution_key][0]:.02f} {self.meta[self.resolution_key][1]}")
+        descr += self.read_meta_item(
+            "Angle step: {self.meta[self.angle_step_key][0]:.03f} {self.meta[self.angle_step_key][1]}")
+        self.rotation_end = self.meta[self.rotation_start_key][0] + (self.meta[self.num_angle_key][0] * self.meta[self.angle_step_key][0]) - self.meta[self.angle_step_key][0]
+        descr += self.read_meta_item(
+            "Number of angles: {self.meta[self.num_angle_key][0]} ({self.meta[self.rotation_start_key][0]:.02f} - {self.rotation_end:.02f})")
+        descr += self.read_meta_item(
+            "Projection size: {int(self.meta[self.width_key][0])} x {int(self.meta[self.height_key][0])}")
+        if (self.args.beamline == "None"):
+            descr = descr[:-1]
+            self.google.create_textbox_with_bullets(
+                presentation_id, page_id, descr, 240, 120, 0, 18, 8, 0)
+        
+        return descr
 
     def run_log(self):
         _, self.meta = meta.read_hdf(self.args.file_name, add_shape=True)
@@ -150,48 +175,6 @@ class TomoLog():
             log.warning(f'meta item missing: {template}')
             str = ""
         return str
-
-    def publish_descr(self, presentation_id, page_id):
-        # publish scan info
-        descr = self.read_meta_item(
-            "File name: {os.path.basename(self.meta[self.full_file_name_key][0])}")
-        descr += self.read_meta_item(
-            "Beamline: {self.meta[self.beamline_key][0]} {self.meta[self.instrument_key][0]}")
-        descr += self.read_meta_item(
-            "Scan date: {self.meta[self.date_key][0]}")
-        descr += self.read_meta_item(
-            "Scan energy: {self.meta[self.energy_key][0]} {self.meta[self.energy_key][1]}")
-        descr += self.read_meta_item(
-            "Exposure time: {self.meta[self.exposure_time_key][0]:.02f} {self.meta[self.exposure_time_key][1]}")
-        descr += self.read_meta_item(
-            "Camera pixel size: {self.meta[self.pixel_size_key][0]:.02f} {self.meta[self.pixel_size_key][1]}")
-        descr += self.read_meta_item(
-            "Lens magnification: {self.meta[self.magnification_key][0]}")
-        descr += self.read_meta_item(
-            "Projection pixel size: {self.meta[self.resolution_key][0]:.02f} {self.meta[self.resolution_key][1]}")
-        descr += self.read_meta_item(
-            "Angle step: {self.meta[self.angle_step_key][0]:.03f} {self.meta[self.angle_step_key][1]}")
-        descr += self.read_meta_item(
-            "Number of angles: {self.meta[self.num_angle_key][0]}")
-        descr += self.read_meta_item(
-            "Projection size: {int(self.meta[self.width_key][0])} x {int(self.meta[self.height_key][0])}")
-        
-        if(self.args.beamline == '2-bm'):
-            descr += self.read_meta_item(
-                "Sample Y: {self.meta[self.sample_y_key][0]:.02f} {self.meta[self.sample_y_key][1]}")
-            descr += self.read_meta_item(
-                "Propagation dist.: {self.meta[self.propogation_distance_key][0]:.02f} {self.meta[self.propogation_distance_key][1]}")
-
-            pitch_angle = self.read_meta_item("{self.meta[self.sample_pitch_angle_key][0]:.02f}")
-            if pitch_angle is not '':
-                pitch_angle = float(pitch_angle)
-                if pitch_angle != 0:
-                    pitch_angle = -pitch_angle
-                    pitch_angle_units = self.read_meta_item("{self.meta[self.sample_pitch_angle_key][1]}")
-                    descr += "Pitch angle: " + str(pitch_angle) + pitch_angle_units
-        descr = descr[:-1]
-        self.google.create_textbox_with_bullets(
-            presentation_id, page_id, descr, 240, 120, 0, 18, 8, 0)
 
     def read_raw(self):
         proj = []
