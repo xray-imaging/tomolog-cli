@@ -53,6 +53,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib_scalebar.scalebar import ScaleBar
 from mpl_toolkits.axes_grid1 import make_axes_locatable
+import meta
 
 from tomolog_cli import utils
 from tomolog_cli import log
@@ -74,15 +75,39 @@ class TomoLog7BM(TomoLog):
 
     def __init__(self, args):
         super().__init__(args)
-        self.sample_in_x_key = '/process/acquisition/flat_fields/sample/in_x'
-        # self.binning_key = '/measurement/instrument/detector/binning_x'
-        # self.width_key = '/measurement/instrument/detector/roi/size_x'
-        # self.height_key = '/measurement/instrument/detector/roi/size_y'
+        # add here beamline dependent keys
+        self.sample_in_x_key          = '/process/acquisition/flat_fields/sample/in_x'
+        self.sample_y_key             = '/measurement/instrument/sample_motor_stack/setup/y'
+        self.attenuator_1_description = '/measurement/instrument/attenuator_1/description' 
+        self.attenuator_1_name        = '/measurement/instrument/attenuator_1/name' 
+        self.attenuator_1_thickness   = '/measurement/instrument/attenuator_1/thickness' 
+        self.attenuator_2             = '/measurement/instrument/attenuator_2/setup/filter_unit_text' 
+        self.attenuator_3             = '/measurement/instrument/attenuator_3/setup/filter_unit_text' 
+        self.propogation_distance_key = '/measurement/instrument/sample_motor_stack/detector_distance'
 
         self.binning_rec = -1
         self.mct_resolution = -1
         self.double_fov = False
         self.file_name_proj1 = FILE_NAME_PROJ1
+
+    def publish_descr(self, presentation_id, page_id):
+        descr = super().publish_descr(presentation_id, page_id)
+        
+        # add here beamline dependent bullets
+        descr += self.read_meta_item(
+            "Attenuator 1: {self.meta[self.attenuator_1_name][0]} {self.meta[self.attenuator_1_thickness][0]}")
+        descr += self.read_meta_item(
+            "Attenuator 2: {self.meta[self.attenuator_2][0]}")
+        descr += self.read_meta_item(
+            "Attenuator 3: {self.meta[self.attenuator_3][0]}")
+        descr += self.read_meta_item(
+            "Sample Y: {self.meta[self.sample_y_key][0]:.02f} {self.meta[self.sample_y_key][1]}")
+        descr += self.read_meta_item(
+            "Propagation dist.: {self.meta[self.propogation_distance_key][0]:.02f} {self.meta[self.propogation_distance_key][1]}")
+
+        descr = descr[:-1]
+        self.google.create_textbox_with_bullets(
+            presentation_id, page_id, descr, 240, 120, 0, 18, 8, 0)
 
     def run_log(self):
         # read meta, calculate resolutions
@@ -99,9 +124,6 @@ class TomoLog7BM(TomoLog):
             log.warning('Sample in x is off center: %s. Handling the data set as a double FOV' %
                         self.meta[self.sample_in_x_key][0])
         
-        
-
-
         presentation_id, page_id = self.init_slide()
         self.publish_descr(presentation_id, page_id)
         proj = self.read_raw()
@@ -216,7 +238,7 @@ class TomoLog7BM(TomoLog):
             presentation_id, page_id, proj_url, 170, 170, 0, 145)
 
         self.google.create_textbox_with_text(
-            presentation_id, page_id, 'Micro-CT projection', 90, 20, 50, 150, 8, 0)
+            presentation_id, page_id, 'Micro-CT projection', 90, 20, 50, 190, 8, 0)
         try:
             log.info('Plotting frame the IP camera')
             plt.imshow(np.fliplr(proj[1].reshape(-1,3)).reshape(proj[1].shape))

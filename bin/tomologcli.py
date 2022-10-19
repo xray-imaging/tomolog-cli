@@ -58,6 +58,8 @@ def run_log(args):
                     TomoLog32ID(args).run_log()
                 elif args.beamline == '2-bm':
                     TomoLog2BM(args).run_log()
+                elif args.beamline == '7-bm':
+                    TomoLog7BM(args).run_log()
                 else:
                     TomoLog(args).run_log()
                 time.sleep(20)

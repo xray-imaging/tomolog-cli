@@ -158,7 +158,7 @@ SECTIONS['file-reading'] = {
         'default': 'None',
         'type': str,
         'help': "When set adds the beamline name as a prefix to the slack channel name",
-        'choices': ['None','2-bm', '7-bm', '8-id', '20-bm', '29-id', '32-id']},    
+        'choices': ['None','2-bm', '7-bm', '32-id']},    
     'file-name': {
         'default': '.',
         'type': Path,
