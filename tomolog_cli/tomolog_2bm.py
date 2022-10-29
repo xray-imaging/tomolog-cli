@@ -53,6 +53,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib_scalebar.scalebar import ScaleBar
 from mpl_toolkits.axes_grid1 import make_axes_locatable
+import meta
 
 from tomolog_cli import utils
 from tomolog_cli import log
@@ -74,15 +75,40 @@ class TomoLog2BM(TomoLog):
 
     def __init__(self, args):
         super().__init__(args)
-        self.sample_in_x_key = '/process/acquisition/flat_fields/sample/in_x'
-        # self.binning_key = '/measurement/instrument/detector/binning_x'
-        # self.width_key = '/measurement/instrument/detector/roi/size_x'
-        # self.height_key = '/measurement/instrument/detector/roi/size_y'
+        # add here beamline dependent keys
+        self.energy_key               = '/measurement/instrument/monochromator/energy'
+        self.sample_in_x_key          = '/process/acquisition/flat_fields/sample/in_x'
+        self.sample_y_key             = '/measurement/instrument/sample_motor_stack/setup/y'
+        self.sample_pitch_angle_key   = '/measurement/instrument/sample_motor_stack/setup/pitch'
+        self.propogation_distance_key = '/measurement/instrument/detector_motor_stack/setup/z'
 
         self.binning_rec = -1
         self.mct_resolution = -1
         self.double_fov = False
         self.file_name_proj1 = FILE_NAME_PROJ1
+
+    def publish_descr(self, presentation_id, page_id):
+        descr = super().publish_descr(presentation_id, page_id)
+        
+        # add here beamline dependent bullets
+        descr += self.read_meta_item(
+            "Scan energy: {self.meta[self.energy_key][0]} {self.meta[self.energy_key][1]}")
+        descr += self.read_meta_item(
+            "Sample Y: {self.meta[self.sample_y_key][0]:.02f} {self.meta[self.sample_y_key][1]}")
+        descr += self.read_meta_item(
+            "Propagation dist.: {self.meta[self.propogation_distance_key][0]:.02f} {self.meta[self.propogation_distance_key][1]}")
+
+        pitch_angle = self.read_meta_item("{self.meta[self.sample_pitch_angle_key][0]:.02f}")
+        if pitch_angle is not '':
+            pitch_angle = float(pitch_angle)
+            if pitch_angle != 0:
+                pitch_angle = -pitch_angle
+                pitch_angle_units = self.read_meta_item("{self.meta[self.sample_pitch_angle_key][1]}")
+                descr += "Pitch angle: " + str(pitch_angle) + pitch_angle_units
+
+        descr = descr[:-1]
+        self.google.create_textbox_with_bullets(
+            presentation_id, page_id, descr, 240, 120, 0, 18, 8, 0)
 
     def run_log(self):
         # read meta, calculate resolutions
@@ -99,9 +125,6 @@ class TomoLog2BM(TomoLog):
             log.warning('Sample in x is off center: %s. Handling the data set as a double FOV' %
                         self.meta[self.sample_in_x_key][0])
         
-        
-
-
         presentation_id, page_id = self.init_slide()
         self.publish_descr(presentation_id, page_id)
         proj = self.read_raw()

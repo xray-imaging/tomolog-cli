@@ -53,6 +53,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib_scalebar.scalebar import ScaleBar
 from mpl_toolkits.axes_grid1 import make_axes_locatable
+import meta
 
 from tomolog_cli import utils
 from tomolog_cli import log
@@ -61,12 +62,12 @@ from tomolog_cli import TomoLog
 __author__ = "Viktor Nikitin,  Francesco De Carlo"
 __copyright__ = "Copyright (c) 2022, UChicago Argonne, LLC."
 __docformat__ = 'restructuredtext en'
-__all__ = ['TomoLog32ID', ]
+__all__ = ['TomoLog7BM', ]
 
 FILE_NAME_PROJ1 = 'projection_google1.jpg'
 
 
-class TomoLog32ID(TomoLog):
+class TomoLog7BM(TomoLog):
     '''
     Class to publish experiment meta data, tomography projection and reconstruction on a 
     google slide document.
@@ -74,14 +75,18 @@ class TomoLog32ID(TomoLog):
 
     def __init__(self, args):
         super().__init__(args)
-        self.energy_key             = '/measurement/instrument/monochromator/energy'
-        self.sample_in_x_key        = '/process/acquisition/flat_fields/sample/in_x'
-        self.phase_ring_setup_y_key = '/measurement/instrument/phase_ring/setup/y'
+        # add here beamline dependent keys
+        self.sample_in_x_key          = '/process/acquisition/flat_fields/sample/in_x'
+        self.sample_y_key             = '/measurement/instrument/sample_motor_stack/setup/y'
+        self.attenuator_1_description = '/measurement/instrument/attenuator_1/description' 
+        self.attenuator_1_name        = '/measurement/instrument/attenuator_1/name' 
+        self.attenuator_1_thickness   = '/measurement/instrument/attenuator_1/thickness' 
+        self.attenuator_2             = '/measurement/instrument/attenuator_2/setup/filter_unit_text' 
+        self.attenuator_3             = '/measurement/instrument/attenuator_3/setup/filter_unit_text' 
+        self.propogation_distance_key = '/measurement/instrument/sample_motor_stack/detector_distance'
 
         self.binning_rec = -1
-        self.nct_resolution = -1
         self.mct_resolution = -1
-        
         self.double_fov = False
         self.file_name_proj1 = FILE_NAME_PROJ1
 
@@ -90,7 +95,15 @@ class TomoLog32ID(TomoLog):
         
         # add here beamline dependent bullets
         descr += self.read_meta_item(
-            "Scan energy: {self.meta[self.energy_key][0]} {self.meta[self.energy_key][1]}")
+            "Attenuator 1: {self.meta[self.attenuator_1_name][0]} {self.meta[self.attenuator_1_thickness][0]}")
+        descr += self.read_meta_item(
+            "Attenuator 2: {self.meta[self.attenuator_2][0]}")
+        descr += self.read_meta_item(
+            "Attenuator 3: {self.meta[self.attenuator_3][0]}")
+        descr += self.read_meta_item(
+            "Sample Y: {self.meta[self.sample_y_key][0]:.02f} {self.meta[self.sample_y_key][1]}")
+        descr += self.read_meta_item(
+            "Propagation dist.: {self.meta[self.propogation_distance_key][0]:.02f} {self.meta[self.propogation_distance_key][1]}")
 
         descr = descr[:-1]
         self.google.create_textbox_with_bullets(
@@ -99,14 +112,18 @@ class TomoLog32ID(TomoLog):
     def run_log(self):
         # read meta, calculate resolutions
         _, self.meta = meta.read_hdf(self.args.file_name, add_shape=True)
+        if self.args.pixel_size!=-1:
+            self.meta[self.pixel_size_key][0]  = self.args.pixel_size
+        if self.args.magnification!=-1:
+            self.meta[self.magnification_key][0]  = f'{self.args.magnification}x'
+        if self.args.magnification!=-1 and self.args.pixel_size!=-1:
+            self.meta[self.resolution_key][0]  = self.args.pixel_size/self.args.magnification
+        self.mct_resolution = float(self.meta[self.pixel_size_key][0]) / float(self.meta[self.magnification_key][0].replace("x", ""))
         if (self.meta[self.sample_in_x_key][0] != 0):
             self.double_fov = True
             log.warning('Sample in x is off center: %s. Handling the data set as a double FOV' %
                         self.meta[self.sample_in_x_key][0])
-        self.nct_resolution = float(self.meta[self.resolution_key][0])/1000
-        self.mct_resolution = float(self.meta[self.pixel_size_key][0])# / float(
-            #self.meta[self.magnification_key][0].replace("x", ""))
-
+        
         presentation_id, page_id = self.init_slide()
         self.publish_descr(presentation_id, page_id)
         proj = self.read_raw()
@@ -127,98 +144,66 @@ class TomoLog32ID(TomoLog):
             proj.append(data)
             log.info('Reading CT projection')
             try:
-                proj.append(fid['exchange/data2'][:])
-                log.info('Reading microCT projection')
+                proj.append(fid['exchange/web_camera_frame'][:])
+                log.info('Reading camera frame')
             except:
                 pass
         return proj
 
     def read_recon(self):
-        
-        width = int(self.meta[self.width_key][0])  # temp
+
+        width = int(self.meta[self.width_key][0])
         height = int(self.meta[self.height_key][0])
+        binning = int(self.meta[self.binning_key][0])
         recon = []
+        coeff_rec = 1
+
         try:
-            if self.args.save_format == 'h5':
-                fname  = os.path.dirname(self.args.file_name)+'_rec/'+os.path.basename(self.args.file_name)[:-3]+'_rec.h5'
-                with h5py.File(fname,'r') as fid:
-                    data = fid['exchange/recon']
-                    h,w = data.shape[:2]
-                    if self.args.idz == -1:
-                        self.args.idz = int(h//2)
-                    if self.args.idy == -1:
-                        self.args.idy = int(w//2)
-                    if self.args.idx == -1:
-                        self.args.idx = int(w//2)
-                    if self.double_fov == True:
-                        binning_rec = np.log2(width//(w//2))
-                    else:
-                        binning_rec = np.log2(width//(w))
-                    x = data[:,:,self.args.idx]
-                    y = data[:,self.args.idy]
-                    z = data[self.args.idz]
-            else:                
-                basename = os.path.basename(self.args.file_name)[:-3]
-                dirname = os.path.dirname(self.args.file_name)
-                # set the correct prefix to find the reconstructions
-                rec_prefix = 'recon'
+            basename = os.path.basename(self.args.file_name)[:-3]
+            dirname = os.path.dirname(self.args.file_name)
+            # set the correct prefix to find the reconstructions
+            rec_prefix = 'recon'
 
-                top = os.path.join(dirname+'_rec', basename+'_rec')
-                tiff_file_list = sorted(
-                    list(filter(lambda x: x.endswith(('.tif', '.tiff')), os.listdir(top))))
-                z_start = int(tiff_file_list[0].split('.')[0].split('_')[1])
-                z_end = int(tiff_file_list[-1].split('.')[0].split('_')[1]) + 1
-                height = z_end-z_start
-                fname_tmp = os.path.join(top, tiff_file_list[0])
-                # take size
-                tmp = utils.read_tiff(fname_tmp).copy()
+            top = os.path.join(dirname+'_rec', basename+'_rec')
+            tiff_file_list = sorted(
+                list(filter(lambda x: x.endswith(('.tif', '.tiff')), os.listdir(top))))
+            z_start = int(tiff_file_list[0].split('.')[0].split('_')[1])
+            z_end = int(tiff_file_list[-1].split('.')[0].split('_')[1]) + 1
+            height = z_end-z_start
+            fname_tmp = os.path.join(top, tiff_file_list[0])
+            # take size
+            tmp = utils.read_tiff(fname_tmp).copy()
 
-                if self.double_fov == True:
-                    width = width * 2
-                    binning_rec = 1
-                else:
-                    binning_rec = width//tmp.shape[0]
-
-                w = width//binning_rec
-                h = height
-
-                #tmp
+            if self.double_fov == True:
+                width = width * 2
                 binning_rec = 1
-                w = tmp.shape[-1]
+            else:
+                binning_rec = width//tmp.shape[0]
 
+            w = width//binning_rec
+            h = height
+            if self.args.idz == -1:
+                self.args.idz = int(h//2)
+            if self.args.idy == -1:
+                self.args.idy = int(w//2)
+            if self.args.idx == -1:
+                self.args.idx = int(w//2)
 
-                if self.args.idz == -1:
-                    self.args.idz = int(h//2)
-                if self.args.idy == -1:
-                    self.args.idy = int(w//2)
-                if self.args.idx == -1:
-                    self.args.idx = int(w//2)
-                if self.double_fov == True:
-                    binning_rec = np.log2(width//(w//2))
-                else:
-                    binning_rec = np.log2(width//w)
-            
-                z = utils.read_tiff(
-                    f'{dirname}_rec/{basename}_rec/{rec_prefix}_{self.args.idz:05}.tiff').copy()
+            z = utils.read_tiff(
+                f'{dirname}_rec/{basename}_rec/{rec_prefix}_{self.args.idz:05}.tiff').copy()
 
-                # read x,y slices by lines
-                y = np.zeros((h, w), dtype='float32')
-                x = np.zeros((h, w), dtype='float32')
+            # read x,y slices by lines
+            y = np.zeros((h, w), dtype='float32')
+            x = np.zeros((h, w), dtype='float32')
 
-                for j in range(z_start, z_end):
-                    zz = utils.read_tiff(
-                        f'{dirname}_rec/{basename}_rec/{rec_prefix}_{j:05}.tiff')
-                    y[j-z_start, :] = zz[self.args.idy]
-                    x[j-z_start, :] = zz[:, self.args.idx]
-            
-            
-            # check if inversion is needed for the phase-contrast imaging at 32id
-            phase_ring_y = float(self.meta[self.phase_ring_setup_y_key][0])
-            coeff_rec = 1
-            if abs(phase_ring_y) < 1e-2:
-                coeff_rec = -1
-            
+            for j in range(z_start, z_end):
+                zz = utils.read_tiff(
+                    f'{dirname}_rec/{basename}_rec/{rec_prefix}_{j:05}.tiff')
+                y[j-z_start, :] = zz[self.args.idy]
+                x[j-z_start, :] = zz[:, self.args.idx]
+
             recon = [coeff_rec*x, coeff_rec*y, coeff_rec*z]
+
             self.binning_rec = binning_rec
 
             log.info('Adding reconstruction')
@@ -232,44 +217,41 @@ class TomoLog32ID(TomoLog):
         return recon
 
     def read_rec_line(self):
+        line = None
         try:
-            if self.args.save_format == 'h5':
-                fname  = os.path.dirname(self.args.file_name)+'_rec/'+os.path.basename(self.args.file_name)[:-3]+'_rec.h5'
-                with h5py.File(fname,'r') as fid:
-                    line = fid.attrs['rec_line'].decode("utf-8")
-            else:
-            
-                basename = os.path.basename(self.args.file_name)[:-3]
-                dirname = os.path.dirname(self.args.file_name)
-                with open(f'{dirname}_rec/{basename}_rec/rec_line.txt', 'r') as fid:
-                    line = fid.readlines()[0]
+            basename = os.path.basename(self.args.file_name)[:-3]
+            dirname = os.path.dirname(self.args.file_name)
+            with open(f'{dirname}_rec/{basename}_rec/rec_line.txt', 'r') as fid:
+                line = fid.readlines()[0]
         except:
             log.warning('Skipping the command line for reconstruction')
-            line = ' '
+            line = ''
         return line
 
     def publish_proj(self, presentation_id, page_id, proj):
         # 32-id datasets may include both nanoCT and microCT data as proj[0] and proj[1] respectively
-        log.info('Transmission X-Ray Microscope Instrument')
-        log.info('Plotting nanoCT projection')
+        log.info('Micro Tomography Instrument')
+        log.info('Plotting microCT projection')
         self.plot_projection(proj[0], self.file_name_proj0)
         proj_url = self.dbx.upload(self.file_name_proj0)
         self.google.create_image(
             presentation_id, page_id, proj_url, 170, 170, 0, 145)
 
         self.google.create_textbox_with_text(
-            presentation_id, page_id, 'Nano-CT projection', 90, 20, 10, 155, 8, 0)
+            presentation_id, page_id, 'Micro-CT projection', 90, 20, 50, 190, 8, 0)
         try:
-            log.info('Plotting microCT projection')
-            self.plot_projection(proj[1], self.file_name_proj1,scalebar='micro')
+            log.info('Plotting frame the IP camera')
+            plt.imshow(np.fliplr(proj[1].reshape(-1,3)).reshape(proj[1].shape))
+            plt.axis('off')
+            plt.savefig(self.file_name_proj1,dpi=300)
             proj_url = self.dbx.upload(self.file_name_proj1)
             self.google.create_image(
                 presentation_id, page_id, proj_url, 170, 170, 0, 270)
 
             self.google.create_textbox_with_text(
-                presentation_id, page_id, 'Micro-CT projection', 90, 20, 10, 280, 8, 0)
+                presentation_id, page_id, 'Frame from the IP camera in the hutch', 160, 20, 10, 290, 8, 0)
         except:
-            log.warning('No microCT data available')
+            log.warning('No frame from the IP camera')
 
     def publish_recon(self, presentation_id, page_id, recon):
         if len(recon) == 3:
@@ -284,7 +266,7 @@ class TomoLog32ID(TomoLog):
             self.google.create_textbox_with_text(
                 presentation_id, page_id, rec_line, 1000, 20, 185, 391, 6, 0)
 
-    def plot_projection(self, proj, fname,scalebar='nano'):
+    def plot_projection(self, proj, fname):
 
         # auto-adjust colorbar values according to a histogram
         mmin, mmax = utils.find_min_max(proj)
@@ -296,14 +278,11 @@ class TomoLog32ID(TomoLog):
         ax = fig.add_subplot()
         im = ax.imshow(proj, cmap='gray')
         # Create scale bar
-        if scalebar=='nano':
-            scalebar = ScaleBar(self.nct_resolution, "um", length_fraction=0.25)
-        else:
-            scalebar = ScaleBar(self.mct_resolution, "um", length_fraction=0.25)
+        scalebar = ScaleBar(self.mct_resolution, "um", length_fraction=0.25)
         ax.add_artist(scalebar)
         divider = make_axes_locatable(ax)
         cax = divider.append_axes("right", size="5%", pad=0.1)
-        plt.colorbar(im, cax=cax)
+        plt.colorbar(im, cax=cax, format='%.1e')
         # plt.show()
         # save
         plt.savefig(fname, bbox_inches='tight', pad_inches=0, dpi=300)
@@ -329,12 +308,12 @@ class TomoLog32ID(TomoLog):
             ax = fig.add_subplot(grid[k])
             im = ax.imshow(recon[k], cmap='gray')
             # Create scale bar
-            scalebar = ScaleBar(self.nct_resolution *
-                                2**self.binning_rec, "um", length_fraction=0.25)
+            scalebar = ScaleBar(self.mct_resolution *
+                                self.binning_rec, "um", length_fraction=0.25)
             ax.add_artist(scalebar)
             divider = make_axes_locatable(ax)
             cax = divider.append_axes("right", size="5%", pad=0.1)
-            plt.colorbar(im, cax=cax)
+            plt.colorbar(im, cax=cax, format='%.1e')
             ax.set_ylabel(f'slice {slices[k]}={sl[k]}', fontsize=14)
         # save
         plt.savefig(fname, bbox_inches='tight', pad_inches=0, dpi=300)
