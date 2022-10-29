@@ -64,8 +64,8 @@ __docformat__ = 'restructuredtext en'
 __all__ = ['TomoLog', ]
 
 # tmp files to be created in dropbox
-FILE_NAME_PROJ0 = 'projection_google0.jpg'
-FILE_NAME_RECON = 'reconstruction_google.jpg'
+FILE_NAME_PROJ_BASE  = 'projection_google'
+FILE_NAME_RECON_BASE = 'reconstruction_google'
 
 DROPBOX_TOKEN = os.path.join(
     str(pathlib.Path.home()), 'tokens', 'dropbox_token.json')
@@ -84,8 +84,8 @@ class TomoLog():
         self.dbx = auth.drop_box(DROPBOX_TOKEN)
         self.args = args
 
-        self.file_name_proj0 = FILE_NAME_PROJ0
-        self.file_name_recon = FILE_NAME_RECON
+        self.file_name_proj0 = FILE_NAME_PROJ_BASE + str(args.queue) + '.jpg'
+        self.file_name_recon = FILE_NAME_RECON_BASE + str(args.queue) + '.jpg'
 
         # add here beamline independent keys
         self.full_file_name_key = '/measurement/sample/file/full_name'
@@ -236,8 +236,8 @@ class TomoLog():
 
     def publish_proj(self, presentation_id, page_id, proj, resolution=1):
         log.info('Plotting projection')
-        self.plot_projection(proj[0], FILE_NAME_PROJ0)
-        proj_url = self.dbx.upload(FILE_NAME_PROJ0)
+        self.plot_projection(proj[0], self.file_name_proj0)
+        proj_url = self.dbx.upload(self.file_name_proj0)
         self.google.create_image(
             presentation_id, page_id, proj_url, 150, 150, 10, 157)
 
@@ -246,8 +246,8 @@ class TomoLog():
 
     def publish_recon(self, presentation_id, page_id, recon, resolution=1):
         if len(recon) == 3:
-            self.plot_recon(recon, FILE_NAME_RECON)
-            recon_url = self.dbx.upload(FILE_NAME_RECON)
+            self.plot_recon(recon, self.file_name_recon)
+            recon_url = self.dbx.upload(self.file_name_recon)
             self.google.create_image(
                 presentation_id, page_id, recon_url, 370, 370, 130, 25)
             self.google.create_textbox_with_text(
