@@ -54,6 +54,7 @@ import matplotlib.pyplot as plt
 from matplotlib_scalebar.scalebar import ScaleBar
 from mpl_toolkits.axes_grid1 import make_axes_locatable
 import meta
+from threading import Thread
 
 from tomolog_cli import utils
 from tomolog_cli import log
@@ -166,7 +167,8 @@ class TomoLog2BM(TomoLog):
         recon = []
         coeff_rec = 1
 
-        try:
+        if 0==0:
+        # try:
             basename = os.path.basename(self.args.file_name)[:-3]
             dirname = os.path.dirname(self.args.file_name)
             # set the correct prefix to find the reconstructions
@@ -228,12 +230,12 @@ class TomoLog2BM(TomoLog):
             self.binning_rec = binning_rec
 
             log.info('Adding reconstruction')
-        except ZeroDivisionError:
-            log.error(
-                'Reconstructions for %s are larger than raw data image width. This is the case in a 0-360. Please use: --double-fov' % top)
-            log.warning('Skipping reconstruction')
-        except:
-            log.warning('Skipping reconstruction')
+        # except ZeroDivisionError:
+        #     log.error(
+        #         'Reconstructions for %s are larger than raw data image width. This is the case in a 0-360. Please use: --double-fov' % top)
+        #     log.warning('Skipping reconstruction')
+        # except:
+        #     log.warning('Skipping reconstruction')
 
         return recon
 
