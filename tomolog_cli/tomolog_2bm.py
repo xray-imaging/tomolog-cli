@@ -83,6 +83,7 @@ class TomoLog2BM(TomoLog):
         self.sample_pitch_angle_key   = '/measurement/instrument/sample_motor_stack/setup/pitch'
         self.propogation_distance_key = '/measurement/instrument/detector_motor_stack/setup/z'
         self.load_key                 = '/measurement/sample/environment/load_raw'
+        self.load_key_calc            = '/measurement/sample/environment/load_calc'
 
         self.binning_rec = -1
         self.mct_resolution = -1
@@ -100,7 +101,9 @@ class TomoLog2BM(TomoLog):
         descr += self.read_meta_item(
             "Propagation dist.: {self.meta[self.propogation_distance_key][0]:.02f} {self.meta[self.propogation_distance_key][1]}")
         descr += self.read_meta_item(
-            "Load: {self.meta[self.load_key][0]:.05f} {self.meta[self.load_key][1]}")
+            "Load Raw: {self.meta[self.load_key][0]:.05f} {self.meta[self.load_key][1]}")
+        descr += self.read_meta_item(
+            "Load: {self.meta[self.load_key_calc][0]:.05f} {self.meta[self.load_key_calc][1]}")
 
         pitch_angle = self.read_meta_item("{self.meta[self.sample_pitch_angle_key][0]:.02f}")
         if pitch_angle is not '':
