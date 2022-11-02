@@ -112,7 +112,7 @@ class TomoLog():
         descr += self.read_meta_item(
             "Scan date: {self.meta[self.date_key][0]}")
         descr += self.read_meta_item(
-            "Exposure time: {self.meta[self.exposure_time_key][0]:.02f} {self.meta[self.exposure_time_key][1]}")
+            "Exposure time: {self.meta[self.exposure_time_key][0]:.05f} {self.meta[self.exposure_time_key][1]}")
         descr += self.read_meta_item(
             "Camera pixel size: {self.meta[self.pixel_size_key][0]:.02f} {self.meta[self.pixel_size_key][1]}")
         descr += self.read_meta_item(
