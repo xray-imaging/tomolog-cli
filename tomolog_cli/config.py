@@ -151,6 +151,10 @@ SECTIONS['general'] = {
         'type': float,
         'default': -1,
         'help': "Detector pixel size. Overwrite value  to be used in case in missing from the hdf file"},
+    'zoom': {
+        'type': str,
+        'default': '1',
+        'help': "zoom for reconstruction, e.g. [1,2,4]"},
 }
 
 SECTIONS['file-reading'] = {
@@ -183,6 +187,10 @@ SECTIONS['parameters'] = {
         'default': None,
         'type': str,
         'help': "Google presention url"},
+    'queue': {
+        'type': int,
+        'default': 0,
+        'help': "set to separate dropbox files in case or running multiple instance of tomolog-cli"},
 }
 
 PARAMS = ('file-reading', 'parameters')
