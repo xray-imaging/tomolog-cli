@@ -100,10 +100,10 @@ class TomoLog2BM(TomoLog):
             "Sample Y: {self.meta[self.sample_y_key][0]:.02f} {self.meta[self.sample_y_key][1]}")
         descr += self.read_meta_item(
             "Propagation dist.: {self.meta[self.propogation_distance_key][0]:.02f} {self.meta[self.propogation_distance_key][1]}")
-        descr += self.read_meta_item(
-            "Load Raw: {self.meta[self.load_key][0]:.05f} {self.meta[self.load_key][1]}")
-        descr += self.read_meta_item(
-            "Load: {self.meta[self.load_key_calc][0]:.05f} {self.meta[self.load_key_calc][1]}")
+        # descr += self.read_meta_item(
+        #     "Load Raw: {self.meta[self.load_key][0]:.05f} {self.meta[self.load_key][1]}")
+        # descr += self.read_meta_item(
+        #     "Load: {self.meta[self.load_key_calc][0]:.05f} {self.meta[self.load_key_calc][1]}")
 
         pitch_angle = self.read_meta_item("{self.meta[self.sample_pitch_angle_key][0]:.02f}")
         if pitch_angle is not '':
@@ -173,8 +173,7 @@ class TomoLog2BM(TomoLog):
         recon = []
         coeff_rec = 1
 
-        if 0==0:
-        # try:
+        try:
             basename = os.path.basename(self.args.file_name)[:-3]
             dirname = os.path.dirname(self.args.file_name)
             # set the correct prefix to find the reconstructions
@@ -236,12 +235,12 @@ class TomoLog2BM(TomoLog):
             self.binning_rec = binning_rec
 
             log.info('Adding reconstruction')
-        # except ZeroDivisionError:
-        #     log.error(
-        #         'Reconstructions for %s are larger than raw data image width. This is the case in a 0-360. Please use: --double-fov' % top)
-        #     log.warning('Skipping reconstruction')
-        # except:
-        #     log.warning('Skipping reconstruction')
+        except ZeroDivisionError:
+            log.error(
+                'Reconstructions for %s are larger than raw data image width. This is the case in a 0-360. Please use: --double-fov' % top)
+            log.warning('Skipping reconstruction')
+        except:
+            log.warning('Skipping reconstruction')
 
         return recon
 
@@ -264,10 +263,11 @@ class TomoLog2BM(TomoLog):
         self.plot_projection(proj[0], self.file_name_proj0)
         proj_url = self.dbx.upload(self.file_name_proj0)
         self.google.create_image(
-            presentation_id, page_id, proj_url, 170, 170, 0, 145)
+            presentation_id, page_id, proj_url, 120, 120, 30, 180)
+            #presentation_id, page_id, proj_url, 170, 170, 0, 145)
 
         self.google.create_textbox_with_text(
-            presentation_id, page_id, 'Micro-CT projection', 90, 20, 50, 172, 8, 0)
+            presentation_id, page_id, 'Micro-CT projection', 90, 20, 50, 152, 8, 0)
         try:
             log.info('Plotting frame the IP camera')
             plt.imshow(np.fliplr(proj[1].reshape(-1,3)).reshape(proj[1].shape))
@@ -291,7 +291,7 @@ class TomoLog2BM(TomoLog):
             self.google.create_image(
                 presentation_id, page_id, recon_url, 470, 400, 230, 5)
             self.google.create_textbox_with_text(
-                presentation_id, page_id, 'Reconstruction                                   Zoom 2x                                          Zoom 4x', 590, 20, 270, 0, 10, 0)
+                presentation_id, page_id, 'Reconstruction                                   Zoom 2x                                          Zoom 4x', 590, 20, 270, -10, 10, 0)
             self.google.create_textbox_with_text(
                 presentation_id, page_id, rec_line, 1000, 20, 185, 391, 6, 0)
 
