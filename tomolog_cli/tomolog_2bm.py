@@ -82,8 +82,10 @@ class TomoLog2BM(TomoLog):
         self.sample_y_key             = '/measurement/instrument/sample_motor_stack/setup/y'
         self.sample_pitch_angle_key   = '/measurement/instrument/sample_motor_stack/setup/pitch'
         self.propogation_distance_key = '/measurement/instrument/detector_motor_stack/setup/z'
-        self.load_key                 = '/measurement/sample/environment/load_raw'
-        self.load_key_calc            = '/measurement/sample/environment/load_calc'
+        self.load_key                 = '/measurement/sample/environment/load_cell/load_raw'
+        self.load_key_calc            = '/measurement/sample/environment/load_cell/load_calc'
+        self.eurotherm1_key           = '/measurement/sample/environment/eurotherm1/thermocouple'
+        self.eurotherm2_key           = '/measurement/sample/environment/eurotherm2/thermocouple'
 
         self.binning_rec = -1
         self.mct_resolution = -1
@@ -100,6 +102,11 @@ class TomoLog2BM(TomoLog):
             "Sample Y: {self.meta[self.sample_y_key][0]:.02f} {self.meta[self.sample_y_key][1]}")
         descr += self.read_meta_item(
             "Propagation dist.: {self.meta[self.propogation_distance_key][0]:.02f} {self.meta[self.propogation_distance_key][1]}")
+        descr += self.read_meta_item(
+            "Eurotherm 1: {self.meta[self.eurotherm1_key][0]:.05f} {self.meta[self.eurotherm1_key][1]}")
+        descr += self.read_meta_item(
+            "Eurotherm 2: {self.meta[self.eurotherm2_key][0]:.05f} {self.meta[self.eurotherm2_key][1]}")
+
         # descr += self.read_meta_item(
         #     "Load Raw: {self.meta[self.load_key][0]:.05f} {self.meta[self.load_key][1]}")
         # descr += self.read_meta_item(
@@ -267,7 +274,7 @@ class TomoLog2BM(TomoLog):
             #presentation_id, page_id, proj_url, 170, 170, 0, 145)
 
         self.google.create_textbox_with_text(
-            presentation_id, page_id, 'Micro-CT projection', 90, 20, 50, 152, 8, 0)
+            presentation_id, page_id, 'Micro-CT projection', 90, 20, 50, 180, 8, 0)
         try:
             log.info('Plotting frame the IP camera')
             plt.imshow(np.fliplr(proj[1].reshape(-1,3)).reshape(proj[1].shape))
