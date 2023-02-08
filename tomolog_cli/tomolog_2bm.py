@@ -55,6 +55,7 @@ from matplotlib_scalebar.scalebar import ScaleBar
 from mpl_toolkits.axes_grid1 import make_axes_locatable
 import meta
 from threading import Thread
+from ast import literal_eval
 
 from tomolog_cli import utils
 from tomolog_cli import log
@@ -102,10 +103,10 @@ class TomoLog2BM(TomoLog):
             "Sample Y: {self.meta[self.sample_y_key][0]:.02f} {self.meta[self.sample_y_key][1]}")
         descr += self.read_meta_item(
             "Propagation dist.: {self.meta[self.propogation_distance_key][0]:.02f} {self.meta[self.propogation_distance_key][1]}")
-        descr += self.read_meta_item(
-            "Eurotherm 1: {self.meta[self.eurotherm1_key][0]:.05f} {self.meta[self.eurotherm1_key][1]}")
-        descr += self.read_meta_item(
-            "Eurotherm 2: {self.meta[self.eurotherm2_key][0]:.05f} {self.meta[self.eurotherm2_key][1]}")
+        # descr += self.read_meta_item(
+        #     "Eurotherm 1: {self.meta[self.eurotherm1_key][0]:.05f} {self.meta[self.eurotherm1_key][1]}")
+        # descr += self.read_meta_item(
+        #     "Eurotherm 2: {self.meta[self.eurotherm2_key][0]:.05f} {self.meta[self.eurotherm2_key][1]}")
 
         # descr += self.read_meta_item(
         #     "Load Raw: {self.meta[self.load_key][0]:.05f} {self.meta[self.load_key][1]}")
@@ -207,9 +208,9 @@ class TomoLog2BM(TomoLog):
             if self.args.idz == -1:
                 self.args.idz = int(h//2)
             if self.args.idy == -1:
-                self.args.idy = int(w//2)
+                self.args.idy = int(w//2)+int(w//32)
             if self.args.idx == -1:
-                self.args.idx = int(w//2)
+                self.args.idx = int(w//2)-int(w//32)
 
             z = utils.read_tiff(
                 f'{dirname}_rec/{basename}_rec/{rec_prefix}_{self.args.idz:05}.tiff').copy()
@@ -298,7 +299,7 @@ class TomoLog2BM(TomoLog):
             self.google.create_image(
                 presentation_id, page_id, recon_url, 470, 400, 230, 5)
             self.google.create_textbox_with_text(
-                presentation_id, page_id, 'Reconstruction                                   Zoom 2x                                          Zoom 4x', 590, 20, 270, -10, 10, 0)
+                presentation_id, page_id, f'Reconstruction                                   Zoom {self.args.zoom}                                         ', 590, 20, 270, -10, 10, 0)
             self.google.create_textbox_with_text(
                 presentation_id, page_id, rec_line, 1000, 20, 185, 391, 6, 0)
 
@@ -335,59 +336,71 @@ class TomoLog2BM(TomoLog):
             self.args.min, self.args.max = utils.find_min_max(
                 np.concatenate(recon))
 
+
         sl = [self.args.idx, self.args.idy, self.args.idz]
-        for k in range(3):
-            recon[k][0, 0] = self.args.max
-            recon[k][0, 1] = self.args.min
-            recon[k][recon[k] > self.args.max] = self.args.max
-            recon[k][recon[k] < self.args.min] = self.args.min
-            ax = fig.add_subplot(grid[3*k])
-            im = ax.imshow(recon[k], cmap='gray')
-            # Create scale bar
-            scalebar = ScaleBar(self.mct_resolution *
-                                self.binning_rec, "um", length_fraction=0.25)
-            ax.add_artist(scalebar)
-            divider = make_axes_locatable(ax)
-            cax = divider.append_axes("right", size="5%", pad=0.1)
-            cb = plt.colorbar(im, cax=cax)
-            cb.remove()
-            ax.set_ylabel(f'slice {slices[k]}={sl[k]}', fontsize=18)
+        tmp = literal_eval(self.args.zoom)
+        if not isinstance(tmp,list):
+            tmp = [tmp]
         
-        
-        for k in range(3):
-            [s0,s1] = recon[k].shape
-            recon[k] = recon[k][s0//4:3*s0//4,s1//4:3*s1//4]
-            recon[k][0, 0] = self.args.max
-            recon[k][0, 1] = self.args.min
-            recon[k][recon[k] > self.args.max] = self.args.max
-            recon[k][recon[k] < self.args.min] = self.args.min
-            ax = fig.add_subplot(grid[3*k+1])
-            im = ax.imshow(recon[k], cmap='gray')
-            # Create scale bar
-            scalebar = ScaleBar(self.mct_resolution *
-                                self.binning_rec, "um", length_fraction=0.25)
-            ax.add_artist(scalebar)
-            divider = make_axes_locatable(ax)
-            cax = divider.append_axes("right", size="5%", pad=0.1)
-            cb = plt.colorbar(im, cax=cax)
-            cb.remove()
-            # ax.set_ylabel(f'slice {slices[k]}={sl[k]}', fontsize=14)
-        for k in range(3):
-            [s0,s1] = recon[k].shape
-            recon[k] = recon[k][s0//4:3*s0//4,s1//4:3*s1//4]
-            recon[k][0, 0] = self.args.max
-            recon[k][0, 1] = self.args.min
-            recon[k][recon[k] > self.args.max] = self.args.max
-            recon[k][recon[k] < self.args.min] = self.args.min
-            ax = fig.add_subplot(grid[3*k+2])
-            im = ax.imshow(recon[k], cmap='gray')
-            # Create scale bar
-            scalebar = ScaleBar(self.mct_resolution *
-                                self.binning_rec, "um", length_fraction=0.25)
-            ax.add_artist(scalebar)
-            divider = make_axes_locatable(ax)
-            cax = divider.append_axes("right", size="5%", pad=0.1)
-            plt.colorbar(im, cax=cax)
+        zooms = tmp
+        print(zooms)
+        for j in range(3):
+            for k in range(3):
+                [s0,s1] = recon[k].shape
+                recon0 = recon[k][s0//2-s0//2//zooms[j]:s0//2+s0//2//zooms[j],s1//2-s1//2//zooms[j]:s1//2+s1//2//zooms[j]]
+                
+                recon0[0, 0] = self.args.max
+                recon0[0, 1] = self.args.min
+                recon0[recon0 > self.args.max] = self.args.max
+                recon0[recon0 < self.args.min] = self.args.min
+                ax = fig.add_subplot(grid[3*k+j])
+                im = ax.imshow(recon0, cmap='gray')
+                # Create scale bar
+                scalebar = ScaleBar(self.mct_resolution *
+                                    self.binning_rec, "um", length_fraction=0.25)
+                ax.add_artist(scalebar)
+                divider = make_axes_locatable(ax)
+                cax = divider.append_axes("right", size="5%", pad=0.1)
+                cb = plt.colorbar(im, cax=cax)
+                if j<2:
+                    cb.remove()
+                if j==0:
+                    ax.set_ylabel(f'slice {slices[k]}={sl[k]}', fontsize=18)
+                    
+        # for k in range(3):
+        #     [s0,s1] = recon[k].shape
+        #     recon[k] = recon[k][s0//4:3*s0//4,s1//4:3*s1//4]
+        #     recon[k][0, 0] = self.args.max
+        #     recon[k][0, 1] = self.args.min
+        #     recon[k][recon[k] > self.args.max] = self.args.max
+        #     recon[k][recon[k] < self.args.min] = self.args.min
+        #     ax = fig.add_subplot(grid[3*k+1])
+        #     im = ax.imshow(recon[k], cmap='gray')
+        #     # Create scale bar
+        #     scalebar = ScaleBar(self.mct_resolution *
+        #                         self.binning_rec, "um", length_fraction=0.25)
+        #     ax.add_artist(scalebar)
+        #     divider = make_axes_locatable(ax)
+        #     cax = divider.append_axes("right", size="5%", pad=0.1)
+        #     cb = plt.colorbar(im, cax=cax)
+        #     cb.remove()
+        #     # ax.set_ylabel(f'slice {slices[k]}={sl[k]}', fontsize=14)
+        # for k in range(3):
+        #     [s0,s1] = recon[k].shape
+        #     recon[k] = recon[k][s0//4:3*s0//4,s1//4:3*s1//4]
+        #     recon[k][0, 0] = self.args.max
+        #     recon[k][0, 1] = self.args.min
+        #     recon[k][recon[k] > self.args.max] = self.args.max
+        #     recon[k][recon[k] < self.args.min] = self.args.min
+        #     ax = fig.add_subplot(grid[3*k+2])
+        #     im = ax.imshow(recon[k], cmap='gray')
+        #     # Create scale bar
+        #     scalebar = ScaleBar(self.mct_resolution *
+        #                         self.binning_rec, "um", length_fraction=0.25)
+        #     ax.add_artist(scalebar)
+        #     divider = make_axes_locatable(ax)
+        #     cax = divider.append_axes("right", size="5%", pad=0.1)
+        #     plt.colorbar(im, cax=cax)
         # save
         plt.savefig(fname, bbox_inches='tight', pad_inches=0, dpi=150)
         plt.cla()

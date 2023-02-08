@@ -14,7 +14,7 @@ and::
 
 then install all `requirements <https://github.com/xray-imaging/mosaic/blob/main/requirements.txt>`_ with::
 
-    (tomolog)$ conda install  -c conda-forge python=3.9 dropbox google-api-python-client matplotlib dxchange dxfile python-dotenv opencv matplotlib-scalebar
+    (tomolog)$ conda install  -c conda-forge python=3.9 dropbox google-api-python-client matplotlib dxchange dxfile python-dotenv matplotlib-scalebar
 
 
 install meta 
