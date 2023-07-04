@@ -278,7 +278,7 @@ class TomoLog2BM(TomoLog):
             #presentation_id, page_id, proj_url, 170, 170, 0, 145)
 
         self.google.create_textbox_with_text(
-            presentation_id, page_id, 'Micro-CT projection', 90, 20, 50, 180, 8, 0)
+            presentation_id, page_id, 'Micro-CT projection', 90, 20, 50, 170, 8, 0)
         try:
             log.info('Plotting frame the IP camera')
             plt.imshow(np.fliplr(proj[1].reshape(-1,3)).reshape(proj[1].shape))
