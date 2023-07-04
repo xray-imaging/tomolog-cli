@@ -129,7 +129,7 @@ class TomoLog2BM(TomoLog):
         # read meta, calculate resolutions
         #_, self.meta = meta.read_hdf(self.args.file_name, add_shape=True)
         mp = meta.read_meta.Hdf5MetadataReader(self.args.file_name)
-        meta_dict = mp.readMetadata()
+        self.meta = mp.readMetadata()
         mp.close()
         if self.args.pixel_size!=-1:
             self.meta[self.pixel_size_key][0]  = self.args.pixel_size
