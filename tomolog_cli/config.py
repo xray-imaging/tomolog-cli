@@ -153,7 +153,7 @@ SECTIONS['general'] = {
         'help': "Detector pixel size. Overwrite value  to be used in case in missing from the hdf file"},
     'zoom': {
         'type': str,
-        'default': '1',
+        'default': '[1,2,4]',
         'help': "zoom for reconstruction, e.g. [1,2,4]"},
 }
 

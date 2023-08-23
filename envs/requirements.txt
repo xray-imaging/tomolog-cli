@@ -1,14 +1,13 @@
 numpy
-pandas
-opencv
 dropbox
+python-dotenv
 google-auth-oauthlib
+google-api-python-client
 matplotlib
+matplotlib-scalebar
+meta from https://github.com/xray-imaging/meta
+
 h5py
 tifffile
-python-dotenv
-google-api-python-client
-matplotlib-scalebar
 dxfile 
 
-meta from https://github.com/xray-imaging/meta

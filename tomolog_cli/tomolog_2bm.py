@@ -55,6 +55,7 @@ from matplotlib_scalebar.scalebar import ScaleBar
 from mpl_toolkits.axes_grid1 import make_axes_locatable
 import meta
 from threading import Thread
+from ast import literal_eval
 
 from tomolog_cli import utils
 from tomolog_cli import log
@@ -82,8 +83,10 @@ class TomoLog2BM(TomoLog):
         self.sample_y_key             = '/measurement/instrument/sample_motor_stack/setup/y'
         self.sample_pitch_angle_key   = '/measurement/instrument/sample_motor_stack/setup/pitch'
         self.propogation_distance_key = '/measurement/instrument/detector_motor_stack/setup/z'
-        self.load_key                 = '/measurement/sample/environment/load_raw'
-        self.load_key_calc            = '/measurement/sample/environment/load_calc'
+        self.load_key                 = '/measurement/sample/environment/load_cell/load_raw'
+        self.load_key_calc            = '/measurement/sample/environment/load_cell/load_calc'
+        self.eurotherm1_key           = '/measurement/sample/environment/eurotherm1/thermocouple'
+        self.eurotherm2_key           = '/measurement/sample/environment/eurotherm2/thermocouple'
 
         self.binning_rec = -1
         self.mct_resolution = -1
@@ -100,10 +103,15 @@ class TomoLog2BM(TomoLog):
             "Sample Y: {self.meta[self.sample_y_key][0]:.02f} {self.meta[self.sample_y_key][1]}")
         descr += self.read_meta_item(
             "Propagation dist.: {self.meta[self.propogation_distance_key][0]:.02f} {self.meta[self.propogation_distance_key][1]}")
-        descr += self.read_meta_item(
-            "Load Raw: {self.meta[self.load_key][0]:.05f} {self.meta[self.load_key][1]}")
-        descr += self.read_meta_item(
-            "Load: {self.meta[self.load_key_calc][0]:.05f} {self.meta[self.load_key_calc][1]}")
+        # descr += self.read_meta_item(
+        #     "Eurotherm 1: {self.meta[self.eurotherm1_key][0]:.05f} {self.meta[self.eurotherm1_key][1]}")
+        # descr += self.read_meta_item(
+        #     "Eurotherm 2: {self.meta[self.eurotherm2_key][0]:.05f} {self.meta[self.eurotherm2_key][1]}")
+
+        # descr += self.read_meta_item(
+        #     "Load Raw: {self.meta[self.load_key][0]:.05f} {self.meta[self.load_key][1]}")
+        # descr += self.read_meta_item(
+        #     "Load: {self.meta[self.load_key_calc][0]:.05f} {self.meta[self.load_key_calc][1]}")
 
         pitch_angle = self.read_meta_item("{self.meta[self.sample_pitch_angle_key][0]:.02f}")
         if pitch_angle is not '':
@@ -119,7 +127,10 @@ class TomoLog2BM(TomoLog):
 
     def run_log(self):
         # read meta, calculate resolutions
-        _, self.meta = meta.read_hdf(self.args.file_name, add_shape=True)
+        #_, self.meta = meta.read_hdf(self.args.file_name, add_shape=True)
+        mp = meta.read_meta.Hdf5MetadataReader(self.args.file_name)
+        self.meta = mp.readMetadata()
+        mp.close()
         if self.args.pixel_size!=-1:
             self.meta[self.pixel_size_key][0]  = self.args.pixel_size
         if self.args.magnification!=-1:
@@ -173,8 +184,7 @@ class TomoLog2BM(TomoLog):
         recon = []
         coeff_rec = 1
 
-        if 0==0:
-        # try:
+        try:
             basename = os.path.basename(self.args.file_name)[:-3]
             dirname = os.path.dirname(self.args.file_name)
             # set the correct prefix to find the reconstructions
@@ -201,9 +211,9 @@ class TomoLog2BM(TomoLog):
             if self.args.idz == -1:
                 self.args.idz = int(h//2)
             if self.args.idy == -1:
-                self.args.idy = int(w//2)
+                self.args.idy = int(w//2)+int(w//32)
             if self.args.idx == -1:
-                self.args.idx = int(w//2)
+                self.args.idx = int(w//2)-int(w//32)
 
             z = utils.read_tiff(
                 f'{dirname}_rec/{basename}_rec/{rec_prefix}_{self.args.idz:05}.tiff').copy()
@@ -236,12 +246,12 @@ class TomoLog2BM(TomoLog):
             self.binning_rec = binning_rec
 
             log.info('Adding reconstruction')
-        # except ZeroDivisionError:
-        #     log.error(
-        #         'Reconstructions for %s are larger than raw data image width. This is the case in a 0-360. Please use: --double-fov' % top)
-        #     log.warning('Skipping reconstruction')
-        # except:
-        #     log.warning('Skipping reconstruction')
+        except ZeroDivisionError:
+            log.error(
+                'Reconstructions for %s are larger than raw data image width. This is the case in a 0-360. Please use: --double-fov' % top)
+            log.warning('Skipping reconstruction')
+        except:
+            log.warning('Skipping reconstruction')
 
         return recon
 
@@ -264,10 +274,11 @@ class TomoLog2BM(TomoLog):
         self.plot_projection(proj[0], self.file_name_proj0)
         proj_url = self.dbx.upload(self.file_name_proj0)
         self.google.create_image(
-            presentation_id, page_id, proj_url, 170, 170, 0, 145)
+            presentation_id, page_id, proj_url, 120, 120, 30, 180)
+            #presentation_id, page_id, proj_url, 170, 170, 0, 145)
 
         self.google.create_textbox_with_text(
-            presentation_id, page_id, 'Micro-CT projection', 90, 20, 50, 172, 8, 0)
+            presentation_id, page_id, 'Micro-CT projection', 90, 20, 50, 170, 8, 0)
         try:
             log.info('Plotting frame the IP camera')
             plt.imshow(np.fliplr(proj[1].reshape(-1,3)).reshape(proj[1].shape))
@@ -291,7 +302,7 @@ class TomoLog2BM(TomoLog):
             self.google.create_image(
                 presentation_id, page_id, recon_url, 470, 400, 230, 5)
             self.google.create_textbox_with_text(
-                presentation_id, page_id, 'Reconstruction                                   Zoom 2x                                          Zoom 4x', 590, 20, 270, 0, 10, 0)
+                presentation_id, page_id, f'Reconstruction                                   Zoom {self.args.zoom}                                         ', 590, 20, 270, -10, 10, 0)
             self.google.create_textbox_with_text(
                 presentation_id, page_id, rec_line, 1000, 20, 185, 391, 6, 0)
 
@@ -328,59 +339,71 @@ class TomoLog2BM(TomoLog):
             self.args.min, self.args.max = utils.find_min_max(
                 np.concatenate(recon))
 
+
         sl = [self.args.idx, self.args.idy, self.args.idz]
-        for k in range(3):
-            recon[k][0, 0] = self.args.max
-            recon[k][0, 1] = self.args.min
-            recon[k][recon[k] > self.args.max] = self.args.max
-            recon[k][recon[k] < self.args.min] = self.args.min
-            ax = fig.add_subplot(grid[3*k])
-            im = ax.imshow(recon[k], cmap='gray')
-            # Create scale bar
-            scalebar = ScaleBar(self.mct_resolution *
-                                self.binning_rec, "um", length_fraction=0.25)
-            ax.add_artist(scalebar)
-            divider = make_axes_locatable(ax)
-            cax = divider.append_axes("right", size="5%", pad=0.1)
-            cb = plt.colorbar(im, cax=cax)
-            cb.remove()
-            ax.set_ylabel(f'slice {slices[k]}={sl[k]}', fontsize=18)
+        tmp = literal_eval(self.args.zoom)
+        if not isinstance(tmp,list):
+            tmp = [tmp]
         
-        
-        for k in range(3):
-            [s0,s1] = recon[k].shape
-            recon[k] = recon[k][s0//4:3*s0//4,s1//4:3*s1//4]
-            recon[k][0, 0] = self.args.max
-            recon[k][0, 1] = self.args.min
-            recon[k][recon[k] > self.args.max] = self.args.max
-            recon[k][recon[k] < self.args.min] = self.args.min
-            ax = fig.add_subplot(grid[3*k+1])
-            im = ax.imshow(recon[k], cmap='gray')
-            # Create scale bar
-            scalebar = ScaleBar(self.mct_resolution *
-                                self.binning_rec, "um", length_fraction=0.25)
-            ax.add_artist(scalebar)
-            divider = make_axes_locatable(ax)
-            cax = divider.append_axes("right", size="5%", pad=0.1)
-            cb = plt.colorbar(im, cax=cax)
-            cb.remove()
-            # ax.set_ylabel(f'slice {slices[k]}={sl[k]}', fontsize=14)
-        for k in range(3):
-            [s0,s1] = recon[k].shape
-            recon[k] = recon[k][s0//4:3*s0//4,s1//4:3*s1//4]
-            recon[k][0, 0] = self.args.max
-            recon[k][0, 1] = self.args.min
-            recon[k][recon[k] > self.args.max] = self.args.max
-            recon[k][recon[k] < self.args.min] = self.args.min
-            ax = fig.add_subplot(grid[3*k+2])
-            im = ax.imshow(recon[k], cmap='gray')
-            # Create scale bar
-            scalebar = ScaleBar(self.mct_resolution *
-                                self.binning_rec, "um", length_fraction=0.25)
-            ax.add_artist(scalebar)
-            divider = make_axes_locatable(ax)
-            cax = divider.append_axes("right", size="5%", pad=0.1)
-            plt.colorbar(im, cax=cax)
+        zooms = tmp
+        print(zooms)
+        for j in range(3):
+            for k in range(3):
+                [s0,s1] = recon[k].shape
+                recon0 = recon[k][s0//2-s0//2//zooms[j]:s0//2+s0//2//zooms[j],s1//2-s1//2//zooms[j]:s1//2+s1//2//zooms[j]]
+                
+                recon0[0, 0] = self.args.max
+                recon0[0, 1] = self.args.min
+                recon0[recon0 > self.args.max] = self.args.max
+                recon0[recon0 < self.args.min] = self.args.min
+                ax = fig.add_subplot(grid[3*k+j])
+                im = ax.imshow(recon0, cmap='gray')
+                # Create scale bar
+                scalebar = ScaleBar(self.mct_resolution *
+                                    self.binning_rec, "um", length_fraction=0.25)
+                ax.add_artist(scalebar)
+                divider = make_axes_locatable(ax)
+                cax = divider.append_axes("right", size="5%", pad=0.1)
+                cb = plt.colorbar(im, cax=cax)
+                if j<2:
+                    cb.remove()
+                if j==0:
+                    ax.set_ylabel(f'slice {slices[k]}={sl[k]}', fontsize=18)
+                    
+        # for k in range(3):
+        #     [s0,s1] = recon[k].shape
+        #     recon[k] = recon[k][s0//4:3*s0//4,s1//4:3*s1//4]
+        #     recon[k][0, 0] = self.args.max
+        #     recon[k][0, 1] = self.args.min
+        #     recon[k][recon[k] > self.args.max] = self.args.max
+        #     recon[k][recon[k] < self.args.min] = self.args.min
+        #     ax = fig.add_subplot(grid[3*k+1])
+        #     im = ax.imshow(recon[k], cmap='gray')
+        #     # Create scale bar
+        #     scalebar = ScaleBar(self.mct_resolution *
+        #                         self.binning_rec, "um", length_fraction=0.25)
+        #     ax.add_artist(scalebar)
+        #     divider = make_axes_locatable(ax)
+        #     cax = divider.append_axes("right", size="5%", pad=0.1)
+        #     cb = plt.colorbar(im, cax=cax)
+        #     cb.remove()
+        #     # ax.set_ylabel(f'slice {slices[k]}={sl[k]}', fontsize=14)
+        # for k in range(3):
+        #     [s0,s1] = recon[k].shape
+        #     recon[k] = recon[k][s0//4:3*s0//4,s1//4:3*s1//4]
+        #     recon[k][0, 0] = self.args.max
+        #     recon[k][0, 1] = self.args.min
+        #     recon[k][recon[k] > self.args.max] = self.args.max
+        #     recon[k][recon[k] < self.args.min] = self.args.min
+        #     ax = fig.add_subplot(grid[3*k+2])
+        #     im = ax.imshow(recon[k], cmap='gray')
+        #     # Create scale bar
+        #     scalebar = ScaleBar(self.mct_resolution *
+        #                         self.binning_rec, "um", length_fraction=0.25)
+        #     ax.add_artist(scalebar)
+        #     divider = make_axes_locatable(ax)
+        #     cax = divider.append_axes("right", size="5%", pad=0.1)
+        #     plt.colorbar(im, cax=cax)
         # save
         plt.savefig(fname, bbox_inches='tight', pad_inches=0, dpi=150)
         plt.cla()
