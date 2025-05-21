@@ -59,6 +59,14 @@ from tomolog_cli import dropbox_snippets
 
 def drop_box(token_fname):
 
+    # env_path = os.path.join(str(pathlib.Path.home()), '.tomologenv')
+    # with open(env_path,'rb') as fid:
+    #     log.info('APP_KEY and SECRET_KEY file found at %s' % env_path)
+    # load_dotenv(dotenv_path=env_path)
+    # app_key = os.environ.get("APP_KEY")
+    # authorization_url = "https://www.dropbox.com/oauth2/authorize?client_id=%s&response_type=code" % app_key
+    # print(authorization_url)
+    # exit()
     log.info('Establishing connection to dropbox')
     try:
         with open(token_fname) as f:

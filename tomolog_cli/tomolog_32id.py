@@ -98,7 +98,9 @@ class TomoLog32ID(TomoLog):
 
     def run_log(self):
         # read meta, calculate resolutions
-        _, self.meta = meta.read_hdf(self.args.file_name, add_shape=True)
+        mp = meta.read_meta.Hdf5MetadataReader(self.args.file_name)
+        self.meta = mp.readMetadata()
+        mp.close()
         if (self.meta[self.sample_in_x_key][0] != 0):
             self.double_fov = True
             log.warning('Sample in x is off center: %s. Handling the data set as a double FOV' %
