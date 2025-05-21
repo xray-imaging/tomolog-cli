@@ -68,7 +68,7 @@ an copy them in a file in your home directory called:
 
 Set the following permissions:
 
-.. image:: img/dropbox_01.png
+.. image:: img/dropbox_02.png
    :width: 480px
    :alt: project
 
