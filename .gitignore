@@ -154,3 +154,8 @@ script
 /.coverage.xml
 /CMakeFiles
 /test_rotate.py
+
+# tomolog temp files
+####################
+projection_google*
+reconstruction_google*

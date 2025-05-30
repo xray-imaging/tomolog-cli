@@ -44,7 +44,7 @@
 # #########################################################################
 
 import os
-import json
+# import json
 import uuid
 import pathlib
 import h5py
@@ -63,15 +63,12 @@ __copyright__ = "Copyright (c) 2022, UChicago Argonne, LLC."
 __docformat__ = 'restructuredtext en'
 __all__ = ['TomoLog', ]
 
-# tmp files to be created in dropbox
+# tmp files to be created in google drive
 FILE_NAME_PROJ_BASE  = 'projection_google'
 FILE_NAME_RECON_BASE = 'reconstruction_google'
 
-DROPBOX_TOKEN = os.path.join(
-    str(pathlib.Path.home()), 'tokens', 'dropbox_token.json')
 GOOGLE_TOKEN = os.path.join(
     str(pathlib.Path.home()), 'tokens', 'google_token.json')
-
 
 class TomoLog():
     '''
@@ -80,8 +77,9 @@ class TomoLog():
     '''
 
     def __init__(self, args):
-        self.google = auth.google(GOOGLE_TOKEN)
-        self.dbx = auth.drop_box(DROPBOX_TOKEN)
+        self.google_slide = auth.google_slide(GOOGLE_TOKEN)
+        self.google_drive = auth.google_drive(GOOGLE_TOKEN)
+
         self.args = args
 
         self.file_name_proj0 = FILE_NAME_PROJ_BASE + str(args.queue) + '.jpg'
@@ -128,13 +126,16 @@ class TomoLog():
             "Projection size: {int(self.meta[self.width_key][0])} x {int(self.meta[self.height_key][0])}")
         if (self.args.beamline == "None"):
             descr = descr[:-1]
-            self.google.create_textbox_with_bullets(
+            self.google_slide.create_textbox_with_bullets(
                 presentation_id, page_id, descr, 240, 120, 0, 18, 8, 0)
         
         return descr
 
     def run_log(self):
-        _, self.meta = meta.read_hdf(self.args.file_name, add_shape=True)
+
+        mp = meta.read_meta.Hdf5MetadataReader(self.args.file_name)
+        self.meta = mp.readMetadata()
+        mp.close()
         if self.args.pixel_size!=-1:
             self.meta[self.pixel_size_key][0]  = self.args.pixel_size
         if self.args.magnification!=-1:
@@ -160,11 +161,11 @@ class TomoLog():
             exit()
         # Create a new Google slide
         page_id = str(uuid.uuid4())
-        self.google.create_slide(presentation_id, page_id)
-        self.google.create_textbox_with_text(presentation_id, page_id, os.path.basename(
+        self.google_slide.create_slide(presentation_id, page_id)
+        self.google_slide.create_textbox_with_text(presentation_id, page_id, os.path.basename(
             self.args.file_name)[:-3], 400, 50, 0, 0, 13, 1)
         # publish other labels
-        # self.google.create_textbox_with_text(
+        # self.google_slide.create_textbox_with_text(
             # presentation_id, page_id, 'Other info/screenshots', 120, 20, 480, 0, 10, 0)
         return presentation_id, page_id
 
@@ -237,20 +238,20 @@ class TomoLog():
     def publish_proj(self, presentation_id, page_id, proj, resolution=1):
         log.info('Plotting projection')
         self.plot_projection(proj[0], self.file_name_proj0)
-        proj_url = self.dbx.upload(self.file_name_proj0)
-        self.google.create_image(
+        proj_url = self.google_drive.upload_or_update_file(self.file_name_proj0, 'image/jpeg',  self.args.parent_folder_id)
+        self.google_slide.create_image(
             presentation_id, page_id, proj_url, 150, 150, 10, 157)
 
-        self.google.create_textbox_with_text(
+        self.google_slide.create_textbox_with_text(
             presentation_id, page_id, 'Projection', 90, 20, 50, 163, 8, 0)
 
     def publish_recon(self, presentation_id, page_id, recon, resolution=1):
         if len(recon) == 3:
             self.plot_recon(recon, self.file_name_recon)
-            recon_url = self.dbx.upload(self.file_name_recon)
-            self.google.create_image(
+            recon_url = self.google_drive.upload_or_update_file(self.file_name_recon, 'image/jpeg', self.args.parent_folder_id)
+            self.google_slide.create_image(
                 presentation_id, page_id, recon_url, 370, 370, 130, 25)
-            self.google.create_textbox_with_text(
+            self.google_slide.create_textbox_with_text(
                 presentation_id, page_id, 'Reconstruction', 90, 20, 270, 0, 10, 0)
 
     def plot_projection(self, proj, fname):
