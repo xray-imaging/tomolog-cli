@@ -45,6 +45,7 @@
 
 import uuid
 import time
+
 from googleapiclient.http import MediaFileUpload
 
 from tomolog_cli import log
@@ -322,7 +323,8 @@ class DriveSnippets(object):
                 media_body=media
             ).execute()
             file_id = updated_file.get('id')
-            log.info('Google file updated: %s' % file_id)
+            # print(file_id)
+            log.info('Google file updated: %s' % str(file_id))
 
             image_url = f"https://drive.google.com/uc?export=view&id={file_id}"
             log.info('Image url: %s' % image_url)
@@ -338,6 +340,7 @@ class DriveSnippets(object):
                 fields='id'
             ).execute()
             file_id = created_file.get('id')
-            log.info('Google file created:' % file_id)
+            log.info('Google file created: %s' % str(file_id))
+            # print(file_id)
             image_url = f"https://drive.google.com/uc?export=view&id={file_id}"
             return image_url
