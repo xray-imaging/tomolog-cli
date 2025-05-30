@@ -49,8 +49,8 @@ import pathlib
 import meta
 import h5py
 import numpy as np
-# import matplotlib
-# matplotlib.use('Agg')  # use non-GUI backend before importing pyplot
+import matplotlib
+matplotlib.use('Agg')  # use non-GUI backend before importing pyplot
 import matplotlib.pyplot as plt
 from matplotlib_scalebar.scalebar import ScaleBar
 from mpl_toolkits.axes_grid1 import make_axes_locatable
@@ -256,7 +256,7 @@ class TomoLog32ID(TomoLog):
         log.info('Transmission X-Ray Microscope Instrument')
         log.info('Plotting nanoCT projection')
         self.plot_projection(proj[0], self.file_name_proj0)
-        proj_url = self.dbx.upload(self.file_name_proj0)
+        proj_url = self.google_drive.upload_or_update_file(self.file_name_proj0, 'image/jpeg',  self.args.parent_folder_id)
         self.google_slide.create_image(
             presentation_id, page_id, proj_url, 170, 170, 0, 145)
 
@@ -265,7 +265,7 @@ class TomoLog32ID(TomoLog):
         try:
             log.info('Plotting microCT projection')
             self.plot_projection(proj[1], self.file_name_proj1,scalebar='micro')
-            proj_url = self.dbx.upload(self.file_name_proj1)
+            proj_url = self.google_drive.upload_or_update_file(self.file_name_proj1, 'image/jpeg',  self.args.parent_folder_id)
             self.google_slide.create_image(
                 presentation_id, page_id, proj_url, 170, 170, 0, 270)
 
