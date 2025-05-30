@@ -194,7 +194,7 @@ SECTIONS['parameters'] = {
     'queue': {
         'type': int,
         'default': 0,
-        'help': "set to separate dropbox files in case or running multiple instance of tomolog-cli"},
+        'help': "set to separate google drive files in case or running multiple instance of tomolog-cli"},
 }
 
 PARAMS = ('file-reading', 'parameters')

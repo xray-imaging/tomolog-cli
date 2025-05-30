@@ -38,44 +38,11 @@ Requirements
 
 Please install all the packages listed in `requirements file <https://github.com/xray-imaging/tomolog-cli/blob/main/envs/requirements.txt>`_. 
 
-**tomolog** also requires access tokens from dropbox and google services.
-
-Dropbox
--------
-
-Go to `dropbox developer site <https://www.dropbox.com/lp/developers>`_ , login using your google credentials and select "Create an App":
-
-
-.. image:: img/dropbox_00.png
-   :width: 48px
-   :alt: project
-
-Take the App key and App secret from the Settings tab:
-
-.. image:: img/dropbox_01.png
-   :width: 480px
-   :alt: project
-
-an copy them in a file in your home directory called:
-
-::
-
-    $ ~/.tomologenv 
-
-    APP_KEY=....
-    APP_SECRET=....
-
-
-Set the following permissions:
-
-.. image:: img/dropbox_02.png
-   :width: 480px
-   :alt: project
 
 Google
 ------
 
-Next step is to authorize tomolog to create slides on the ...@gmail.com gmail account.
+**tomolog** uses Google services to publish experiment metadata and images to public Google Slides. To enable this functionality, you need to create a Google Cloud project by following these steps:
 
 Open a web browser and login as ...@gmail.com then go to `google developer site <https://console.cloud.google.com/>`_ and press "Select a project" to create a new project
 
@@ -160,5 +127,4 @@ search and add the "google slide api"
    :width: 480px
    :alt: project
 
-Now tomolog will be able to create slides in the ...@gmail.com user account.
-
+**tomolog** can now publish experiment metadata and images to any public Google Slides presentation.

@@ -48,7 +48,6 @@ from googleapiclient.discovery import build
 
 from tomolog_cli import log
 from tomolog_cli import google_snippets
-from tomolog_cli import dropbox_snippets
 
 def google_slide(token_fname):
 
