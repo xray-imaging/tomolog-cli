@@ -44,7 +44,6 @@
 # #########################################################################
 
 import os
-# import json
 import uuid
 import pathlib
 import h5py
@@ -63,12 +62,13 @@ __copyright__ = "Copyright (c) 2022, UChicago Argonne, LLC."
 __docformat__ = 'restructuredtext en'
 __all__ = ['TomoLog', ]
 
-# tmp files to be created in google drive
+# tmp local files to be uploaded to the google drive
 FILE_NAME_PROJ_BASE  = 'projection_google'
 FILE_NAME_RECON_BASE = 'reconstruction_google'
 
 GOOGLE_TOKEN = os.path.join(
     str(pathlib.Path.home()), 'tokens', 'google_token.json')
+
 
 class TomoLog():
     '''
