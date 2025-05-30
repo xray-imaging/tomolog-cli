@@ -136,7 +136,7 @@ on_rtd = os.environ.get('READTHEDOCS', None) == 'True'
 html_context = {
     "display_github": True, # Integrate GitHub
     "github_user": "xray-imaging", # Username
-    "github_repo": "tomolog", # Repo name
+    "github_repo": "tomolog-cli", # Repo name
     "github_version": "main", # Version
     "conf_py_path": "/docs/", # Path in the checkout to the docs root
 }
