@@ -186,11 +186,11 @@ SECTIONS['parameters'] = {
     'presentation-url': {
         'default': None,
         'type': str,
-        'help': "Google presention url"},
+        'help': "Google presention. Create a public google slide presentation."},
     'parent-folder-id': {
         'default': None,
         'type': str,
-        'help': "Google public folder ID"},
+        'help': "Google public folder ID. Create a public forlder on the google app drive and extract it from the share link: https://drive.google.com/drive/folders/<parent-folder-id>?..."},
     'queue': {
         'type': int,
         'default': 0,

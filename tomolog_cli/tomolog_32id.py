@@ -44,14 +44,13 @@
 # #########################################################################
 
 import os
-# import json
 import uuid
 import pathlib
 import meta
 import h5py
 import numpy as np
-import matplotlib
-matplotlib.use('Agg')  # use non-GUI backend before importing pyplot
+# import matplotlib
+# matplotlib.use('Agg')  # use non-GUI backend before importing pyplot
 import matplotlib.pyplot as plt
 from matplotlib_scalebar.scalebar import ScaleBar
 from mpl_toolkits.axes_grid1 import make_axes_locatable
@@ -95,7 +94,7 @@ class TomoLog32ID(TomoLog):
             "Scan energy: {self.meta[self.energy_key][0]} {self.meta[self.energy_key][1]}")
 
         descr = descr[:-1]
-        self.google.create_textbox_with_bullets(
+        self.google_slide.create_textbox_with_bullets(
             presentation_id, page_id, descr, 240, 120, 0, 18, 8, 0)
 
     def run_log(self):
@@ -258,19 +257,19 @@ class TomoLog32ID(TomoLog):
         log.info('Plotting nanoCT projection')
         self.plot_projection(proj[0], self.file_name_proj0)
         proj_url = self.dbx.upload(self.file_name_proj0)
-        self.google.create_image(
+        self.google_slide.create_image(
             presentation_id, page_id, proj_url, 170, 170, 0, 145)
 
-        self.google.create_textbox_with_text(
+        self.google_slide.create_textbox_with_text(
             presentation_id, page_id, 'Nano-CT projection', 90, 20, 10, 155, 8, 0)
         try:
             log.info('Plotting microCT projection')
             self.plot_projection(proj[1], self.file_name_proj1,scalebar='micro')
             proj_url = self.dbx.upload(self.file_name_proj1)
-            self.google.create_image(
+            self.google_slide.create_image(
                 presentation_id, page_id, proj_url, 170, 170, 0, 270)
 
-            self.google.create_textbox_with_text(
+            self.google_slide.create_textbox_with_text(
                 presentation_id, page_id, 'Micro-CT projection', 90, 20, 10, 280, 8, 0)
         except:
             log.warning('No microCT data available')
@@ -281,11 +280,11 @@ class TomoLog32ID(TomoLog):
             self.plot_recon(recon, self.file_name_recon)
             recon_url = self.dbx.upload(self.file_name_recon)
             rec_line = self.read_rec_line()
-            self.google.create_image(
+            self.google_slide.create_image(
                 presentation_id, page_id, recon_url, 370, 370, 130, 25)
-            self.google.create_textbox_with_text(
+            self.google_slide.create_textbox_with_text(
                 presentation_id, page_id, 'Reconstruction', 90, 20, 270, 0, 10, 0)
-            self.google.create_textbox_with_text(
+            self.google_slide.create_textbox_with_text(
                 presentation_id, page_id, rec_line, 1000, 20, 185, 391, 6, 0)
 
     def plot_projection(self, proj, fname,scalebar='nano'):

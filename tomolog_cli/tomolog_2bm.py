@@ -44,18 +44,15 @@
 # #########################################################################
 
 import os
-# import json
-import uuid
-import pathlib
 import meta
 import h5py
 import numpy as np
-import matplotlib
-matplotlib.use('Agg')  # use non-GUI backend before importing pyplot
+# import matplotlib
+# matplotlib.use('Agg')  # use non-GUI backend before importing pyplot
 import matplotlib.pyplot as plt
+
 from matplotlib_scalebar.scalebar import ScaleBar
 from mpl_toolkits.axes_grid1 import make_axes_locatable
-import meta
 from threading import Thread
 from ast import literal_eval
 
@@ -124,12 +121,11 @@ class TomoLog2BM(TomoLog):
                 descr += "Pitch angle: " + str(pitch_angle) + pitch_angle_units
 
         descr = descr[:-1]
-        self.google.create_textbox_with_bullets(
+        self.google_slide.create_textbox_with_bullets(
             presentation_id, page_id, descr, 240, 120, 0, 18, 8, 0)
 
     def run_log(self):
         # read meta, calculate resolutions
-        #_, self.meta = meta.read_hdf(self.args.file_name, add_shape=True)
         mp = meta.read_meta.Hdf5MetadataReader(self.args.file_name)
         self.meta = mp.readMetadata()
         mp.close()
@@ -276,11 +272,11 @@ class TomoLog2BM(TomoLog):
         self.plot_projection(proj[0], self.file_name_proj0)
         # proj_url = self.dbx.upload(self.file_name_proj0)
         proj_url = self.google_drive.upload_or_update_file(self.file_name_proj0, 'image/jpeg', self.args.parent_folder_id)
-        self.google.create_image(
+        self.google_slide.create_image(
             presentation_id, page_id, proj_url, 120, 120, 30, 180)
             #presentation_id, page_id, proj_url, 170, 170, 0, 145)
 
-        self.google.create_textbox_with_text(
+        self.google_slide.create_textbox_with_text(
             presentation_id, page_id, 'Micro-CT projection', 90, 20, 50, 170, 8, 0)
         try:
             log.info('Plotting frame the IP camera')
@@ -289,10 +285,10 @@ class TomoLog2BM(TomoLog):
             plt.savefig(self.file_name_proj1,dpi=300)
             # proj_url = self.dbx.upload(self.file_name_proj1)
             proj_url = self.google_drive.upload_or_update_file(self.file_name_proj1, 'image/jpeg', self.args.parent_folder_id)
-            self.google.create_image(
+            self.google_slide.create_image(
                 presentation_id, page_id, proj_url, 170, 170, 0, 270)
 
-            self.google.create_textbox_with_text(
+            self.google_slide.create_textbox_with_text(
                 presentation_id, page_id, 'Frame from the IP camera in the hutch', 160, 20, 10, 290, 8, 0)
         except:
             log.warning('No frame from the IP camera')
@@ -304,11 +300,11 @@ class TomoLog2BM(TomoLog):
             # recon_url = self.dbx.upload(self.file_name_recon)
             recon_url = self.google_drive.upload_or_update_file(self.file_name_proj1, 'image/jpeg', self.args.parent_folder_id)
             rec_line = self.read_rec_line()
-            self.google.create_image(
+            self.google_slide.create_image(
                 presentation_id, page_id, recon_url, 470, 400, 230, 5)
-            self.google.create_textbox_with_text(
+            self.google_slide.create_textbox_with_text(
                 presentation_id, page_id, f'Reconstruction                                   Zoom {self.args.zoom}                                         ', 590, 20, 270, -10, 10, 0)
-            self.google.create_textbox_with_text(
+            self.google_slide.create_textbox_with_text(
                 presentation_id, page_id, rec_line, 1000, 20, 185, 391, 6, 0)
 
     def plot_projection(self, proj, fname):

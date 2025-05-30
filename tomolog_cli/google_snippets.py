@@ -44,7 +44,6 @@
 # #########################################################################
 
 import uuid
-import time
 
 from googleapiclient.http import MediaFileUpload
 

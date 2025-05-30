@@ -77,7 +77,7 @@ class TomoLog():
     '''
 
     def __init__(self, args):
-        self.google = auth.google(GOOGLE_TOKEN)
+        self.google_slide = auth.google_slide(GOOGLE_TOKEN)
         self.google_drive = auth.google_drive(GOOGLE_TOKEN)
 
         self.args = args
@@ -126,7 +126,7 @@ class TomoLog():
             "Projection size: {int(self.meta[self.width_key][0])} x {int(self.meta[self.height_key][0])}")
         if (self.args.beamline == "None"):
             descr = descr[:-1]
-            self.google.create_textbox_with_bullets(
+            self.google_slide.create_textbox_with_bullets(
                 presentation_id, page_id, descr, 240, 120, 0, 18, 8, 0)
         
         return descr
@@ -161,11 +161,11 @@ class TomoLog():
             exit()
         # Create a new Google slide
         page_id = str(uuid.uuid4())
-        self.google.create_slide(presentation_id, page_id)
-        self.google.create_textbox_with_text(presentation_id, page_id, os.path.basename(
+        self.google_slide.create_slide(presentation_id, page_id)
+        self.google_slide.create_textbox_with_text(presentation_id, page_id, os.path.basename(
             self.args.file_name)[:-3], 400, 50, 0, 0, 13, 1)
         # publish other labels
-        # self.google.create_textbox_with_text(
+        # self.google_slide.create_textbox_with_text(
             # presentation_id, page_id, 'Other info/screenshots', 120, 20, 480, 0, 10, 0)
         return presentation_id, page_id
 
@@ -239,19 +239,19 @@ class TomoLog():
         log.info('Plotting projection')
         self.plot_projection(proj[0], self.file_name_proj0)
         proj_url = self.google_drive.upload_or_update_file(self.file_name_proj0, 'image/jpeg',  self.args.parent_folder_id)
-        self.google.create_image(
+        self.google_slide.create_image(
             presentation_id, page_id, proj_url, 150, 150, 10, 157)
 
-        self.google.create_textbox_with_text(
+        self.google_slide.create_textbox_with_text(
             presentation_id, page_id, 'Projection', 90, 20, 50, 163, 8, 0)
 
     def publish_recon(self, presentation_id, page_id, recon, resolution=1):
         if len(recon) == 3:
             self.plot_recon(recon, self.file_name_recon)
             recon_url = self.google_drive.upload_or_update_file(self.file_name_recon, 'image/jpeg', self.args.parent_folder_id)
-            self.google.create_image(
+            self.google_slide.create_image(
                 presentation_id, page_id, recon_url, 370, 370, 130, 25)
-            self.google.create_textbox_with_text(
+            self.google_slide.create_textbox_with_text(
                 presentation_id, page_id, 'Reconstruction', 90, 20, 270, 0, 10, 0)
 
     def plot_projection(self, proj, fname):

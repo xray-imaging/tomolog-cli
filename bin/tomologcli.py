@@ -28,8 +28,8 @@ def run_status(args):
 
 def run_log(args):
 
-    log.warning('publication start')
-    log.warning('slide formatting for beamline: %s', args.beamline)
+    log.warning('Publication start')
+    log.warning('Slide formatting for beamline: %s', args.beamline)
     file_path = pathlib.Path(args.file_name)
     if file_path.is_file():
         log.info("publishing a single file: %s" % args.file_name)
