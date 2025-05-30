@@ -47,8 +47,8 @@ import os
 import meta
 import h5py
 import numpy as np
-# import matplotlib
-# matplotlib.use('Agg')  # use non-GUI backend before importing pyplot
+import matplotlib
+matplotlib.use('Agg')  # use non-GUI backend before importing pyplot
 import matplotlib.pyplot as plt
 
 from matplotlib_scalebar.scalebar import ScaleBar
