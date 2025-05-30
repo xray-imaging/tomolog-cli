@@ -44,7 +44,7 @@
 # #########################################################################
 
 import os
-import json
+# import json
 import uuid
 import pathlib
 import h5py
@@ -63,15 +63,12 @@ __copyright__ = "Copyright (c) 2022, UChicago Argonne, LLC."
 __docformat__ = 'restructuredtext en'
 __all__ = ['TomoLog', ]
 
-# tmp files to be created in dropbox
+# tmp files to be created in google drive
 FILE_NAME_PROJ_BASE  = 'projection_google'
 FILE_NAME_RECON_BASE = 'reconstruction_google'
 
-DROPBOX_TOKEN = os.path.join(
-    str(pathlib.Path.home()), 'tokens', 'dropbox_token.json')
 GOOGLE_TOKEN = os.path.join(
     str(pathlib.Path.home()), 'tokens', 'google_token.json')
-
 
 class TomoLog():
     '''
@@ -81,7 +78,8 @@ class TomoLog():
 
     def __init__(self, args):
         self.google = auth.google(GOOGLE_TOKEN)
-        self.dbx = auth.drop_box(DROPBOX_TOKEN)
+        self.google_drive = auth.google_drive(GOOGLE_TOKEN)
+
         self.args = args
 
         self.file_name_proj0 = FILE_NAME_PROJ_BASE + str(args.queue) + '.jpg'
@@ -240,7 +238,7 @@ class TomoLog():
     def publish_proj(self, presentation_id, page_id, proj, resolution=1):
         log.info('Plotting projection')
         self.plot_projection(proj[0], self.file_name_proj0)
-        proj_url = self.dbx.upload(self.file_name_proj0)
+        proj_url = self.google_drive.upload_or_update_file(self.file_name_proj0, 'image/jpeg',  self.args.parent_folder_id)
         self.google.create_image(
             presentation_id, page_id, proj_url, 150, 150, 10, 157)
 
@@ -250,7 +248,7 @@ class TomoLog():
     def publish_recon(self, presentation_id, page_id, recon, resolution=1):
         if len(recon) == 3:
             self.plot_recon(recon, self.file_name_recon)
-            recon_url = self.dbx.upload(self.file_name_recon)
+            recon_url = self.google_drive.upload_or_update_file(self.file_name_recon, 'image/jpeg', self.args.parent_folder_id)
             self.google.create_image(
                 presentation_id, page_id, recon_url, 370, 370, 130, 25)
             self.google.create_textbox_with_text(

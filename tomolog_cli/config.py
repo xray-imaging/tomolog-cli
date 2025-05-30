@@ -187,6 +187,10 @@ SECTIONS['parameters'] = {
         'default': None,
         'type': str,
         'help': "Google presention url"},
+    'parent-folder-id': {
+        'default': None,
+        'type': str,
+        'help': "Google public folder ID"},
     'queue': {
         'type': int,
         'default': 0,

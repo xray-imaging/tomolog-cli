@@ -44,7 +44,7 @@
 # #########################################################################
 
 import os
-import json
+# import json
 import uuid
 import pathlib
 import meta
@@ -274,7 +274,8 @@ class TomoLog2BM(TomoLog):
         log.info('Micro Tomography Instrument')
         log.info('Plotting microCT projection')
         self.plot_projection(proj[0], self.file_name_proj0)
-        proj_url = self.dbx.upload(self.file_name_proj0)
+        # proj_url = self.dbx.upload(self.file_name_proj0)
+        proj_url = self.google_drive.upload_or_update_file(self.file_name_proj0, 'image/jpeg', self.args.parent_folder_id)
         self.google.create_image(
             presentation_id, page_id, proj_url, 120, 120, 30, 180)
             #presentation_id, page_id, proj_url, 170, 170, 0, 145)
@@ -286,7 +287,8 @@ class TomoLog2BM(TomoLog):
             plt.imshow(np.fliplr(proj[1].reshape(-1,3)).reshape(proj[1].shape))
             plt.axis('off')
             plt.savefig(self.file_name_proj1,dpi=300)
-            proj_url = self.dbx.upload(self.file_name_proj1)
+            # proj_url = self.dbx.upload(self.file_name_proj1)
+            proj_url = self.google_drive.upload_or_update_file(self.file_name_proj1, 'image/jpeg', self.args.parent_folder_id)
             self.google.create_image(
                 presentation_id, page_id, proj_url, 170, 170, 0, 270)
 
@@ -299,7 +301,8 @@ class TomoLog2BM(TomoLog):
         if len(recon) == 3:
             # publish reconstructions
             self.plot_recon(recon, self.file_name_recon)
-            recon_url = self.dbx.upload(self.file_name_recon)
+            # recon_url = self.dbx.upload(self.file_name_recon)
+            recon_url = self.google_drive.upload_or_update_file(self.file_name_proj1, 'image/jpeg', self.args.parent_folder_id)
             rec_line = self.read_rec_line()
             self.google.create_image(
                 presentation_id, page_id, recon_url, 470, 400, 230, 5)
