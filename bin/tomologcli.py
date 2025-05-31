@@ -110,9 +110,14 @@ def main():
     args = config.parse_known_args(parser, subparser=True)
 
     # make sure token directory exists
-    token_home = args.token_home
-    if not os.path.exists(token_home):
-        os.makedirs(token_home)
+    try:
+        token_home = args.token_home
+        if not os.path.exists(token_home):
+            os.makedirs(token_home)
+    except AttributeError as e:
+        # log.error(str(e))
+        log.error('Missing command selection. For options run: tomolog -h ')
+        sys.exit(1)
 
     try:
         args._func(args)
