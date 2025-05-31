@@ -12,9 +12,14 @@ and::
     (base)$ conda activate tomolog
     (tomolog)$ 
 
-then install all `requirements <https://github.com/xray-imaging/mosaic/blob/main/requirements.txt>`_ with::
+Requirements
+============
 
-    (tomolog)$ conda install  -c conda-forge python=3.9 google-api-python-client matplotlib dxchange dxfile python-dotenv matplotlib-scalebar
+Install all `required package <https://github.com/xray-imaging/mosaic/blob/main/requirements.txt>`_ with 
+
+::
+
+    (tomolog)$ conda install  -c conda-forge google-api-python-client google-auth-oauthlib matplotlib dxchange dxfile h5py matplotlib-scalebar
 
 
 install meta 
@@ -22,7 +27,7 @@ install meta
 
     (tomolog)$ git clone https://github.com/xray-imaging/meta.git
     (tomolog)$ cd meta
-    (tomolog)$ python setup.py install
+    (tomolog)$ pip install .
 
 
 and install tomolog
@@ -30,13 +35,9 @@ and install tomolog
 
     (tomolog)$ git clone https://github.com/xray-imaging/tomolog-cli.git
     (tomolog)$ cd tomolog
-    (tomolog)$ python setup.py install
+    (tomolog)$ pip install .
 
 
-Requirements
-============
-
-Please install all the packages listed in `requirements file <https://github.com/xray-imaging/tomolog-cli/blob/main/envs/requirements.txt>`_. 
 
 
 Google
