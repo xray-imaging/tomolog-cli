@@ -3,14 +3,13 @@ from setuptools import setup, find_packages
 setup(
     name='tomolog-cli',
     version=open('VERSION').read().strip(),
-    # version=__version__,
     author='Viktor Nikitin',
     author_email='vnikitin@anl.gov',
-    url='https://github.com/nikitivv/tomolog-cli',
-    packages=find_packages(),
-    include_package_data=True,
-    scripts=['bin/tomologcli.py'],
-    entry_points={'console_scripts': ['tomolog = tomologcli:main'], },
+    url='https://github.com/xray-imaging/tomolog-cli',
+
+    package_dir={"": "src"},
+    entry_points={'console_scripts':['tomolog = tomolog_cli.__main__:main'],},
+    packages=find_packages('src'),
     description='cli for loggin data to google slides',
     zip_safe=False,
 )
