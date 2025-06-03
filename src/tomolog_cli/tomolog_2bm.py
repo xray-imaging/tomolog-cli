@@ -295,8 +295,7 @@ class TomoLog2BM(TomoLog):
         if len(recon) == 3:
             # publish reconstructions
             self.plot_recon(recon, self.file_name_recon)
-            # recon_url = self.dbx.upload(self.file_name_recon)
-            recon_url = self.google_drive.upload_or_update_file(self.file_name_proj1, 'image/jpeg', self.args.parent_folder_id)
+            recon_url = self.google_drive.upload_or_update_file(self.file_name_recon, 'image/jpeg', self.args.parent_folder_id)
             rec_line = self.read_rec_line()
             self.google_slide.create_image(
                 presentation_id, page_id, recon_url, 470, 400, 230, 5)
