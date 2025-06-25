@@ -168,14 +168,16 @@ class TomoLog2BM(TomoLog):
         return proj
 
     def read_tiff_part(self,fname,x,y,z_start,z0_start,lchunk):
+        print('!',z0_start,z_start)
         for j in range(z0_start,z0_start+lchunk):
+            print(j)
             id = z_start+j
             zz = utils.read_tiff(f'{fname}_{id:05}.tiff')
             y[j, :] = zz[self.args.idy]
             x[j, :] = zz[:, self.args.idx]
 
     def read_recon(self):
-
+        log.info('Read reconstruction')
         width = int(self.meta[self.width_key][0])
         height = int(self.meta[self.height_key][0])
         binning = int(self.meta[self.binning_key][0])
@@ -216,20 +218,26 @@ class TomoLog2BM(TomoLog):
             z = utils.read_tiff(
                 f'{dirname}_rec/{basename}_rec/{rec_prefix}_{self.args.idz:05}.tiff').copy()
 
-            # read x,y slices by lines
-            y = np.zeros((h, w), dtype='float32')
-            x = np.zeros((h, w), dtype='float32')
+            y = utils.read_tiff(
+                f'{dirname}_rec/{basename}_rec/{rec_prefix}_{self.args.idy:05}.tiff').copy()
 
-            nthreads = 8
-            threads = []
-            lchunk = int(np.ceil((z_end-z_start)/nthreads))
-            lchunk = np.minimum(lchunk, np.int32(z_end-z_start-np.arange(nthreads)*lchunk))  # chunk sizes
-            for k in range(nthreads):
-                read_proc = Thread(target=self.read_tiff_part, args=(f'{dirname}_rec/{basename}_rec/{rec_prefix}', x, y, z_start, k*lchunk[0], lchunk[k]))
-                threads.append(read_proc)
-                read_proc.start()
-            for th in threads:
-                th.join()
+            x = utils.read_tiff(
+                f'{dirname}_rec/{basename}_rec/{rec_prefix}_{self.args.idx:05}.tiff').copy()
+
+            # # read x,y slices by lines
+            # y = np.zeros((h, w), dtype='float32')
+            # x = np.zeros((h, w), dtype='float32')
+
+            # nthreads = 8
+            # threads = []
+            # lchunk = int(np.ceil((z_end-z_start)/nthreads))
+            # lchunk = np.minimum(lchunk, np.int32(z_end-z_start-np.arange(nthreads)*lchunk))  # chunk sizes
+            # for k in range(nthreads):
+            #     read_proc = Thread(target=self.read_tiff_part, args=(f'{dirname}_rec/{basename}_rec/{rec_prefix}', x, y, z_start, k*lchunk[0], lchunk[k]))
+            #     threads.append(read_proc)
+            #     read_proc.start()
+            # for th in threads:
+            #     th.join()
 
             recon = [x, y, z]
 
@@ -330,7 +338,7 @@ class TomoLog2BM(TomoLog):
     def plot_recon(self, recon, fname):
         fig = plt.figure(constrained_layout=True, figsize=(14, 12))
         grid = fig.add_gridspec(3, 3, height_ratios=[1, 1, 1])
-        slices = ['x', 'y', 'z']
+        slices = ['z', 'z', 'z']
         # autoadjust colorbar values according to a histogram
 
         if self.args.min == self.args.max:

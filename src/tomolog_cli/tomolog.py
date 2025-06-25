@@ -77,8 +77,8 @@ class TomoLog():
     '''
 
     def __init__(self, args):
-        self.google_slide = auth.google_slide(GOOGLE_TOKEN)
-        self.google_drive = auth.google_drive(GOOGLE_TOKEN)
+        self.google_slide = auth.google_slide(args, GOOGLE_TOKEN)
+        self.google_drive = auth.google_drive(args, GOOGLE_TOKEN)
 
         self.args = args
 
@@ -145,8 +145,15 @@ class TomoLog():
         
         presentation_id, page_id = self.init_slide()
         self.publish_descr(presentation_id, page_id)
+        #connect to tomodata1
         proj = self.read_raw()
         recon, _ = self.read_recon()
+        np.save('~/proj',proj)
+        np.save('~/recon',recon)
+
+        proj = np.load('~/proj')
+        recon = np.load('~/recon')
+
         self.publish_proj(presentation_id, page_id, proj)
         self.publish_recon(presentation_id, page_id, recon)
 
@@ -185,6 +192,7 @@ class TomoLog():
         return proj
 
     def read_recon(self):
+        log.info('Read reconstruction')
         recon = []
         binning_rec = -1
         try:
@@ -214,17 +222,20 @@ class TomoLog():
             z = utils.read_tiff(
                 f'{dirname}_rec/{basename}_rec/{rec_prefix}_{self.args.idz:05}.tiff').copy()
 
-            # read x,y slices by lines
-            y = np.zeros((h, w), dtype='float32')
-            x = np.zeros((h, w), dtype='float32')
+            # # read x,y slices by lines
+            # y = np.zeros((h, w), dtype='float32')
+            # x = np.zeros((h, w), dtype='float32')
 
-            for j in range(z_start, z_end):
-                zz = utils.read_tiff(
-                    f'{dirname}_rec/{basename}_rec/{rec_prefix}_{j:05}.tiff')
-                y[j-z_start, :] = zz[self.args.idy]
-                x[j-z_start, :] = zz[:, self.args.idx]
+            # for j in range(z_start, z_end):
+            #     zz = utils.read_tiff(
+            #         f'{dirname}_rec/{basename}_rec/{rec_prefix}_{j:05}.tiff')
+            #     y[j-z_start, :] = zz[self.args.idy]
+            #     x[j-z_start, :] = zz[:, self.args.idx]
 
+            x,y = utils.read_tiff_many(f'{dirname}_rec/{basename}_rec/{rec_prefix}_{j:05}.tiff',
+                z_start,z_end,self.args.idx,self.args.idy,self.args.nproc)
             recon = [x, y, z]
+
             log.info('Adding reconstruction')
         except ZeroDivisionError:
             log.error(

@@ -86,3 +86,35 @@ def read_tiff(fname):
 
     return arr
 
+
+def read_tiff_chunk(x,y, fname,idx,idy, k, lchunk):
+    """Read a chunk of data from tiff"""
+    log.info(k,st,end)
+    st = k*lchunk
+    end = min((k+1)*lchunk,rec.shape[0])
+    zz = dxchange.read_tiff_stack(fname,ind=range(st,end))
+    y[st:end, :] = zz[dy]
+    x[st:end, :] = zz[:, idx]
+
+
+def read_tiff_many(fname,z_start,z_end,idx,idy,nproc=8):
+    t = time.time()        
+    d = dxchange.read_tiff(fname)
+    n = d.shape[-1]
+    nz = z_end- z_start
+    
+    # read x,y slices by lines
+    y = np.zeros((nz, n), dtype='float32')
+    x = np.zeros((nz, n), dtype='float32')
+
+    lchunk = int(np.ceil(nz/nproc))
+    procs = []
+    for k in range(nproc):
+        read_proc = threading.Thread(
+            target=read_tiff_chunk, args=(x, y, fname, idx,idy, k, lchunk))
+        procs.append(read_proc)
+        read_proc.start()
+    for proc in procs:
+        proc.join()
+    log.info(time.time()-t)
+    

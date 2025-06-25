@@ -126,6 +126,10 @@ SECTIONS['general'] = {
         'default': False,
         'help': 'When set, the content of the config file is updated using the current params values',
         'action': 'store_true'},
+    'public': {
+        'default': False,
+        'help': 'Set to run tomolog on a public network computer. When not set the assumption is that tomolog is running on a private network',
+        'action': 'store_true'},
     'idx': {
         'type': int,
         'default': -1,
@@ -138,6 +142,10 @@ SECTIONS['general'] = {
         'type': int,
         'default': -1,
         'help': "Id of z slice for reconstruction visualization"},    
+    'nproc': {
+        'type': int,
+        'default': 8,
+        'help': "Number of threads to read tiff"},
     'save-format': {
         'default': 'tiff',
         'type': str,
