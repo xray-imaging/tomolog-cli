@@ -42,35 +42,95 @@
 # ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE         #
 # POSSIBILITY OF SUCH DAMAGE.                                             #
 # #########################################################################
+import re
+import socks
+import socket
+import httplib2
 
 from google.oauth2 import service_account
+from google_auth_httplib2 import AuthorizedHttp
 from googleapiclient.discovery import build
 
 from tomolog_cli import log
 from tomolog_cli import google_snippets
 
-def google_slide(token_fname):
+def google_slide(args, token_fname):
 
     log.info('Establishing connection to google')
-    try:
+    if(args.public):
+        log.info('Running from a public network computer')
+        try:
+            creds = service_account.Credentials.from_service_account_file(token_fname).with_scopes(['https://www.googleapis.com/auth/presentations'])
+            slides = build('slides', 'v1', credentials=creds)
+            snippets = google_snippets.SlidesSnippets(slides, creds)
+            log.info('Connection to google: OK')
+            return snippets
+        except FileNotFoundError:
+            log.error('Google token file not found at %s' % token_fname)
+            exit()
+    else:
+        log.info('Running from a private network computer')
+        # Monkey-patch socket to route through SOCKS5
+        socks.set_default_proxy(socks.SOCKS5, "127.0.0.1", 1080)
+        socket.socket = socks.socksocket
+
+        # Create an httplib2.Http instance with socks-configured socket
+        http = httplib2.Http()
+
         creds = service_account.Credentials.from_service_account_file(token_fname).with_scopes(['https://www.googleapis.com/auth/presentations'])
-        slides = build('slides', 'v1', credentials=creds)
+        authed_http = AuthorizedHttp(creds, http=http)
+        slides = build('slides', 'v1', http=authed_http)
+        try:
+            # Replace 'YOUR_PRESENTATION_ID' with a valid one if available
+            slides.presentations().get(presentationId=extract_presentation_id(args.presentation_url)).execute()
+            log.info("✅ Google Slides API connection verified.")
+        except Exception as e:
+            log.error("❌ Failed to verify Google Slides connection.")
+            log.error(str(e))
+            log.error('Start SSH tunnel from your private machine: ssh -D 1080 user@public.machine.ip -N')
+            return exit()
         snippets = google_snippets.SlidesSnippets(slides, creds)
-        log.info('Connection to google: OK')
         return snippets
-    except FileNotFoundError:
-        log.error('Google token file not found at %s' % token_fname)
-        exit()
 
-def google_drive(token_fname):
+
+def google_drive(args, token_fname):
+
     log.info('Establishing connection to google drive')
-    try:
-        creds = service_account.Credentials.from_service_account_file(token_fname).with_scopes(['https://www.googleapis.com/auth/presentations']).with_scopes(['https://www.googleapis.com/auth/drive'])  # FULL DRIVE SCOPE
-        drive = build('drive', 'v3', credentials=creds)
-        snippets_drive = google_snippets.DriveSnippets(drive, creds)
-        log.info('Connection to google drive: OK')
-        return snippets_drive
-    except Exception as e:
-        log.error('Failed to connect to Google Drive:', e)
-        return None
+    if(args.public):
+        log.info('Running from a public network computer')
+        try:
+            creds = service_account.Credentials.from_service_account_file(token_fname).with_scopes(['https://www.googleapis.com/auth/presentations']).with_scopes(['https://www.googleapis.com/auth/drive'])  # FULL DRIVE SCOPE
+            drive = build('drive', 'v3', credentials=creds)
+            snippets_drive = google_snippets.DriveSnippets(drive, creds)
+            log.info('Connection to google drive: OK')
+            return snippets_drive
+        except Exception as e:
+            log.error('Failed to connect to Google Drive:', e)
+            return exit()
+    else:
+        log.info('Running from a private network computer')
+        # Monkey-patch socket to route through SOCKS5
+        socks.set_default_proxy(socks.SOCKS5, "127.0.0.1", 1080)
+        socket.socket = socks.socksocket
 
+        # Create an httplib2.Http instance with socks-configured socket
+        http = httplib2.Http()
+
+        creds = service_account.Credentials.from_service_account_file(token_fname).with_scopes(['https://www.googleapis.com/auth/presentations']).with_scopes(['https://www.googleapis.com/auth/drive'])  # FULL DRIVE SCOPE
+        # Wrap with google-auth's AuthorizedHttp
+        authed_http = AuthorizedHttp(creds, http=http)
+        drive = build('drive', 'v3', http=authed_http)
+        try:
+            drive.files().list(pageSize=1).execute()
+            log.info("✅ Google Drive API connection verified.")
+        except Exception as e:
+            log.error("❌ Failed to verify Google Drive connection.")
+            log.error(str(e))
+            log.error('Start SSH tunnel from your private machine: ssh -D 1080 user@public.machine.ip -N')
+            return exit()
+        snippets_drive = google_snippets.DriveSnippets(drive, creds)
+        return snippets_drive
+
+def extract_presentation_id(slide_url):
+    match = re.search(r"/presentation/d/([a-zA-Z0-9_-]+)", slide_url)
+    return match.group(1) if match else None
