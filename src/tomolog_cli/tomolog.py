@@ -55,20 +55,20 @@ import meta
 from tomolog_cli import log
 from tomolog_cli import auth
 from tomolog_cli import utils
-
+from tomolog_cli import filebin
 
 __author__ = "Viktor Nikitin,  Francesco De Carlo"
 __copyright__ = "Copyright (c) 2022, UChicago Argonne, LLC."
 __docformat__ = 'restructuredtext en'
 __all__ = ['TomoLog', ]
 
-# tmp local files to be uploaded to the google drive
-FILE_NAME_PROJ_BASE  = 'projection_google'
-FILE_NAME_RECON_BASE = 'reconstruction_google'
+# Temporary local files to be uploaded to the url service. Google API retrieves images by url before publishing on slides
+FILE_NAME_PROJ  = 'projection'
+FILE_NAME_RECON = 'reconstruction'
 
-GOOGLE_TOKEN = os.path.join(
-    str(pathlib.Path.home()), 'tokens', 'google_token.json')
-
+# Credentials of the Google service that will create the slides
+# For details see: https://tomologcli.readthedocs.io/en/latest/source/install.html#google
+GOOGLE_TOKEN = os.path.join(str(pathlib.Path.home()), 'tokens', 'google_token.json')
 
 class TomoLog():
     '''
@@ -78,12 +78,11 @@ class TomoLog():
 
     def __init__(self, args):
         self.google_slide = auth.google_slide(args, GOOGLE_TOKEN)
-        self.google_drive = auth.google_drive(args, GOOGLE_TOKEN)
 
         self.args = args
 
-        self.file_name_proj0 = FILE_NAME_PROJ_BASE + str(args.queue) + '.jpg'
-        self.file_name_recon = FILE_NAME_RECON_BASE + str(args.queue) + '.jpg'
+        self.file_name_proj0 = FILE_NAME_PROJ  + '.jpg'
+        self.file_name_recon = FILE_NAME_RECON + '.jpg'
 
         # add here beamline independent keys
         self.full_file_name_key = '/measurement/sample/file/full_name'
@@ -131,8 +130,20 @@ class TomoLog():
         
         return descr
 
-    def run_log(self):
+    def read_rec_line(self):
+        line = None
+        try:
+            basename = os.path.basename(self.args.file_name)[:-3]
+            dirname = os.path.dirname(self.args.file_name)
+            with open(f'{dirname}_rec/{basename}_rec/rec_line.txt', 'r') as fid:
+                line = fid.readlines()[0]
+        except:
+            log.warning('Skipping the command line for reconstruction')
+            line = ''
+        return line
 
+    def run_log(self):
+        # read meta, calculate resolutions
         mp = meta.read_meta.Hdf5MetadataReader(self.args.file_name)
         self.meta = mp.readMetadata()
         mp.close()
@@ -143,18 +154,15 @@ class TomoLog():
         if self.args.magnification!=-1 and self.args.pixel_size!=-1:
             self.meta[self.resolution_key][0]  = self.args.pixel_size/self.args.magnification
         
+        self.mct_resolution = float(self.meta[self.pixel_size_key][0]) / float(self.meta[self.magnification_key][0].replace("x", ""))
+        if (self.meta[self.sample_in_x_key][0] != 0):
+            log.warning('Sample in x is off center: %s. If the data set is a double FOV run tomolog with the --double-fov option')
+        
         presentation_id, page_id = self.init_slide()
         self.publish_descr(presentation_id, page_id)
-        #connect to tomodata1
         proj = self.read_raw()
-        recon, _ = self.read_recon()
-        np.save('~/proj',proj)
-        np.save('~/recon',recon)
-
-        proj = np.load('~/proj')
-        recon = np.load('~/recon')
-
         self.publish_proj(presentation_id, page_id, proj)
+        recon = self.read_recon()
         self.publish_recon(presentation_id, page_id, recon)
 
     def init_slide(self):
@@ -185,6 +193,7 @@ class TomoLog():
         return str
 
     def read_raw(self):
+        log.info('Reading CT projection')
         proj = []
         with h5py.File(self.args.file_name) as fid:
             data = fid['exchange/data'][0][:]
@@ -249,17 +258,19 @@ class TomoLog():
     def publish_proj(self, presentation_id, page_id, proj, resolution=1):
         log.info('Plotting projection')
         self.plot_projection(proj[0], self.file_name_proj0)
-        proj_url = self.google_drive.upload_or_update_file(self.file_name_proj0, 'image/jpeg',  self.args.parent_folder_id)
+        proj_url = filebin.upload(self.args, self.file_name_proj0)
         self.google_slide.create_image(
             presentation_id, page_id, proj_url, 150, 150, 10, 157)
-
         self.google_slide.create_textbox_with_text(
             presentation_id, page_id, 'Projection', 90, 20, 50, 163, 8, 0)
 
     def publish_recon(self, presentation_id, page_id, recon, resolution=1):
-        if len(recon) == 3:
+       log.info('Plotting recon')
+       if len(recon) == 3:
+            # publish reconstructions
             self.plot_recon(recon, self.file_name_recon)
-            recon_url = self.google_drive.upload_or_update_file(self.file_name_recon, 'image/jpeg', self.args.parent_folder_id)
+            # recon_url = self.google_drive.upload_or_update_file(self.file_name_recon, 'image/jpeg', self.args.parent_folder_id)
+            recon_url = filebin.upload(self.args, self.file_name_recon)
             self.google_slide.create_image(
                 presentation_id, page_id, recon_url, 370, 370, 130, 25)
             self.google_slide.create_textbox_with_text(
