@@ -59,6 +59,7 @@ import meta
 from tomolog_cli import utils
 from tomolog_cli import log
 from tomolog_cli import TomoLog
+from tomolog_cli import filebin
 
 __author__ = "Viktor Nikitin,  Francesco De Carlo"
 __copyright__ = "Copyright (c) 2022, UChicago Argonne, LLC."
@@ -135,6 +136,7 @@ class TomoLog7BM(TomoLog):
         self.publish_recon(presentation_id, page_id, recon)
 
     def read_raw(self):
+        log.info('Reading CT projection')
         proj = []
         with h5py.File(self.args.file_name) as fid:
             if self.double_fov == True:
@@ -145,12 +147,6 @@ class TomoLog7BM(TomoLog):
             else:
                 data = fid['exchange/data'][0][:]
             proj.append(data)
-            log.info('Reading CT projection')
-            try:
-                proj.append(fid['exchange/web_camera_frame'][:])
-                log.info('Reading camera frame')
-            except:
-                pass
         return proj
 
     def read_recon(self):
@@ -219,48 +215,23 @@ class TomoLog7BM(TomoLog):
 
         return recon
 
-    def read_rec_line(self):
-        line = None
-        try:
-            basename = os.path.basename(self.args.file_name)[:-3]
-            dirname = os.path.dirname(self.args.file_name)
-            with open(f'{dirname}_rec/{basename}_rec/rec_line.txt', 'r') as fid:
-                line = fid.readlines()[0]
-        except:
-            log.warning('Skipping the command line for reconstruction')
-            line = ''
-        return line
-
     def publish_proj(self, presentation_id, page_id, proj):
-        # 32-id datasets may include both nanoCT and microCT data as proj[0] and proj[1] respectively
+        # 7-bm datasets include only microCT data
         log.info('Micro Tomography Instrument')
         log.info('Plotting microCT projection')
         self.plot_projection(proj[0], self.file_name_proj0)
-        proj_url = self.google_drive.upload_or_update_file(self.file_name_proj0, 'image/jpeg',  self.args.parent_folder_id)
+        proj_url = filebin.upload(self.args, self.file_name_proj0)
         self.google_slide.create_image(
             presentation_id, page_id, proj_url, 170, 170, 0, 145)
 
         self.google_slide.create_textbox_with_text(
             presentation_id, page_id, 'Micro-CT projection', 90, 20, 50, 190, 8, 0)
-        try:
-            log.info('Plotting frame the IP camera')
-            plt.imshow(np.fliplr(proj[1].reshape(-1,3)).reshape(proj[1].shape))
-            plt.axis('off')
-            plt.savefig(self.file_name_proj1,dpi=300)
-            proj_url = self.google_drive.upload_or_update_file(self.file_name_proj1, 'image/jpeg',  self.args.parent_folder_id)
-            self.google_slide.create_image(
-                presentation_id, page_id, proj_url, 170, 170, 0, 270)
-
-            self.google_slide.create_textbox_with_text(
-                presentation_id, page_id, 'Frame from the IP camera in the hutch', 160, 20, 10, 290, 8, 0)
-        except:
-            log.warning('No frame from the IP camera')
 
     def publish_recon(self, presentation_id, page_id, recon):
         if len(recon) == 3:
             # publish reconstructions
             self.plot_recon(recon, self.file_name_recon)
-            recon_url = self.google_drive.upload_or_update_file(self.file_name_recon, 'image/jpeg', self.args.parent_folder_id)
+            recon_url = filebin.upload(self.args, self.file_name_recon)
             rec_line = self.read_rec_line()
             self.google_slide.create_image(
                 presentation_id, page_id, recon_url, 370, 370, 130, 25)

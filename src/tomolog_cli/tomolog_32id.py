@@ -58,6 +58,7 @@ from mpl_toolkits.axes_grid1 import make_axes_locatable
 from tomolog_cli import utils
 from tomolog_cli import log
 from tomolog_cli import TomoLog
+from tomolog_cli import filebin
 
 __author__ = "Viktor Nikitin,  Francesco De Carlo"
 __copyright__ = "Copyright (c) 2022, UChicago Argonne, LLC."
@@ -137,7 +138,7 @@ class TomoLog32ID(TomoLog):
         return proj
 
     def read_recon(self):
-        
+        log.info('Read reconstruction')
         width = int(self.meta[self.width_key][0])  # temp
         height = int(self.meta[self.height_key][0])
         recon = []
@@ -234,29 +235,12 @@ class TomoLog32ID(TomoLog):
 
         return recon
 
-    def read_rec_line(self):
-        try:
-            if self.args.save_format == 'h5':
-                fname  = os.path.dirname(self.args.file_name)+'_rec/'+os.path.basename(self.args.file_name)[:-3]+'_rec.h5'
-                with h5py.File(fname,'r') as fid:
-                    line = fid.attrs['rec_line'].decode("utf-8")
-            else:
-            
-                basename = os.path.basename(self.args.file_name)[:-3]
-                dirname = os.path.dirname(self.args.file_name)
-                with open(f'{dirname}_rec/{basename}_rec/rec_line.txt', 'r') as fid:
-                    line = fid.readlines()[0]
-        except:
-            log.warning('Skipping the command line for reconstruction')
-            line = ' '
-        return line
-
     def publish_proj(self, presentation_id, page_id, proj):
         # 32-id datasets may include both nanoCT and microCT data as proj[0] and proj[1] respectively
         log.info('Transmission X-Ray Microscope Instrument')
         log.info('Plotting nanoCT projection')
         self.plot_projection(proj[0], self.file_name_proj0)
-        proj_url = self.google_drive.upload_or_update_file(self.file_name_proj0, 'image/jpeg',  self.args.parent_folder_id)
+        proj_url = filebin.upload(self.args, self.file_name_proj0)
         self.google_slide.create_image(
             presentation_id, page_id, proj_url, 170, 170, 0, 145)
 
@@ -265,7 +249,7 @@ class TomoLog32ID(TomoLog):
         try:
             log.info('Plotting microCT projection')
             self.plot_projection(proj[1], self.file_name_proj1,scalebar='micro')
-            proj_url = self.google_drive.upload_or_update_file(self.file_name_proj1, 'image/jpeg',  self.args.parent_folder_id)
+            proj_url = filebin.upload(self.args, self.file_name_proj1)
             self.google_slide.create_image(
                 presentation_id, page_id, proj_url, 170, 170, 0, 270)
 
@@ -278,7 +262,7 @@ class TomoLog32ID(TomoLog):
         if len(recon) == 3:
             # publish reconstructions
             self.plot_recon(recon, self.file_name_recon)
-            recon_url = self.google_drive.upload_or_update_file(self.file_name_recon, 'image/jpeg', self.args.parent_folder_id)
+            recon_url = filebin.upload(self.args, self.file_name_recon)
             rec_line = self.read_rec_line()
             self.google_slide.create_image(
                 presentation_id, page_id, recon_url, 370, 370, 130, 25)
