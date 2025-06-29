@@ -79,9 +79,8 @@ class TomoLog2BM(TomoLog):
 
     def __init__(self, args):
         super().__init__(args)
-        # add here beamline dependent keys
+        # add here beamline specific keys
         self.energy_key               = '/measurement/instrument/monochromator/energy'
-        self.sample_in_x_key          = '/process/acquisition/flat_fields/sample/in_x'
         self.sample_y_key             = '/measurement/instrument/sample_motor_stack/setup/y'
         self.sample_pitch_angle_key   = '/measurement/instrument/sample_motor_stack/setup/pitch'
         self.propogation_distance_key = '/measurement/instrument/detector_motor_stack/setup/z'
@@ -98,7 +97,7 @@ class TomoLog2BM(TomoLog):
     def publish_descr(self, presentation_id, page_id):
         descr = super().publish_descr(presentation_id, page_id)
         
-        # add here beamline dependent bullets
+        # add here beamline specific bullets
         descr += self.read_meta_item(
             "Scan energy: {self.meta[self.energy_key][0]} {self.meta[self.energy_key][1]}")
         descr += self.read_meta_item(
@@ -128,7 +127,7 @@ class TomoLog2BM(TomoLog):
             presentation_id, page_id, descr, 240, 120, 0, 18, 8, 0)
 
     def read_raw(self):
-        log.info('Reading CT projection')
+        log.info('Reading microCT projection')
         proj = []
         with h5py.File(self.args.file_name) as fid:
             if self.double_fov == True:
@@ -243,65 +242,8 @@ class TomoLog2BM(TomoLog):
         
         return recon
 
-    def publish_proj(self, presentation_id, page_id, proj):
-        # 2-BM datasets may include both microCT data and a web camera image
-        log.info('Plotting microCT projection')
-        self.plot_projection(proj[0], self.file_name_proj0)
-        proj_url = filebin.upload(self.args, self.file_name_proj0)
-        self.google_slide.create_image(
-            presentation_id, page_id, proj_url, 120, 120, 30, 180)
-
-        self.google_slide.create_textbox_with_text(
-            presentation_id, page_id, 'Micro-CT projection', 90, 20, 50, 170, 8, 0)
-        try:
-            log.info('Plotting web camera image')
-            plt.imshow(np.fliplr(proj[1].reshape(-1,3)).reshape(proj[1].shape))
-            plt.axis('off')
-            plt.savefig(self.file_name_webcam,dpi=300)
-            proj_url = filebin.upload(self.args, self.file_name_webcam)
-            self.google_slide.create_image(
-                presentation_id, page_id, proj_url, 170, 170, 0, 270)
-
-            self.google_slide.create_textbox_with_text(
-                presentation_id, page_id, 'Frame from the IP camera in the hutch', 160, 20, 10, 290, 8, 0)
-        except:
-            log.warning('No frame from the IP camera')
-
-    def publish_recon(self, presentation_id, page_id, recon):
-        log.info('Plotting recon')
-        if len(recon) == 3:
-            # publish reconstructions
-            self.plot_recon(recon, self.file_name_recon)
-            recon_url = filebin.upload(self.args, self.file_name_recon)
-            rec_line = self.read_rec_line()
-            self.google_slide.create_image(
-                presentation_id, page_id, recon_url, 470, 400, 230, 5)
-            self.google_slide.create_textbox_with_text(
-                presentation_id, page_id, f'Reconstruction                                   Zoom {self.args.zoom}                                         ', 590, 20, 270, -10, 10, 0)
-            self.google_slide.create_textbox_with_text(
-                presentation_id, page_id, rec_line, 1000, 20, 185, 391, 6, 0)
-
-    def plot_projection(self, proj, fname):
-        # auto-adjust colorbar values according to a histogram
-        mmin, mmax = utils.find_min_max(proj)
-        proj[proj > mmax] = mmax
-        proj[proj < mmin] = mmin
-
-        # plot
-        fig = plt.figure(constrained_layout=True, figsize=(6, 4))
-        ax = fig.add_subplot()
-        im = ax.imshow(proj, cmap='gray')
-        # Create scale bar
-        scalebar = ScaleBar(self.mct_resolution, "um", length_fraction=0.25)
-        ax.add_artist(scalebar)
-        divider = make_axes_locatable(ax)
-        cax = divider.append_axes("right", size="5%", pad=0.1)
-        plt.colorbar(im, cax=cax, format='%.1e')
-        plt.savefig(fname, bbox_inches='tight', pad_inches=0, dpi=300)
-        plt.cla()
-        plt.close(fig)
-
     def plot_recon(self, recon, fname):
+        log.info('Plot reconstruction')
         fig = plt.figure(constrained_layout=True, figsize=(14, 12))
         grid = fig.add_gridspec(3, 3, height_ratios=[1, 1, 1])
         slices = ['x', 'y', 'z']
@@ -343,3 +285,44 @@ class TomoLog2BM(TomoLog):
         plt.savefig(fname, bbox_inches='tight', pad_inches=0, dpi=150)
         plt.cla()
         plt.close(fig)
+
+    def publish_proj(self, presentation_id, page_id, proj):
+        # 2-BM datasets may include both microCT data and a web camera image
+        self.plot_projection(proj[0], self.file_name_proj0)
+        proj_url = filebin.upload(self.args, self.file_name_proj0)
+        log.info('Publish microCT projection')
+        self.google_slide.create_image(
+            presentation_id, page_id, proj_url, 120, 120, 30, 180)
+
+        self.google_slide.create_textbox_with_text(
+            presentation_id, page_id, 'Micro-CT projection', 90, 20, 50, 170, 8, 0)
+        try:
+            log.info('Plotting web camera image')
+            plt.imshow(np.fliplr(proj[1].reshape(-1,3)).reshape(proj[1].shape))
+            plt.axis('off')
+            plt.savefig(self.file_name_webcam,dpi=300)
+            proj_url = filebin.upload(self.args, self.file_name_webcam)
+            log.info('Publish web camera image')
+            self.google_slide.create_image(
+                presentation_id, page_id, proj_url, 170, 170, 0, 270)
+
+            self.google_slide.create_textbox_with_text(
+                presentation_id, page_id, 'Frame from the IP camera in the hutch', 160, 20, 10, 290, 8, 0)
+        except:
+            log.warning('No frame from the IP camera')
+
+    def publish_recon(self, presentation_id, page_id, recon):
+        if len(recon) == 3:
+            # publish reconstructions
+            self.plot_recon(recon, self.file_name_recon)
+            recon_url = filebin.upload(self.args, self.file_name_recon)
+            log.info('Publish reconstruction')
+            self.google_slide.create_image(
+                presentation_id, page_id, recon_url, 470, 400, 230, 5)
+            self.google_slide.create_textbox_with_text(
+                presentation_id, page_id, f'Reconstruction                                   Zoom {self.args.zoom}                                         ', 590, 20, 270, -10, 10, 0)
+
+            rec_line = self.read_rec_line()
+            self.google_slide.create_textbox_with_text(
+                presentation_id, page_id, rec_line, 1000, 20, 185, 391, 6, 0)
+

@@ -66,8 +66,6 @@ __copyright__ = "Copyright (c) 2022, UChicago Argonne, LLC."
 __docformat__ = 'restructuredtext en'
 __all__ = ['TomoLog7BM', ]
 
-FILE_NAME_PROJ1 = 'projection_google1.jpg'
-
 
 class TomoLog7BM(TomoLog):
     '''
@@ -78,7 +76,6 @@ class TomoLog7BM(TomoLog):
     def __init__(self, args):
         super().__init__(args)
         # add here beamline dependent keys
-        self.sample_in_x_key          = '/process/acquisition/flat_fields/sample/in_x'
         self.sample_y_key             = '/measurement/instrument/sample_motor_stack/setup/y'
         self.attenuator_1_description = '/measurement/instrument/attenuator_1/description' 
         self.attenuator_1_name        = '/measurement/instrument/attenuator_1/name' 
@@ -90,12 +87,11 @@ class TomoLog7BM(TomoLog):
         self.binning_rec = -1
         self.mct_resolution = -1
         self.double_fov = False
-        self.file_name_proj1 = FILE_NAME_PROJ1
 
     def publish_descr(self, presentation_id, page_id):
         descr = super().publish_descr(presentation_id, page_id)
         
-        # add here beamline dependent bullets
+        # add here beamline specific bullets
         descr += self.read_meta_item(
             "Attenuator 1: {self.meta[self.attenuator_1_name][0]} {self.meta[self.attenuator_1_thickness][0]}")
         descr += self.read_meta_item(
@@ -111,32 +107,8 @@ class TomoLog7BM(TomoLog):
         self.google_slide.create_textbox_with_bullets(
             presentation_id, page_id, descr, 240, 120, 0, 18, 8, 0)
 
-    def run_log(self):
-        # read meta, calculate resolutions
-        mp = meta.read_meta.Hdf5MetadataReader(self.args.file_name)
-        self.meta = mp.readMetadata()
-        mp.close()
-        if self.args.pixel_size!=-1:
-            self.meta[self.pixel_size_key][0]  = self.args.pixel_size
-        if self.args.magnification!=-1:
-            self.meta[self.magnification_key][0]  = f'{self.args.magnification}x'
-        if self.args.magnification!=-1 and self.args.pixel_size!=-1:
-            self.meta[self.resolution_key][0]  = self.args.pixel_size/self.args.magnification
-        self.mct_resolution = float(self.meta[self.pixel_size_key][0]) / float(self.meta[self.magnification_key][0].replace("x", ""))
-        if (self.meta[self.sample_in_x_key][0] != 0):
-            self.double_fov = True
-            log.warning('Sample in x is off center: %s. Handling the data set as a double FOV' %
-                        self.meta[self.sample_in_x_key][0])
-        
-        presentation_id, page_id = self.init_slide()
-        self.publish_descr(presentation_id, page_id)
-        proj = self.read_raw()
-        recon = self.read_recon()
-        self.publish_proj(presentation_id, page_id, proj)
-        self.publish_recon(presentation_id, page_id, recon)
-
     def read_raw(self):
-        log.info('Reading CT projection')
+        log.info('Reading microCT projection')
         proj = []
         with h5py.File(self.args.file_name) as fid:
             if self.double_fov == True:
@@ -150,7 +122,7 @@ class TomoLog7BM(TomoLog):
         return proj
 
     def read_recon(self):
-
+        log.info('Read reconstruction')
         width = int(self.meta[self.width_key][0])
         height = int(self.meta[self.height_key][0])
         binning = int(self.meta[self.binning_key][0])
@@ -215,10 +187,53 @@ class TomoLog7BM(TomoLog):
 
         return recon
 
+    def plot_recon(self, recon, fname):
+        log.info('Plot reconstruction')
+        fig = plt.figure(constrained_layout=True, figsize=(14, 12))
+        grid = fig.add_gridspec(3, 3, height_ratios=[1, 1, 1])
+        slices = ['x', 'y', 'z']
+        # autoadjust colorbar values according to a histogram
+
+        if self.args.min == self.args.max:
+            self.args.min, self.args.max = utils.find_min_max(
+                np.concatenate(recon))
+
+        sl = [self.args.idx, self.args.idy, self.args.idz]
+        tmp = literal_eval(self.args.zoom)
+        if not isinstance(tmp,list):
+            tmp = [tmp]
+        
+        zooms = tmp
+        log.info('Zooms selected %s' % zooms)
+        for j in range(3):
+            for k in range(3):
+                [s0,s1] = recon[k].shape
+                recon0 = recon[k][s0//2-s0//2//zooms[j]:s0//2+s0//2//zooms[j],s1//2-s1//2//zooms[j]:s1//2+s1//2//zooms[j]]
+                
+                recon0[0, 0] = self.args.max
+                recon0[0, 1] = self.args.min
+                recon0[recon0 > self.args.max] = self.args.max
+                recon0[recon0 < self.args.min] = self.args.min
+                ax = fig.add_subplot(grid[3*k+j])
+                im = ax.imshow(recon0, cmap='gray')
+                # Create scale bar
+                scalebar = ScaleBar(self.mct_resolution *
+                                    self.binning_rec, "um", length_fraction=0.25)
+                ax.add_artist(scalebar)
+                divider = make_axes_locatable(ax)
+                cax = divider.append_axes("right", size="5%", pad=0.1)
+                cb = plt.colorbar(im, cax=cax)
+                if j<2:
+                    cb.remove()
+                if j==0:
+                    ax.set_ylabel(f'slice {slices[k]}={sl[k]}', fontsize=18)
+        plt.savefig(fname, bbox_inches='tight', pad_inches=0, dpi=150)
+        plt.cla()
+        plt.close(fig)
+
     def publish_proj(self, presentation_id, page_id, proj):
         # 7-bm datasets include only microCT data
-        log.info('Micro Tomography Instrument')
-        log.info('Plotting microCT projection')
+        log.info('Publish microCT projection')
         self.plot_projection(proj[0], self.file_name_proj0)
         proj_url = filebin.upload(self.args, self.file_name_proj0)
         self.google_slide.create_image(
@@ -228,6 +243,7 @@ class TomoLog7BM(TomoLog):
             presentation_id, page_id, 'Micro-CT projection', 90, 20, 50, 190, 8, 0)
 
     def publish_recon(self, presentation_id, page_id, recon):
+        log.info('Publish reconstruction')
         if len(recon) == 3:
             # publish reconstructions
             self.plot_recon(recon, self.file_name_recon)
@@ -239,57 +255,3 @@ class TomoLog7BM(TomoLog):
                 presentation_id, page_id, 'Reconstruction', 90, 20, 270, 0, 10, 0)
             self.google_slide.create_textbox_with_text(
                 presentation_id, page_id, rec_line, 1000, 20, 185, 391, 6, 0)
-
-    def plot_projection(self, proj, fname):
-
-        # auto-adjust colorbar values according to a histogram
-        mmin, mmax = utils.find_min_max(proj)
-        proj[proj > mmax] = mmax
-        proj[proj < mmin] = mmin
-
-        # plot
-        fig = plt.figure(constrained_layout=True, figsize=(6, 4))
-        ax = fig.add_subplot()
-        im = ax.imshow(proj, cmap='gray')
-        # Create scale bar
-        scalebar = ScaleBar(self.mct_resolution, "um", length_fraction=0.25)
-        ax.add_artist(scalebar)
-        divider = make_axes_locatable(ax)
-        cax = divider.append_axes("right", size="5%", pad=0.1)
-        plt.colorbar(im, cax=cax, format='%.1e')
-        # plt.show()
-        # save
-        plt.savefig(fname, bbox_inches='tight', pad_inches=0, dpi=300)
-        plt.cla()
-        plt.close(fig)
-
-    def plot_recon(self, recon, fname):
-        fig = plt.figure(constrained_layout=True, figsize=(6, 12))
-        grid = fig.add_gridspec(3, 1, height_ratios=[1, 1, 1])
-        slices = ['x', 'y', 'z']
-        # autoadjust colorbar values according to a histogram
-
-        if self.args.min == self.args.max:
-            self.args.min, self.args.max = utils.find_min_max(
-                np.concatenate(recon))
-
-        sl = [self.args.idx, self.args.idy, self.args.idz]
-        for k in range(3):
-            recon[k][0, 0] = self.args.max
-            recon[k][0, 1] = self.args.min
-            recon[k][recon[k] > self.args.max] = self.args.max
-            recon[k][recon[k] < self.args.min] = self.args.min
-            ax = fig.add_subplot(grid[k])
-            im = ax.imshow(recon[k], cmap='gray')
-            # Create scale bar
-            scalebar = ScaleBar(self.mct_resolution *
-                                self.binning_rec, "um", length_fraction=0.25)
-            ax.add_artist(scalebar)
-            divider = make_axes_locatable(ax)
-            cax = divider.append_axes("right", size="5%", pad=0.1)
-            plt.colorbar(im, cax=cax, format='%.1e')
-            ax.set_ylabel(f'slice {slices[k]}={sl[k]}', fontsize=14)
-        # save
-        plt.savefig(fname, bbox_inches='tight', pad_inches=0, dpi=300)
-        plt.cla()
-        plt.close(fig)

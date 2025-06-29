@@ -49,6 +49,8 @@ import pathlib
 import h5py
 import matplotlib.pyplot as plt
 import numpy as np
+
+from matplotlib_scalebar.scalebar import ScaleBar
 from mpl_toolkits.axes_grid1 import make_axes_locatable
 import meta
 
@@ -87,18 +89,19 @@ class TomoLog():
         # add here beamline independent keys
         self.full_file_name_key = '/measurement/sample/file/full_name'
         self.beamline_key       = '/measurement/instrument/source/beamline'
-        self.date_key           = '/process/acquisition/start_date'
         self.exposure_time_key  = '/measurement/instrument/detector/exposure_time'
         self.pixel_size_key     = '/measurement/instrument/detector/pixel_size'
         self.magnification_key  = '/measurement/instrument/detection_system/objective/magnification'
         self.resolution_key     = '/measurement/instrument/detection_system/objective/resolution'
-        self.angle_step_key     = '/process/acquisition/rotation/step'
-        self.num_angle_key      = '/process/acquisition/rotation/num_angles'
-        self.rotation_start_key = '/process/acquisition/rotation/start'
         self.width_key          = '/measurement/instrument/detector/array_size_x'
         self.height_key         = '/measurement/instrument/detector/array_size_y'
         self.binning_key        = '/measurement/instrument/detector/binning_x'
         self.instrument_key     = '/measurement/instrument/name'
+        self.sample_in_x_key    = '/process/acquisition/flat_fields/sample/in_x'
+        self.angle_step_key     = '/process/acquisition/rotation/step'
+        self.num_angle_key      = '/process/acquisition/rotation/num_angles'
+        self.rotation_start_key = '/process/acquisition/rotation/start'
+        self.date_key           = '/process/acquisition/start_date'
 
     def publish_descr(self, presentation_id, page_id):
         # add here beamline independent bullets
@@ -133,6 +136,7 @@ class TomoLog():
     def read_rec_line(self):
         line = None
         try:
+            log.info('Publish reconstruction command line')
             basename = os.path.basename(self.args.file_name)[:-3]
             dirname = os.path.dirname(self.args.file_name)
             with open(f'{dirname}_rec/{basename}_rec/rec_line.txt', 'r') as fid:
@@ -147,6 +151,13 @@ class TomoLog():
         mp = meta.read_meta.Hdf5MetadataReader(self.args.file_name)
         self.meta = mp.readMetadata()
         mp.close()
+
+        if (self.meta[self.sample_in_x_key][0] != 0):
+            self.double_fov = True
+            log.warning('Sample in x is off center: %s. Handling the data set as a double FOV' %
+                        self.meta[self.sample_in_x_key][0])
+
+        # Option to overwrite the values of the pixel size and resolution stored h5 if missing or incorrect
         if self.args.pixel_size!=-1:
             self.meta[self.pixel_size_key][0]  = self.args.pixel_size
         if self.args.magnification!=-1:
@@ -155,8 +166,7 @@ class TomoLog():
             self.meta[self.resolution_key][0]  = self.args.pixel_size/self.args.magnification
         
         self.mct_resolution = float(self.meta[self.pixel_size_key][0]) / float(self.meta[self.magnification_key][0].replace("x", ""))
-        if (self.meta[self.sample_in_x_key][0] != 0):
-            log.warning('Sample in x is off center: %s. If the data set is a double FOV run tomolog with the --double-fov option')
+
         
         presentation_id, page_id = self.init_slide()
         self.publish_descr(presentation_id, page_id)
@@ -179,9 +189,7 @@ class TomoLog():
         self.google_slide.create_slide(presentation_id, page_id)
         self.google_slide.create_textbox_with_text(presentation_id, page_id, os.path.basename(
             self.args.file_name)[:-3], 400, 50, 0, 0, 13, 1)
-        # publish other labels
-        # self.google_slide.create_textbox_with_text(
-            # presentation_id, page_id, 'Other info/screenshots', 120, 20, 480, 0, 10, 0)
+
         return presentation_id, page_id
 
     def read_meta_item(self, template):
@@ -219,7 +227,7 @@ class TomoLog():
             # take size
             tmp = utils.read_tiff(fname_tmp).copy()
 
-            w = tmp.shape[0]
+            # w = tmp.shape[0]
             h = height
             if self.args.idz == -1:
                 self.args.idz = int(h//2)
@@ -241,9 +249,9 @@ class TomoLog():
             #     y[j-z_start, :] = zz[self.args.idy]
             #     x[j-z_start, :] = zz[:, self.args.idx]
 
-            x,y = utils.read_tiff_many(f'{dirname}_rec/{basename}_rec/{rec_prefix}_{j:05}.tiff',
-                z_start,z_end,self.args.idx,self.args.idy,self.args.nproc)
-            recon = [x, y, z]
+            # x,y = utils.read_tiff_many(f'{dirname}_rec/{basename}_rec/{rec_prefix}_{j:05}.tiff',
+            #     z_start,z_end,self.args.idx,self.args.idy,self.args.nproc)
+            recon = [z, z, z]
 
             log.info('Adding reconstruction')
         except ZeroDivisionError:
@@ -255,28 +263,8 @@ class TomoLog():
 
         return recon, binning_rec
 
-    def publish_proj(self, presentation_id, page_id, proj, resolution=1):
-        log.info('Plotting projection')
-        self.plot_projection(proj[0], self.file_name_proj0)
-        proj_url = filebin.upload(self.args, self.file_name_proj0)
-        self.google_slide.create_image(
-            presentation_id, page_id, proj_url, 150, 150, 10, 157)
-        self.google_slide.create_textbox_with_text(
-            presentation_id, page_id, 'Projection', 90, 20, 50, 163, 8, 0)
-
-    def publish_recon(self, presentation_id, page_id, recon, resolution=1):
-       log.info('Plotting recon')
-       if len(recon) == 3:
-            # publish reconstructions
-            self.plot_recon(recon, self.file_name_recon)
-            # recon_url = self.google_drive.upload_or_update_file(self.file_name_recon, 'image/jpeg', self.args.parent_folder_id)
-            recon_url = filebin.upload(self.args, self.file_name_recon)
-            self.google_slide.create_image(
-                presentation_id, page_id, recon_url, 370, 370, 130, 25)
-            self.google_slide.create_textbox_with_text(
-                presentation_id, page_id, 'Reconstruction', 90, 20, 270, 0, 10, 0)
-
     def plot_projection(self, proj, fname):
+        log.info('Plot microCT projection')
         # auto-adjust colorbar values according to a histogram
         mmin, mmax = utils.find_min_max(proj)
         proj[proj > mmax] = mmax
@@ -286,14 +274,18 @@ class TomoLog():
         fig = plt.figure(constrained_layout=True, figsize=(6, 4))
         ax = fig.add_subplot()
         im = ax.imshow(proj, cmap='gray')
+        # Create scale bar
+        scalebar = ScaleBar(self.mct_resolution, "um", length_fraction=0.25)
+        ax.add_artist(scalebar)
         divider = make_axes_locatable(ax)
         cax = divider.append_axes("right", size="5%", pad=0.1)
-        plt.colorbar(im, cax=cax)
+        plt.colorbar(im, cax=cax, format='%.1e')
         plt.savefig(fname, bbox_inches='tight', pad_inches=0, dpi=300)
         plt.cla()
         plt.close(fig)
 
     def plot_recon(self, recon, fname):
+        log.info('Plot reconstruction')
         fig = plt.figure(constrained_layout=True, figsize=(6, 12))
         grid = fig.add_gridspec(3, 1, height_ratios=[1, 1, 1])
         slices = ['x', 'y', 'z']
@@ -318,3 +310,24 @@ class TomoLog():
         plt.savefig(fname, bbox_inches='tight', pad_inches=0, dpi=300)
         plt.cla()
         plt.close(fig)
+
+    def publish_proj(self, presentation_id, page_id, proj, resolution=1):
+        self.plot_projection(proj[0], self.file_name_proj0)
+        proj_url = filebin.upload(self.args, self.file_name_proj0)
+        log.info('Publish projection')
+        self.google_slide.create_image(
+            presentation_id, page_id, proj_url, 150, 150, 10, 157)
+        self.google_slide.create_textbox_with_text(
+            presentation_id, page_id, 'Projection', 90, 20, 50, 163, 8, 0)
+
+    def publish_recon(self, presentation_id, page_id, recon, resolution=1):
+       if len(recon) == 3:
+            # publish reconstructions
+            self.plot_recon(recon, self.file_name_recon)
+            recon_url = filebin.upload(self.args, self.file_name_recon)
+            log.info('Publish reconstruction')
+            self.google_slide.create_image(
+                presentation_id, page_id, recon_url, 370, 370, 130, 25)
+            self.google_slide.create_textbox_with_text(
+                presentation_id, page_id, 'Reconstruction', 90, 20, 270, 0, 10, 0)
+
