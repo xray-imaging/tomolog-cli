@@ -52,6 +52,8 @@ import numpy as np
 
 from matplotlib_scalebar.scalebar import ScaleBar
 from mpl_toolkits.axes_grid1 import make_axes_locatable
+from threading import Thread
+
 import meta
 
 from tomolog_cli import log
@@ -152,9 +154,13 @@ class TomoLog():
         self.meta = mp.readMetadata()
         mp.close()
 
-        if (self.meta[self.sample_in_x_key][0] != 0):
+        if (self.meta[self.sample_in_x_key][0] != 0) and self.args.beamline == '2-bm':
             self.double_fov = True
             log.warning('Sample in x is off center: %s. Handling the data set as a double FOV' %
+                        self.meta[self.sample_in_x_key][0])
+
+        if (self.meta[self.sample_in_x_key][0] != 0) and self.args.beamline == '7-bm':
+            log.warning('Sample in x is off center: %s. Assume rotation axis was not zeroed' %
                         self.meta[self.sample_in_x_key][0])
 
         # Option to overwrite the values of the pixel size and resolution stored h5 if missing or incorrect
@@ -210,58 +216,98 @@ class TomoLog():
 
     def read_recon(self):
         log.info('Read reconstruction')
+        width = int(self.meta[self.width_key][0])
+        height = int(self.meta[self.height_key][0])
+        binning = int(self.meta[self.binning_key][0])
         recon = []
-        binning_rec = -1
-        try:
-            basename = os.path.basename(self.args.file_name)[:-3]
-            dirname = os.path.dirname(self.args.file_name)
-            # set the correct prefix to find the reconstructions
-            rec_prefix = 'recon'
-            top = os.path.join(dirname+'_rec', basename+'_rec')
-            tiff_file_list = sorted(
-                list(filter(lambda x: x.endswith(('.tif', '.tiff')), os.listdir(top))))
-            z_start = int(tiff_file_list[0].split('.')[0].split('_')[1])
-            z_end = int(tiff_file_list[-1].split('.')[0].split('_')[1]) + 1
-            height = z_end-z_start
-            fname_tmp = os.path.join(top, tiff_file_list[0])
-            # take size
-            tmp = utils.read_tiff(fname_tmp).copy()
 
-            # w = tmp.shape[0]
-            h = height
-            if self.args.idz == -1:
-                self.args.idz = int(h//2)
-            if self.args.idy == -1:
-                self.args.idy = int(w//2)
-            if self.args.idx == -1:
-                self.args.idx = int(w//2)
+        if self.args.save_format == 'h5':
+            fname  = os.path.dirname(self.args.file_name)+'_rec/'+os.path.basename(self.args.file_name)[:-3]+'_rec.h5'
+            with h5py.File(fname,'r') as fid:
+                data = fid['exchange/recon']
+                h,w = data.shape[:2]
+                if self.args.idz == -1:
+                    self.args.idz = int(h//2)
+                if self.args.idy == -1:
+                    self.args.idy = int(w//2)
+                if self.args.idx == -1:
+                    self.args.idx = int(w//2)
+                if self.double_fov == True:
+                    binning_rec = np.log2(width//(w//2))
+                else:
+                    binning_rec = np.log2(width//(w))
+                x = data[:,:,self.args.idx]
+                y = data[:,self.args.idy]
+                z = data[self.args.idz]
+        else:
+            try:
+                basename = os.path.basename(self.args.file_name)[:-3]
+                dirname = os.path.dirname(self.args.file_name)
+                # set the correct prefix to find the reconstructions
+                rec_prefix = 'recon'
 
-            z = utils.read_tiff(
-                f'{dirname}_rec/{basename}_rec/{rec_prefix}_{self.args.idz:05}.tiff').copy()
+                top = os.path.join(dirname+'_rec', basename+'_rec')
+                tiff_file_list = sorted(
+                    list(filter(lambda x: x.endswith(('.tif', '.tiff')), os.listdir(top))))
+                z_start = int(tiff_file_list[0].split('.')[0].split('_')[1])
+                z_end = int(tiff_file_list[-1].split('.')[0].split('_')[1]) + 1
+                height = z_end-z_start
+                fname_tmp = os.path.join(top, tiff_file_list[0])
+                # take size
+                tmp = utils.read_tiff(fname_tmp).copy()
 
-            # # read x,y slices by lines
-            # y = np.zeros((h, w), dtype='float32')
-            # x = np.zeros((h, w), dtype='float32')
+                if self.double_fov == True:
+                    width = width * 2
+                    binning_rec = 1
+                else:
+                    binning_rec = width//tmp.shape[0]
 
-            # for j in range(z_start, z_end):
-            #     zz = utils.read_tiff(
-            #         f'{dirname}_rec/{basename}_rec/{rec_prefix}_{j:05}.tiff')
-            #     y[j-z_start, :] = zz[self.args.idy]
-            #     x[j-z_start, :] = zz[:, self.args.idx]
+                w = width//binning_rec
+                h = height
+                if self.args.idz == -1:
+                    self.args.idz = int(h//2)
+                if self.args.idy == -1:
+                    self.args.idy = int(w//2)+int(w//32)
+                if self.args.idx == -1:
+                    self.args.idx = int(w//2)-int(w//32)
 
-            # x,y = utils.read_tiff_many(f'{dirname}_rec/{basename}_rec/{rec_prefix}_{j:05}.tiff',
-            #     z_start,z_end,self.args.idx,self.args.idy,self.args.nproc)
-            recon = [z, z, z]
+                z = utils.read_tiff(
+                    f'{dirname}_rec/{basename}_rec/{rec_prefix}_{self.args.idz:05}.tiff').copy()
 
-            log.info('Adding reconstruction')
-        except ZeroDivisionError:
-            log.error(
-                'Reconstructions for %s are larger than raw data image width.')
-            log.warning('Skipping reconstruction')
-        except:
-            log.warning('Skipping reconstruction')
+                # read x,y slices by lines
+                y = np.zeros((h, w), dtype='float32')
+                x = np.zeros((h, w), dtype='float32')
 
-        return recon, binning_rec
+                nthreads = 8
+                threads = []
+                lchunk = int(np.ceil((z_end-z_start)/nthreads))
+                lchunk = np.minimum(lchunk, np.int32(z_end-z_start-np.arange(nthreads)*lchunk))  # chunk sizes
+                for k in range(nthreads):
+                    read_proc = Thread(target=utils.read_tiff_part, args=(self.args, f'{dirname}_rec/{basename}_rec/{rec_prefix}', x, y, z_start, k*lchunk[0], lchunk[k]))
+                    threads.append(read_proc)
+                    read_proc.start()
+                for th in threads:
+                    th.join()
+                for j in range(z_start, z_end):
+                    zz = utils.read_tiff(
+                        f'{dirname}_rec/{basename}_rec/{rec_prefix}_{j:05}.tiff')
+                    y[j-z_start, :] = zz[self.args.idy]
+                    x[j-z_start, :] = zz[:, self.args.idx]
+
+                recon = [x, y, z]
+
+                self.binning_rec = binning_rec
+            except ZeroDivisionError:
+                log.error('Reconstructions for %s are larger than raw data image width. This is the case in a 0-360. Please use: --double-fov' % top)
+                log.warning('Skipping reconstruction')
+            except FileNotFoundError:
+                log.error('Reconstructions for %s are missing. Please run the recontruction.' % top)
+                log.warning('Skipping reconstruction')
+            except:
+                log.warning('Skipping reconstruction')
+        
+        return recon
+
 
     def plot_projection(self, proj, fname):
         log.info('Plot microCT projection')
@@ -286,8 +332,8 @@ class TomoLog():
 
     def plot_recon(self, recon, fname):
         log.info('Plot reconstruction')
-        fig = plt.figure(constrained_layout=True, figsize=(6, 12))
-        grid = fig.add_gridspec(3, 1, height_ratios=[1, 1, 1])
+        fig = plt.figure(constrained_layout=True, figsize=(14, 12))
+        grid = fig.add_gridspec(3, 3, height_ratios=[1, 1, 1])
         slices = ['x', 'y', 'z']
         # autoadjust colorbar values according to a histogram
 
@@ -296,18 +342,35 @@ class TomoLog():
                 np.concatenate(recon))
 
         sl = [self.args.idx, self.args.idy, self.args.idz]
-        for k in range(3):
-            recon[k][0, 0] = self.args.max
-            recon[k][0, 1] = self.args.min
-            recon[k][recon[k] > self.args.max] = self.args.max
-            recon[k][recon[k] < self.args.min] = self.args.min
-            ax = fig.add_subplot(grid[k])
-            im = ax.imshow(recon[k], cmap='gray')
-            divider = make_axes_locatable(ax)
-            cax = divider.append_axes("right", size="5%", pad=0.1)
-            plt.colorbar(im, cax=cax)
-            ax.set_ylabel(f'slice {slices[k]}={sl[k]}', fontsize=14)
-        plt.savefig(fname, bbox_inches='tight', pad_inches=0, dpi=300)
+        tmp = literal_eval(self.args.zoom)
+        if not isinstance(tmp,list):
+            tmp = [tmp]
+        
+        zooms = tmp
+        log.info('Zooms selected %s' % zooms)
+        for j in range(3):
+            for k in range(3):
+                [s0,s1] = recon[k].shape
+                recon0 = recon[k][s0//2-s0//2//zooms[j]:s0//2+s0//2//zooms[j],s1//2-s1//2//zooms[j]:s1//2+s1//2//zooms[j]]
+                
+                recon0[0, 0] = self.args.max
+                recon0[0, 1] = self.args.min
+                recon0[recon0 > self.args.max] = self.args.max
+                recon0[recon0 < self.args.min] = self.args.min
+                ax = fig.add_subplot(grid[3*k+j])
+                im = ax.imshow(recon0, cmap='gray')
+                # Create scale bar
+                scalebar = ScaleBar(self.mct_resolution *
+                                    self.binning_rec, "um", length_fraction=0.25)
+                ax.add_artist(scalebar)
+                divider = make_axes_locatable(ax)
+                cax = divider.append_axes("right", size="5%", pad=0.1)
+                cb = plt.colorbar(im, cax=cax)
+                if j<2:
+                    cb.remove()
+                if j==0:
+                    ax.set_ylabel(f'slice {slices[k]}={sl[k]}', fontsize=18)
+        plt.savefig(fname, bbox_inches='tight', pad_inches=0, dpi=150)
         plt.cla()
         plt.close(fig)
 
@@ -320,14 +383,18 @@ class TomoLog():
         self.google_slide.create_textbox_with_text(
             presentation_id, page_id, 'Projection', 90, 20, 50, 163, 8, 0)
 
-    def publish_recon(self, presentation_id, page_id, recon, resolution=1):
-       if len(recon) == 3:
+    def publish_recon(self, presentation_id, page_id, recon):
+        if len(recon) == 3:
             # publish reconstructions
             self.plot_recon(recon, self.file_name_recon)
             recon_url = filebin.upload(self.args, self.file_name_recon)
             log.info('Publish reconstruction')
             self.google_slide.create_image(
-                presentation_id, page_id, recon_url, 370, 370, 130, 25)
+                presentation_id, page_id, recon_url, 470, 400, 230, 5)
             self.google_slide.create_textbox_with_text(
-                presentation_id, page_id, 'Reconstruction', 90, 20, 270, 0, 10, 0)
+                presentation_id, page_id, f'Reconstruction                                   Zoom {self.args.zoom}                                         ', 590, 20, 270, -5, 10, 0)
+
+            rec_line = self.read_rec_line()
+            self.google_slide.create_textbox_with_text(
+                presentation_id, page_id, rec_line, 1000, 20, 5, 391, 6, 0)
 
