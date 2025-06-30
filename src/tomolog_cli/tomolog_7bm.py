@@ -54,8 +54,6 @@ matplotlib.use('Agg')  # use non-GUI backend before importing pyplot
 import matplotlib.pyplot as plt
 from matplotlib_scalebar.scalebar import ScaleBar
 from mpl_toolkits.axes_grid1 import make_axes_locatable
-from ast import literal_eval
-from threading import Thread
 
 import meta
 

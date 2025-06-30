@@ -53,6 +53,7 @@ import numpy as np
 from matplotlib_scalebar.scalebar import ScaleBar
 from mpl_toolkits.axes_grid1 import make_axes_locatable
 from threading import Thread
+from ast import literal_eval
 
 import meta
 
