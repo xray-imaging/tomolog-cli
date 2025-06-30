@@ -150,7 +150,7 @@ class SlidesSnippets(object):
         response = slides_service.presentations() \
             .batchUpdate(presentationId=presentation_id, body=body).execute()
         create_shape_response = response.get('replies')[0].get('createShape')
-        log.info('Created textbox with ID: {0}'.format(
+        log.info('Created google slide textbox with ID: {0}'.format(
             create_shape_response.get('objectId')))
         # [END slides_create_textbox_with_text]
         return response    
@@ -233,7 +233,7 @@ class SlidesSnippets(object):
         response = slides_service.presentations() \
             .batchUpdate(presentationId=presentation_id, body=body).execute()
         create_shape_response = response.get('replies')[0].get('createShape')
-        log.info('Created textbox bullets with ID: {0}'.format(
+        log.info('Created google slide textbox bullets with ID: {0}'.format(
             create_shape_response.get('objectId')))
         return response            
     
@@ -272,74 +272,6 @@ class SlidesSnippets(object):
         response = slides_service.presentations() \
             .batchUpdate(presentationId=presentation_id, body=body).execute()
         create_image_response = response.get('replies')[0].get('createImage')
-        log.info('Created image with ID: {0}'.format(
+        log.info('Created google slide image with ID: {0}'.format(
         create_image_response.get('objectId')))        
         return response
-
-class DriveSnippets(object):
-    def __init__(self, service, credentials):
-        self.service = service
-        self.credentials = credentials
-
-    def upload_file(self, file_name, mimetype, parent_folder_id=None):
-        file_metadata = {'name': file_name}
-        if parent_folder_id:
-            file_metadata['parents'] = [parent_folder_id]
-
-        media = MediaFileUpload(file_name, mimetype=mimetype)
-        file = self.service.files().create(
-            body=file_metadata,
-            media_body=media,
-            fields='id'
-        ).execute()
-        print('Google file uploaded. Google file ID:', file.get('id'))
-        
-    def find_file_id(self, filename, parent_folder_id=None):
-        query = f"name='{filename}'"
-        if parent_folder_id:
-            query += f" and '{parent_folder_id}' in parents"
-        results = self.service.files().list(
-            q=query,
-            spaces='drive',
-            fields='files(id, name)',
-            pageSize=1
-        ).execute()
-        files = results.get('files', [])
-        if files:
-            return files[0]['id']
-        return None
-
-    def upload_or_update_file(self, file_name, mimetype, parent_folder_id=None):
-
-        file_id = self.find_file_id(file_name, parent_folder_id)
-        media = MediaFileUpload(file_name, mimetype=mimetype)
-
-        if file_id:
-            log.info("Google file %s exists (ID: %s), updating..." % (file_name, file_id))
-            # print(f"Google file '{file_name}' exists (ID: {file_id}), updating...")
-            updated_file = self.service.files().update(
-                fileId=file_id,
-                media_body=media
-            ).execute()
-            file_id = updated_file.get('id')
-            # print(file_id)
-            log.info('Google file updated: %s' % str(file_id))
-
-            image_url = f"https://drive.google.com/uc?export=view&id={file_id}"
-            log.info('Image url: %s' % image_url)
-            return image_url
-        else:
-            log.info("Google file %s does not exist, creating..." % file_name)
-            file_metadata = {'name': file_name}
-            if parent_folder_id:
-                file_metadata['parents'] = [parent_folder_id]
-            created_file = self.service.files().create(
-                body=file_metadata,
-                media_body=media,
-                fields='id'
-            ).execute()
-            file_id = created_file.get('id')
-            log.info('Google file created: %s' % str(file_id))
-            # print(file_id)
-            image_url = f"https://drive.google.com/uc?export=view&id={file_id}"
-            return image_url

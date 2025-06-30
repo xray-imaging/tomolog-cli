@@ -43,86 +43,55 @@
 # POSSIBILITY OF SUCH DAMAGE.                                             #
 # #########################################################################
 
-import os
-import h5py
-import datetime
-import tifffile
+import socks
+import socket
+import requests
 
-import numpy as np
-
-from collections import OrderedDict, deque
 from tomolog_cli import log
 
-def find_min_max(data,th=0.003):
-    """Find min and max values according to histogram"""
+def upload(args, filename):
 
-    h, e = np.histogram(data[:], 1000)
-    stend = np.where(h > np.max(h)*th)
-    st = stend[0][0]
-    end = stend[0][-1]
-    mmin = e[st]
-    mmax = e[end+1]
-    return mmin, mmax
+    url = args.url + '_' + str(args.count)
+    log.info('Uploading image to %s' % url)
+    if not args.public:
+        log.info("Running from a private network computer, using SOCKS5 proxy ...")
+        # Monkey-patch socket to route through SOCKS5
+        socks.set_default_proxy(socks.SOCKS5, "127.0.0.1", 1080)
+        socket.socket = socks.socksocket
+        # Upload the file through the SOCKS5 proxy
+    else:
+        log.info("Running from a public network computer ...")
+        # Upload the file through public network
 
-def read_tiff(fname):
-    """
-    Read data from tiff file.
-    Parameters
-    ----------
-    fname : str
-        String defining the path of file or file name.
+    with open(filename, "rb") as f:
+        response = requests.post(
+            url,
+            headers={
+                "Accept": "application/json",
+                "Content-Type": "application/octet-stream"
+            },
+            data=f
+        )
+    # print("Status code:", response.status_code)
+    # print("Response body:", response.text)
 
-    Returns
-    -------
-    ndarray
-        Output 2D image.
-    """
+    if (response.status_code == 201):
+        log.info('*** Image upload completed')
+    else:
+        log.error('*** An error occurred uploading image. Error %s' % response.status_code)
+        exit()
+    # Get final URL (mimicking curl -Ls behavior)
+    headers = {
+        "User-Agent": "curl/7.79.1"
+    }
 
-    try:
-        arr = tifffile.imread(fname)
-    except IOError:
-        log.error('No such file or directory: %s', fname)
-        return False
+    response = requests.get(url, headers=headers, allow_redirects=True, stream=True)
+    if (response.status_code == 200):
+        log.info('*** Image url created')
+    else:
+        log.error('*** An error occurred creating the image url. Error %s' % response.status_code)
+        exit()
+    response.close()  # prevent downloading the content
 
-    return arr
-
-
-def read_tiff_chunk(x,y, fname,idx,idy, k, lchunk):
-    """Read a chunk of data from tiff"""
-    log.info(k,st,end)
-    st = k*lchunk
-    end = min((k+1)*lchunk,rec.shape[0])
-    zz = dxchange.read_tiff_stack(fname,ind=range(st,end))
-    y[st:end, :] = zz[dy]
-    x[st:end, :] = zz[:, idx]
-
-
-def read_tiff_many(fname, z_start, z_end,idx, idy, nproc=8):
-    t = time.time()        
-    d = dxchange.read_tiff(fname)
-    n = d.shape[-1]
-    nz = z_end- z_start
-    
-    # read x,y slices by lines
-    y = np.zeros((nz, n), dtype='float32')
-    x = np.zeros((nz, n), dtype='float32')
-
-    lchunk = int(np.ceil(nz/nproc))
-    procs = []
-    for k in range(nproc):
-        read_proc = threading.Thread(
-            target=read_tiff_chunk, args=(x, y, fname, idx,idy, k, lchunk))
-        procs.append(read_proc)
-        read_proc.start()
-    for proc in procs:
-        proc.join()
-    log.info(time.time()-t)
-    
-def read_tiff_part(args, fname, x, y, z_start, z0_start, lchunk):
-    # print('!',z0_start,z_start)
-    for j in range(z0_start, z0_start + lchunk):
-        # print(j)
-        id = z_start + j
-        zz = read_tiff(f'{fname}_{id:05}.tiff')
-        y[j, :] = zz[args.idy]
-        x[j, :] = zz[:, args.idx]
+    image_url = response.url
+    return image_url
