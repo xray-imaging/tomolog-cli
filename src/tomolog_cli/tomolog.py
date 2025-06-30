@@ -180,6 +180,7 @@ class TomoLog():
         proj = self.read_raw()
         self.publish_proj(presentation_id, page_id, proj)
         recon = self.read_recon()
+        print(recon)
         self.publish_recon(presentation_id, page_id, recon)
 
     def init_slide(self):

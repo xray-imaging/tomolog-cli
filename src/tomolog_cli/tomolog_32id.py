@@ -102,28 +102,7 @@ class TomoLog32ID(TomoLog):
 
         super().run_log(self)
         self.nct_resolution = float(self.meta[self.resolution_key][0])/1000
-        self.mct_resolution = float(self.meta[self.pixel_size_key][0])# / float(
-            #self.meta[self.magnification_key][0].replace("x", ""))
-
-
-        # # read meta, calculate resolutions
-        # mp = meta.read_meta.Hdf5MetadataReader(self.args.file_name)
-        # self.meta = mp.readMetadata()
-        # mp.close()
-        # if (self.meta[self.sample_in_x_key][0] != 0):
-        #     self.double_fov = True
-        #     log.warning('Sample in x is off center: %s. Handling the data set as a double FOV' %
-        #                 self.meta[self.sample_in_x_key][0])
-        # self.nct_resolution = float(self.meta[self.resolution_key][0])/1000
-        # self.mct_resolution = float(self.meta[self.pixel_size_key][0])# / float(
-        #     #self.meta[self.magnification_key][0].replace("x", ""))
-
-        # presentation_id, page_id = self.init_slide()
-        # self.publish_descr(presentation_id, page_id)
-        # proj = self.read_raw()
-        # recon = self.read_recon()
-        # self.publish_proj(presentation_id, page_id, proj)
-        # self.publish_recon(presentation_id, page_id, recon)
+        self.mct_resolution = float(self.meta[self.pixel_size_key][0])
 
     def read_raw(self):
         log.info('Reading nanoCT projection')
@@ -223,7 +202,6 @@ class TomoLog32ID(TomoLog):
                     y[j-z_start, :] = zz[self.args.idy]
                     x[j-z_start, :] = zz[:, self.args.idx]
             
-            
             # check if inversion is needed for the phase-contrast imaging at 32id
             phase_ring_y = float(self.meta[self.phase_ring_setup_y_key][0])
             coeff_rec = 1
@@ -303,37 +281,35 @@ class TomoLog32ID(TomoLog):
 
     def publish_proj(self, presentation_id, page_id, proj):
         # 32-id datasets may include both nanoCT and microCT data as proj[0] and proj[1] respectively
-        log.info('Publish nanoCT projection')
         self.plot_projection(proj[0], self.file_name_proj0)
         proj_url = filebin.upload(self.args, self.file_name_proj0)
+        log.info('Publish nanoCT projection')
         self.google_slide.create_image(
             presentation_id, page_id, proj_url, 170, 170, 0, 145)
-
         self.google_slide.create_textbox_with_text(
             presentation_id, page_id, 'Nano-CT projection', 90, 20, 10, 155, 8, 0)
         try:
-            log.info('Plotting microCT projection')
             self.plot_projection(proj[1], self.file_name_proj1,scalebar='micro')
             proj_url = filebin.upload(self.args, self.file_name_proj1)
+            log.info('Publish microCT projection')
             self.google_slide.create_image(
                 presentation_id, page_id, proj_url, 170, 170, 0, 270)
-
             self.google_slide.create_textbox_with_text(
                 presentation_id, page_id, 'Micro-CT projection', 90, 20, 10, 280, 8, 0)
         except:
             log.warning('No microCT data available')
 
     def publish_recon(self, presentation_id, page_id, recon):
-        log.info('Plot reconstruction')
         if len(recon) == 3:
             # publish reconstructions
             self.plot_recon(recon, self.file_name_recon)
             recon_url = filebin.upload(self.args, self.file_name_recon)
-            rec_line = self.read_rec_line()
+            log.info('Publish reconstruction')
             self.google_slide.create_image(
                 presentation_id, page_id, recon_url, 370, 370, 130, 25)
             self.google_slide.create_textbox_with_text(
                 presentation_id, page_id, 'Reconstruction', 90, 20, 270, 0, 10, 0)
-            self.google_slide.create_textbox_with_text(
-                presentation_id, page_id, rec_line, 1000, 20, 185, 391, 6, 0)
 
+            rec_line = self.read_rec_line()
+            self.google_slide.create_textbox_with_text(
+                presentation_id, page_id, rec_line, 1000, 20, 5, 391, 6, 0)
