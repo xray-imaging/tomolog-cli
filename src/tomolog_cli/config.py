@@ -196,7 +196,7 @@ SECTIONS['parameters'] = {
         'type': str,
         'help': "Google presention. Create a public google slide presentation."},
     'url': {
-        'default': 'https://filebin.net/beamline_2bmb/image',
+        'default': 'https://filebin.net/beamline_2bm/image',
         'type': str,
         'help': "url service where generated images will be uploaded. Google API retrieves images by url before publishing on slides"},
     'count': {
