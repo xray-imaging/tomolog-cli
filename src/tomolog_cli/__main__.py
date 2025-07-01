@@ -69,7 +69,7 @@ def run_log(args):
     else:
         log.error("directory or File Name does not exist: %s" % args.file_name)
 
-    args.count = args.count + 1
+    # args.count = args.count + 1
     config.write(args.config, args, sections=config.PARAMS)
     log.warning('publication end')
     

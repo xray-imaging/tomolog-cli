@@ -53,6 +53,7 @@ import matplotlib.pyplot as plt
 
 from matplotlib_scalebar.scalebar import ScaleBar
 from mpl_toolkits.axes_grid1 import make_axes_locatable
+from datetime import datetime
 
 import requests
 
@@ -119,8 +120,10 @@ class TomoLog2BM(TomoLog):
                 pitch_angle = -pitch_angle
                 pitch_angle_units = self.read_meta_item("{self.meta[self.sample_pitch_angle_key][1]}")
                 descr += "Pitch angle: " + str(pitch_angle) + pitch_angle_units
-
-        descr = descr[:-1]
+        current_datetime = datetime.now()
+        current_time_str = current_datetime.strftime("%H:%M:%S")
+        descr += F"Current time: {current_time_str}"
+        # descr = descr[:-1]
         self.google_slide.create_textbox_with_bullets(
             presentation_id, page_id, descr, 240, 120, 0, 18, 8, 0)
 
@@ -145,25 +148,25 @@ class TomoLog2BM(TomoLog):
 
     def publish_proj(self, presentation_id, page_id, proj):
         # 2-BM datasets may include both microCT data and a web camera image
+        self.google_slide.create_textbox_with_text(
+            presentation_id, page_id, 'Micro-CT projection', 90, 20, 50, 170, 8, 0)
         self.plot_projection(proj[0], self.file_name_proj0)
-        proj_url = filebin.upload(self.args, self.file_name_proj0)
+        proj_url, url = filebin.upload(self.args, self.file_name_proj0)
         log.info('Publish microCT projection')
         self.google_slide.create_image(
             presentation_id, page_id, proj_url, 120, 120, 30, 180)
-
-        self.google_slide.create_textbox_with_text(
-            presentation_id, page_id, 'Micro-CT projection', 90, 20, 50, 170, 8, 0)
+        filebin.delete(url)
         try:
+            self.google_slide.create_textbox_with_text(
+                presentation_id, page_id, 'Frame from the IP camera in the hutch', 160, 20, 10, 290, 8, 0)
             log.info('Plotting web camera image')
             plt.imshow(np.fliplr(proj[1].reshape(-1,3)).reshape(proj[1].shape))
             plt.axis('off')
             plt.savefig(self.file_name_webcam,dpi=300)
-            proj_url = filebin.upload(self.args, self.file_name_webcam)
+            proj_url, url = filebin.upload(self.args, self.file_name_webcam)
             log.info('Publish web camera image')
             self.google_slide.create_image(
                 presentation_id, page_id, proj_url, 170, 170, 0, 270)
-
-            self.google_slide.create_textbox_with_text(
-                presentation_id, page_id, 'Frame from the IP camera in the hutch', 160, 20, 10, 290, 8, 0)
+            filebin.delete(url)
         except:
             log.warning('No frame from the IP camera')

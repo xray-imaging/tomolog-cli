@@ -124,13 +124,13 @@ class TomoLog7BM(TomoLog):
 
     def publish_proj(self, presentation_id, page_id, proj):
         # 7-bm datasets include only microCT data
+        self.google_slide.create_textbox_with_text(
+            presentation_id, page_id, 'Micro-CT projection', 90, 20, 50, 180, 8, 0)
         self.plot_projection(proj[0], self.file_name_proj0)
-        proj_url = filebin.upload(self.args, self.file_name_proj0)
+        proj_url, url = filebin.upload(self.args, self.file_name_proj0)
         log.info('Publish microCT projection')
         self.google_slide.create_image(
             presentation_id, page_id, proj_url, 120, 120, 30, 180)
-
-        self.google_slide.create_textbox_with_text(
-            presentation_id, page_id, 'Micro-CT projection', 90, 20, 50, 180, 8, 0)
+        filebin.delete(url)
 
 

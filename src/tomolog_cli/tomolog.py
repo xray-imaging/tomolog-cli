@@ -180,7 +180,7 @@ class TomoLog():
         proj = self.read_raw()
         self.publish_proj(presentation_id, page_id, proj)
         recon = self.read_recon()
-        print(recon)
+        #print(recon)
         self.publish_recon(presentation_id, page_id, recon)
 
     def init_slide(self):
@@ -275,7 +275,7 @@ class TomoLog():
 
                 z = utils.read_tiff(
                     f'{dirname}_rec/{basename}_rec/{rec_prefix}_{self.args.idz:05}.tiff').copy()
-
+                
                 # read x,y slices by lines
                 y = np.zeros((h, w), dtype='float32')
                 x = np.zeros((h, w), dtype='float32')
@@ -290,12 +290,7 @@ class TomoLog():
                     read_proc.start()
                 for th in threads:
                     th.join()
-                for j in range(z_start, z_end):
-                    zz = utils.read_tiff(
-                        f'{dirname}_rec/{basename}_rec/{rec_prefix}_{j:05}.tiff')
-                    y[j-z_start, :] = zz[self.args.idy]
-                    x[j-z_start, :] = zz[:, self.args.idx]
-
+                
                 recon = [x, y, z]
 
                 self.binning_rec = binning_rec
@@ -377,24 +372,27 @@ class TomoLog():
         plt.close(fig)
 
     def publish_proj(self, presentation_id, page_id, proj, resolution=1):
+        self.google_slide.create_textbox_with_text(
+            presentation_id, page_id, 'Projection', 90, 20, 50, 163, 8, 0)        
         self.plot_projection(proj[0], self.file_name_proj0)
-        proj_url = filebin.upload(self.args, self.file_name_proj0)
+        proj_url, url = filebin.upload(self.args, self.file_name_proj0)
         log.info('Publish projection')
         self.google_slide.create_image(
             presentation_id, page_id, proj_url, 150, 150, 10, 157)
-        self.google_slide.create_textbox_with_text(
-            presentation_id, page_id, 'Projection', 90, 20, 50, 163, 8, 0)
+        #sleep(3)
+        filebin.delete(url)
 
     def publish_recon(self, presentation_id, page_id, recon):
         if len(recon) == 3:
             # publish reconstructions
+            self.google_slide.create_textbox_with_text(
+                presentation_id, page_id, f'Reconstruction                                   Zoom {self.args.zoom}                                         ', 590, 20, 270, -5, 10, 0)
             self.plot_recon(recon, self.file_name_recon)
-            recon_url = filebin.upload(self.args, self.file_name_recon)
+            recon_url, url = filebin.upload(self.args, self.file_name_recon)
             log.info('Publish reconstruction')
             self.google_slide.create_image(
                 presentation_id, page_id, recon_url, 470, 400, 230, 5)
-            self.google_slide.create_textbox_with_text(
-                presentation_id, page_id, f'Reconstruction                                   Zoom {self.args.zoom}                                         ', 590, 20, 270, -5, 10, 0)
+            filebin.delete(url)
 
             rec_line = self.read_rec_line()
             self.google_slide.create_textbox_with_text(

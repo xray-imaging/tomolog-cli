@@ -281,34 +281,37 @@ class TomoLog32ID(TomoLog):
 
     def publish_proj(self, presentation_id, page_id, proj):
         # 32-id datasets may include both nanoCT and microCT data as proj[0] and proj[1] respectively
+        self.google_slide.create_textbox_with_text(
+            presentation_id, page_id, 'Nano-CT projection', 90, 20, 10, 155, 8, 0)
         self.plot_projection(proj[0], self.file_name_proj0)
-        proj_url = filebin.upload(self.args, self.file_name_proj0)
+        proj_url, url = filebin.upload(self.args, self.file_name_proj0)
         log.info('Publish nanoCT projection')
         self.google_slide.create_image(
             presentation_id, page_id, proj_url, 170, 170, 0, 145)
-        self.google_slide.create_textbox_with_text(
-            presentation_id, page_id, 'Nano-CT projection', 90, 20, 10, 155, 8, 0)
+        filebin.delete(url)
         try:
+            self.google_slide.create_textbox_with_text(
+                presentation_id, page_id, 'Micro-CT projection', 90, 20, 10, 280, 8, 0)
             self.plot_projection(proj[1], self.file_name_proj1,scalebar='micro')
-            proj_url = filebin.upload(self.args, self.file_name_proj1)
+            proj_url, url = filebin.upload(self.args, self.file_name_proj1)
             log.info('Publish microCT projection')
             self.google_slide.create_image(
                 presentation_id, page_id, proj_url, 170, 170, 0, 270)
-            self.google_slide.create_textbox_with_text(
-                presentation_id, page_id, 'Micro-CT projection', 90, 20, 10, 280, 8, 0)
+            filebin.delete(url)
         except:
             log.warning('No microCT data available')
 
     def publish_recon(self, presentation_id, page_id, recon):
         if len(recon) == 3:
             # publish reconstructions
+            self.google_slide.create_textbox_with_text(
+                presentation_id, page_id, 'Reconstruction', 90, 20, 270, 0, 10, 0)
             self.plot_recon(recon, self.file_name_recon)
-            recon_url = filebin.upload(self.args, self.file_name_recon)
+            recon_url, url = filebin.upload(self.args, self.file_name_recon)
             log.info('Publish reconstruction')
             self.google_slide.create_image(
                 presentation_id, page_id, recon_url, 370, 370, 130, 25)
-            self.google_slide.create_textbox_with_text(
-                presentation_id, page_id, 'Reconstruction', 90, 20, 270, 0, 10, 0)
+            filebin.delete(url)
 
             rec_line = self.read_rec_line()
             self.google_slide.create_textbox_with_text(

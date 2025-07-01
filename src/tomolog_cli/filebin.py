@@ -46,12 +46,14 @@
 import socks
 import socket
 import requests
-
+import subprocess
+import os
+from time import sleep
 from tomolog_cli import log
 
 def upload(args, filename):
 
-    url = args.url + '_' + str(args.count)
+    url = 'https://uploadimgur.com/api/upload'#args.url + '_' + str(args.count)
     log.info('Uploading image to %s' % url)
     if not args.public:
         log.info("Running from a private network computer, using SOCKS5 proxy ...")
@@ -61,37 +63,72 @@ def upload(args, filename):
         # Upload the file through the SOCKS5 proxy
     else:
         log.info("Running from a public network computer ...")
-        # Upload the file through public network
+    # Upload the file through public network
+    cmd = f"curl -X  POST {url} -F image=@{filename}"
+    result = os.popen(cmd).read()
+    print(result)
 
-    with open(filename, "rb") as f:
-        response = requests.post(
-            url,
-            headers={
-                "Accept": "application/json",
-                "Content-Type": "application/octet-stream"
-            },
-            data=f
-        )
-    # print("Status code:", response.status_code)
-    # print("Response body:", response.text)
+    # command = ["curl", "-X", "POST", url, "-F", f"image=@{filename}"]    
+    # print(command)
+    # result = subprocess.run(command, capture_output=True, text=True)
+    # print("Status:", result.returncode)
+    # print("Response:", result.stdout)
+    # print("Error:", result.stderr)
+    ss
+    # with open(filename, "rb") as f:
+    #     response = requests.post(
+    #         url,
+    #         headers={
+    #             "Accept": "application/json",
+    #             "Content-Type": "application/octet-stream"
+    #         },
+    #         data=f
+    #     )
+    #print("Status code:", response.status_code)
+    #print("Response body:", response.text)
 
-    if (response.status_code == 201):
-        log.info('*** Image upload completed')
-    else:
-        log.error('*** An error occurred uploading image. Error %s' % response.status_code)
-        exit()
-    # Get final URL (mimicking curl -Ls behavior)
+    # if (response.status_code == 201):
+    #     log.info('*** Image upload completed')
+    # else:
+    #     log.error('*** An error occurred uploading image. Error %s' % response.status_code)
+    #     exit()
+    # # Get final URL (mimicking curl -Ls behavior)
+    # headers = {
+    #     "User-Agent": "curl/7.79.1"
+    # }
+
+    # response = requests.get(url, headers=headers, allow_redirects=True, stream=True)
+    # if (response.status_code == 200):
+    #     log.info('*** Image url created')
+    # else:
+    #     log.error('*** An error occurred creating the image url. Error %s' % response.status_code)
+    #     exit()
+    # response.close()  # prevent downloading the content
+    # #args.count = args.count + 1
+    # ss
+    return response.url, url
+
+
+def delete(url):
+
+    #sleep(5) # make sure the image is taken by google, maybe not needed
+    # command = ["curl", "-X", "DELETE", url]
+    # print(command)
+    # result = subprocess.run(command, capture_output=True, text=True)
+    # print("Status:", result.returncode)
+    # print("Response:", result.stdout)
+    # print("Error:", result.stderr)
     headers = {
         "User-Agent": "curl/7.79.1"
     }
 
-    response = requests.get(url, headers=headers, allow_redirects=True, stream=True)
+    response = requests.delete(url, headers=headers)
     if (response.status_code == 200):
-        log.info('*** Image url created')
+        log.info('*** Delete url done')
     else:
-        log.error('*** An error occurred creating the image url. Error %s' % response.status_code)
+        log.error('*** An error occurred deleting the image url. Error %s' % response.status_code)
         exit()
     response.close()  # prevent downloading the content
 
-    image_url = response.url
-    return image_url
+    # print("Delete status:", response.status_code)
+    # print("Response text:", response.text)
