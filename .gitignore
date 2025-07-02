@@ -157,5 +157,7 @@ script
 
 # tomolog temp files
 ####################
-projection_google*
-reconstruction_google*
+projection.jpg
+reconstruction.jpg
+web_cam.jpg
+

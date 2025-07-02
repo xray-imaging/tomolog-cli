@@ -97,7 +97,7 @@ def read_tiff_chunk(x,y, fname,idx,idy, k, lchunk):
     x[st:end, :] = zz[:, idx]
 
 
-def read_tiff_many(fname,z_start,z_end,idx,idy,nproc=8):
+def read_tiff_many(fname, z_start, z_end,idx, idy, nproc=8):
     t = time.time()        
     d = dxchange.read_tiff(fname)
     n = d.shape[-1]
@@ -118,3 +118,11 @@ def read_tiff_many(fname,z_start,z_end,idx,idy,nproc=8):
         proc.join()
     log.info(time.time()-t)
     
+def read_tiff_part(args, fname, x, y, z_start, z0_start, lchunk):
+    # print('!',z0_start,z_start)
+    for j in range(z0_start, z0_start + lchunk):
+        # print(j)
+        id = z_start + j
+        zz = read_tiff(f'{fname}_{id:05}.tiff')
+        y[j, :] = zz[args.idy]
+        x[j, :] = zz[:, args.idx]

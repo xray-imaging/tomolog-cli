@@ -43,59 +43,114 @@
 # POSSIBILITY OF SUCH DAMAGE.                                             #
 # #########################################################################
 
-import re
 import socks
 import socket
-import httplib2
-
-
-# from google.auth.transport.urllib3 import AuthorizedHttp
-from google_auth_httplib2 import AuthorizedHttp
-from googleapiclient.discovery import build
-from google.oauth2 import service_account
-
+import requests
+import subprocess
+import os
+import json
+from time import sleep
 from tomolog_cli import log
-from tomolog_cli import google_snippets
 
-def google_slide(args, token_fname):
+def upload(args, filename):
 
-    log.info('Establishing connection to google')
-    if(args.public):
-        log.info('Running from a public network computer')
-        try:
-            creds = service_account.Credentials.from_service_account_file(token_fname).with_scopes(['https://www.googleapis.com/auth/presentations'])
-            slides = build('slides', 'v1', credentials=creds)
-            snippets = google_snippets.SlidesSnippets(slides, creds)
-            log.info('Connection to google: OK')
-            return snippets
-        except FileNotFoundError:
-            log.error('Google token file not found at %s' % token_fname)
-            exit()
-    else:
-        log.info('Running from a private network computer')
+    # url = 'https://uploadimgur.com/api/upload'#
+    url = args.url # + '_' + str(args.count)
+    log.info('Uploading image to %s' % url)
+    if not args.public:
+        log.info("Running from a private network computer, using SOCKS5 proxy ...")
         # Monkey-patch socket to route through SOCKS5
         socks.set_default_proxy(socks.SOCKS5, "127.0.0.1", 1081)
         socket.socket = socks.socksocket
+        # Upload the file through the SOCKS5 proxy
+    else:
+        log.info("Running from a public network computer ...")
+    # # Upload the file through public network
+    # #cmd = f"curl -X  POST {url} -F image=@{filename}"
+    # #result = os.popen(cmd).read()
+    # #print(result)
 
-        # Create an httplib2.Http instance with socks-configured socket
-        http = httplib2.Http()
+    # command = ["curl", "-X", "POST", url, "-F", f"image=@{filename}"]    
+    # print(command)
+    # result = subprocess.run(command, capture_output=True, text=True)
+    # print("Status:", result.returncode)
+    # print("Response:", result.stdout)
+    # print("Error:", result.stderr)
 
-        creds = service_account.Credentials.from_service_account_file(token_fname).with_scopes(['https://www.googleapis.com/auth/presentations'])
-        authed_http = AuthorizedHttp(creds, http=http)
-        slides = build('slides', 'v1', http=authed_http)
-        try:
-            # Replace 'YOUR_PRESENTATION_ID' with a valid one if available
-            slides.presentations().get(presentationId=extract_presentation_id(args.presentation_url)).execute()
-            log.info("✅ Google Slides API connection verified.")
-        except Exception as e:
-            log.error("❌ Failed to verify Google Slides connection.")
-            log.error(str(e))
-            log.error('If this is a public network computer run tomolog using the --public option!')
-            log.error('If this is a private network computer start SSH tunnel: ssh -D 1080 user@public.machine.ip -N')
-            exit()
-        snippets = google_snippets.SlidesSnippets(slides, creds)
-        return snippets
+    # with open(filename, "rb") as f:
+    #     response = requests.post(
+    #         url,
+    #         headers={
+    #             "Accept": "application/json",
+    #             # "Content-Type": "application/octet-stream"
+    #         },
+    #         data=f
+    #     )
 
-def extract_presentation_id(slide_url):
-    match = re.search(r"/presentation/d/([a-zA-Z0-9_-]+)", slide_url)
-    return match.group(1) if match else None
+
+    with open(filename, "rb") as f:
+        response = requests.post(
+            url,
+            files={"image": f}
+        )
+
+    print("Status code:", response.status_code)
+    print("Response body:", response.text)
+
+    # if (response.status_code == 201):
+    #     log.info('*** Image upload completed')
+    # else:
+    #     log.error('*** An error occurred uploading image. Error %s' % response.status_code)
+    #     exit()
+    # Get final URL (mimicking curl -Ls behavior)
+    headers = {
+        "User-Agent": "curl/7.79.1"
+    }
+
+    # response = requests.get(url, headers=headers, allow_redirects=True, stream=True)
+    if (response.status_code == 200):
+        log.info('*** Image url created')
+
+
+        s = response.text
+        url = s.replace('{"link":"', '').replace('"}', '')
+        print(url) 
+        # data = json.loads(json_str)
+        # url = data["link"]
+        # print(url)
+        # url = response.text['link']
+        # print(url)
+        # exit()
+    else:
+        log.error('*** An error occurred creating the image url. Error %s' % response.status_code)
+        exit()
+    response.close()  # prevent downloading the content
+
+    args.count = args.count + 1
+    return url, url
+
+
+def delete(url):
+
+    return
+    #sleep(5) # make sure the image is taken by google, maybe not needed
+    # command = ["curl", "-X", "DELETE", url]
+    # print(command)
+    # result = subprocess.run(command, capture_output=True, text=True)
+    # print("Status:", result.returncode)
+    # print("Response:", result.stdout)
+    # print("Error:", result.stderr)
+    headers = {
+        "User-Agent": "curl/7.79.1"
+    }
+
+    response = requests.delete(url, headers=headers)
+    if (response.status_code == 200):
+        log.info('*** Delete url done')
+    else:
+        log.error('*** An error occurred deleting the image url. Error %s' % response.status_code)
+        exit()
+    response.close()  # prevent downloading the content
+
+    # print("Delete status:", response.status_code)
+    # print("Response text:", response.text)
