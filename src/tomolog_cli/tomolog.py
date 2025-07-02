@@ -60,7 +60,7 @@ import meta
 from tomolog_cli import log
 from tomolog_cli import auth
 from tomolog_cli import utils
-from tomolog_cli import filebin
+from tomolog_cli import cloud
 
 __author__ = "Viktor Nikitin,  Francesco De Carlo"
 __copyright__ = "Copyright (c) 2022, UChicago Argonne, LLC."
@@ -375,12 +375,10 @@ class TomoLog():
         self.google_slide.create_textbox_with_text(
             presentation_id, page_id, 'Projection', 90, 20, 50, 163, 8, 0)        
         self.plot_projection(proj[0], self.file_name_proj0)
-        proj_url, url = filebin.upload(self.args, self.file_name_proj0)
+        proj_url = cloud.upload(self.args, self.file_name_proj0)
         log.info('Publish projection')
         self.google_slide.create_image(
             presentation_id, page_id, proj_url, 150, 150, 10, 157)
-        #sleep(3)
-        filebin.delete(url)
 
     def publish_recon(self, presentation_id, page_id, recon):
         if len(recon) == 3:
@@ -388,11 +386,10 @@ class TomoLog():
             self.google_slide.create_textbox_with_text(
                 presentation_id, page_id, f'Reconstruction                                   Zoom {self.args.zoom}                                         ', 590, 20, 270, -5, 10, 0)
             self.plot_recon(recon, self.file_name_recon)
-            recon_url, url = filebin.upload(self.args, self.file_name_recon)
+            recon_url = cloud.upload(self.args, self.file_name_recon)
             log.info('Publish reconstruction')
             self.google_slide.create_image(
                 presentation_id, page_id, recon_url, 470, 400, 230, 5)
-            filebin.delete(url)
 
             rec_line = self.read_rec_line()
             self.google_slide.create_textbox_with_text(

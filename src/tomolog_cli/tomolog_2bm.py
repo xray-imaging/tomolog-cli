@@ -60,7 +60,7 @@ import requests
 from tomolog_cli import utils
 from tomolog_cli import log
 from tomolog_cli import TomoLog
-from tomolog_cli import filebin
+from tomolog_cli import cloud
 
 __author__ = "Viktor Nikitin,  Francesco De Carlo"
 __copyright__ = "Copyright (c) 2022, UChicago Argonne, LLC."
@@ -151,11 +151,10 @@ class TomoLog2BM(TomoLog):
         self.google_slide.create_textbox_with_text(
             presentation_id, page_id, 'Micro-CT projection', 90, 20, 50, 170, 8, 0)
         self.plot_projection(proj[0], self.file_name_proj0)
-        proj_url, url = filebin.upload(self.args, self.file_name_proj0)
+        proj_url = cloud.upload(self.args, self.file_name_proj0)
         log.info('Publish microCT projection')
         self.google_slide.create_image(
             presentation_id, page_id, proj_url, 120, 120, 30, 180)
-        filebin.delete(url)
         try:
             self.google_slide.create_textbox_with_text(
                 presentation_id, page_id, 'Frame from the IP camera in the hutch', 160, 20, 10, 290, 8, 0)
@@ -163,10 +162,9 @@ class TomoLog2BM(TomoLog):
             plt.imshow(np.fliplr(proj[1].reshape(-1,3)).reshape(proj[1].shape))
             plt.axis('off')
             plt.savefig(self.file_name_webcam,dpi=300)
-            proj_url, url = filebin.upload(self.args, self.file_name_webcam)
+            webcam_url = cloud.upload(self.args, self.file_name_webcam)
             log.info('Publish web camera image')
             self.google_slide.create_image(
-                presentation_id, page_id, proj_url, 170, 170, 0, 270)
-            filebin.delete(url)
+                presentation_id, page_id, webcam_url, 170, 170, 0, 270)
         except:
             log.warning('No frame from the IP camera')

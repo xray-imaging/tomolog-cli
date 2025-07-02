@@ -195,10 +195,11 @@ SECTIONS['parameters'] = {
         'default': None,
         'type': str,
         'help': "Google presention. Create a public google slide presentation."},
-    'url': {
-        'default': 'https://uploadimgur.com/api/upload',
+    'cloud-service': {
+        'default': 'imgur',
         'type': str,
-        'help': "url service where generated images will be uploaded. Google API retrieves images by url before publishing on slides"},
+        'help': "cloud service where generated images will be uploaded. Google API retrieves images by url before publishing on slides",
+        'choices': ['imgur','globus']},    
     'count': {
         'type': int,
         'default': 0,

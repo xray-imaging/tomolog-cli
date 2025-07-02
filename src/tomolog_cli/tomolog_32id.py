@@ -58,7 +58,7 @@ from mpl_toolkits.axes_grid1 import make_axes_locatable
 from tomolog_cli import utils
 from tomolog_cli import log
 from tomolog_cli import TomoLog
-from tomolog_cli import filebin
+from tomolog_cli import cloud
 
 __author__ = "Viktor Nikitin,  Francesco De Carlo"
 __copyright__ = "Copyright (c) 2022, UChicago Argonne, LLC."
@@ -284,20 +284,18 @@ class TomoLog32ID(TomoLog):
         self.google_slide.create_textbox_with_text(
             presentation_id, page_id, 'Nano-CT projection', 90, 20, 10, 155, 8, 0)
         self.plot_projection(proj[0], self.file_name_proj0)
-        proj_url, url = filebin.upload(self.args, self.file_name_proj0)
+        proj_url = cloud.upload(self.args, self.file_name_proj0)
         log.info('Publish nanoCT projection')
         self.google_slide.create_image(
             presentation_id, page_id, proj_url, 170, 170, 0, 145)
-        filebin.delete(url)
         try:
             self.google_slide.create_textbox_with_text(
                 presentation_id, page_id, 'Micro-CT projection', 90, 20, 10, 280, 8, 0)
             self.plot_projection(proj[1], self.file_name_proj1,scalebar='micro')
-            proj_url, url = filebin.upload(self.args, self.file_name_proj1)
+            proj_url = cloud.upload(self.args, self.file_name_proj1)
             log.info('Publish microCT projection')
             self.google_slide.create_image(
                 presentation_id, page_id, proj_url, 170, 170, 0, 270)
-            filebin.delete(url)
         except:
             log.warning('No microCT data available')
 
@@ -307,11 +305,10 @@ class TomoLog32ID(TomoLog):
             self.google_slide.create_textbox_with_text(
                 presentation_id, page_id, 'Reconstruction', 90, 20, 270, 0, 10, 0)
             self.plot_recon(recon, self.file_name_recon)
-            recon_url, url = filebin.upload(self.args, self.file_name_recon)
+            recon_url = cloud.upload(self.args, self.file_name_recon)
             log.info('Publish reconstruction')
             self.google_slide.create_image(
                 presentation_id, page_id, recon_url, 370, 370, 130, 25)
-            filebin.delete(url)
 
             rec_line = self.read_rec_line()
             self.google_slide.create_textbox_with_text(
