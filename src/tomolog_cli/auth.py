@@ -74,7 +74,7 @@ def google_slide(args, token_fname):
     else:
         log.info('Running from a private network computer')
         # Monkey-patch socket to route through SOCKS5
-        socks.set_default_proxy(socks.SOCKS5, "127.0.0.1", 1080)
+        socks.set_default_proxy(socks.SOCKS5, "127.0.0.1", 1081)
         socket.socket = socks.socksocket
 
         # Create an httplib2.Http instance with socks-configured socket
@@ -90,8 +90,8 @@ def google_slide(args, token_fname):
         except Exception as e:
             log.error("❌ Failed to verify Google Slides connection.")
             log.error(str(e))
-            log.error('Start SSH tunnel from your private machine: ssh -D 1080 user@public.machine.ip -N')
-            log.error('re-run tomolog using the --public option!')
+            log.error('If this is a public network computer run tomolog using the --public option!')
+            log.error('If this is a private network computer start SSH tunnel: ssh -D 1080 user@public.machine.ip -N')
             exit()
         snippets = google_snippets.SlidesSnippets(slides, creds)
         return snippets
