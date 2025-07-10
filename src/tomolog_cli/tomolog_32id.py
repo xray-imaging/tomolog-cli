@@ -100,7 +100,7 @@ class TomoLog32ID(TomoLog):
 
     def run_log(self):
 
-        super().run_log(self)
+        super().run_log()
         self.nct_resolution = float(self.meta[self.resolution_key][0])/1000
         self.mct_resolution = float(self.meta[self.pixel_size_key][0])
 
