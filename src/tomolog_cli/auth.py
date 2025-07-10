@@ -91,7 +91,7 @@ def google_slide(args, token_fname):
             log.error("❌ Failed to verify Google Slides connection.")
             log.error(str(e))
             log.error('If this is a public network computer run tomolog using the --public option!')
-            log.error('If this is a private network computer start SSH tunnel: ssh -D 1080 user@public.machine.ip -N')
+            log.error('If this is a private network computer start SSH tunnel: ssh -D 1081 user@public.machine.ip -N')
             exit()
         snippets = google_snippets.SlidesSnippets(slides, creds)
         return snippets
