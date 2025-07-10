@@ -19,7 +19,7 @@ Install all `required package <https://github.com/xray-imaging/mosaic/blob/main/
 
 ::
 
-    (tomolog)$ conda install  -c conda-forge google-api-python-client google-auth-oauthlib matplotlib dxchange dxfile h5py matplotlib-scalebar
+    (tomolog)$ conda install  -c conda-forge numpy google-auth-oauthlib google-api-python-client matplotlib matplotlib-scalebar h5py tifffile dxfile 
 
 
 install meta 
@@ -29,16 +29,12 @@ install meta
     (tomolog)$ cd meta
     (tomolog)$ pip install .
 
-
 and install tomolog
 ::
 
     (tomolog)$ git clone https://github.com/xray-imaging/tomolog-cli.git
     (tomolog)$ cd tomolog
     (tomolog)$ pip install .
-
-
-
 
 Google
 ------
@@ -58,7 +54,7 @@ Open a web browser and login as ...@gmail.com then go to `google developer site 
 Once the project is selected go to the project dashboard:
 
 .. image:: img/google_03.png
-   :width: 256px
+   :width: 480px
    :alt: project
 
 and select API & Services / Credentials
@@ -103,13 +99,13 @@ open the json file and copy the authorization token in a file called::
 Go back to the project dashboard
 
 .. image:: img/google_09.png
-   :width: 480px
+   :width: 256px
    :alt: project
 
 and select "Go to the API overview"
 
 .. image:: img/google_10.png
-   :width: 480px
+   :width: 256px
    :alt: project
 
 and select "Enable API and Services"
