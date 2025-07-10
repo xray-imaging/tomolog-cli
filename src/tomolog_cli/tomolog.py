@@ -172,7 +172,7 @@ class TomoLog():
         if self.args.magnification!=-1 and self.args.pixel_size!=-1:
             self.meta[self.resolution_key][0]  = self.args.pixel_size/self.args.magnification
         
-        self.mct_resolution = float(self.meta[self.pixel_size_key][0]) / float(self.meta[self.magnification_key][0].replace("x", ""))
+        self.mct_resolution = float(self.meta[self.pixel_size_key][0]) / float(self.meta[self.magnification_key][0].lower().replace("x", ""))
 
         
         presentation_id, page_id = self.init_slide()
