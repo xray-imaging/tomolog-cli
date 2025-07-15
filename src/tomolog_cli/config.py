@@ -204,10 +204,6 @@ SECTIONS['parameters'] = {
         'type': int,
         'default': 0,
         'help': "counter is incremented at each google slide generated. Conter is appended to the url to generate a unique url as required by some service"},
-    'parent-folder-id': {
-        'default': None,
-        'type': str,
-        'help': "Google public folder ID. Create a public forlder on the google app drive and extract it from the share link: https://drive.google.com/drive/folders/<parent-folder-id>?..."},
 }
 
 PARAMS = ('file-reading', 'parameters')
