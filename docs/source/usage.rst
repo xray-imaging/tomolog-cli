@@ -11,7 +11,7 @@ For help::
 
    $ tomolog run -h
    usage: tomolog run [-h] [--beamline {None,2-bm,7-bm,32-id}] [--doc-dir DOC_DIR] [--file-name PATH] [--cloud-service {imgur,globus}] [--count COUNT] [--max MAX]
-                      [--min MIN] [--parent-folder-id PARENT_FOLDER_ID] [--presentation-url PRESENTATION_URL] [--config FILE] [--config-update] [--idx IDX]
+                      [--min MIN] [--presentation-url PRESENTATION_URL] [--config FILE] [--config-update] [--idx IDX]
                       [--idy IDY] [--idz IDZ] [--logs-home FILE] [--magnification MAGNIFICATION] [--nproc NPROC] [--pixel-size PIXEL_SIZE] [--public]
                       [--save-format {tiff,h5}] [--token-home FILE] [--verbose] [--zoom ZOOM]
 
@@ -28,9 +28,6 @@ For help::
                            service (default: 0)
      --max MAX             Maximum threshold value for reconstruction visualization (default: 0.0)
      --min MIN             Minimum threshold value for reconstruction visualization (default: 0.0)
-     --parent-folder-id PARENT_FOLDER_ID
-                           Google public folder ID. Create a public forlder on the google app drive and extract it from the share link:
-                           https://drive.google.com/drive/folders/<parent-folder-id>?... (default: None)
      --presentation-url PRESENTATION_URL
                            Google presention. Create a public google slide presentation. (default: None)
      --config FILE         File name of configuration file (default: /home/beams/2BMB/logs/tomolog.conf)
