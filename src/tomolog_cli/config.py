@@ -130,6 +130,9 @@ SECTIONS['general'] = {
         'default': False,
         'help': 'Set to run tomolog on a public network computer. When not set the assumption is that tomolog is running on a private network',
         'action': 'store_true'},
+    'port': {
+        'default': 1080,
+        'help': 'Port for tunneling'},
     'idx': {
         'type': int,
         'default': -1,

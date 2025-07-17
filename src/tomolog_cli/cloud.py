@@ -57,7 +57,7 @@ def upload(args, filename):
     if not args.public:
         log.info("Running from a private network computer, using SOCKS5 proxy ...")
         # Monkey-patch socket to route through SOCKS5
-        socks.set_default_proxy(socks.SOCKS5, "127.0.0.1", 1081)
+        socks.set_default_proxy(socks.SOCKS5, "127.0.0.1", args.port)
         # Upload the file through the SOCKS5 proxy
         socket.socket = socks.socksocket
     else:
