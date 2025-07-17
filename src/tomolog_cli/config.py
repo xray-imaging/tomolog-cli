@@ -130,6 +130,10 @@ SECTIONS['general'] = {
         'default': False,
         'help': 'Set to run tomolog on a public network computer. When not set the assumption is that tomolog is running on a private network',
         'action': 'store_true'},
+    'port': {
+        'default': 1080,
+        'type': int,
+        'help': 'Port for tunneling'},
     'idx': {
         'type': int,
         'default': -1,
@@ -199,7 +203,7 @@ SECTIONS['parameters'] = {
         'default': 'imgur',
         'type': str,
         'help': "cloud service where generated images will be uploaded. Google API retrieves images by url before publishing on slides",
-        'choices': ['imgur','globus']},    
+        'choices': ['imgur','globus', 'aps']},    
     'count': {
         'type': int,
         'default': 0,

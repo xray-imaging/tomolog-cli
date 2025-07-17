@@ -49,6 +49,8 @@ import requests
 import subprocess
 import os
 import json
+import shutil
+
 from time import sleep
 from tomolog_cli import log
 
@@ -57,7 +59,7 @@ def upload(args, filename):
     if not args.public:
         log.info("Running from a private network computer, using SOCKS5 proxy ...")
         # Monkey-patch socket to route through SOCKS5
-        socks.set_default_proxy(socks.SOCKS5, "127.0.0.1", 1081)
+        socks.set_default_proxy(socks.SOCKS5, "127.0.0.1", args.port)
         # Upload the file through the SOCKS5 proxy
         socket.socket = socks.socksocket
     else:
@@ -82,6 +84,23 @@ def upload(args, filename):
             log.error('*** An error occurred creating the image url. Error %s' % response.status_code)
             exit()
         response.close()  # prevent downloading the content
+    elif args.cloud_service == 'aps':
+        log.info('Uploading image to aps web service')
+        cloud_url = 'https://www3.xray.aps.anl.gov/tomolog'
+        log.info('Uploading image to %s' % cloud_url)
+        try:
+            dest_path = shutil.copy(filename, '/net/joulefs/coulomb_Public/docroot/tomolog/')
+            log.info('Image copied to web server directory at %s' % dest_path)
+            url = cloud_url + '/' + filename
+            log.info('*** Image url created %s' % url)
+        except FileNotFoundError:
+            print("Source file or destination directory not found.")
+        except PermissionError:
+            print("Permission denied.")
+        except shutil.SameFileError:
+            print("Source and destination represent the same file.")
+        except Exception as e:
+            print(f"Unexpected error: {e}")
     elif args.cloud_service == 'globus':
         log.info('Uploading image to globus')
         log.error('Cloud Serice: %s is not implemented yet' % args.cloud_service)
