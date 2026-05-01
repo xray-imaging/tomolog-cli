@@ -54,6 +54,7 @@ matplotlib.use('Agg')  # use non-GUI backend before importing pyplot
 import matplotlib.pyplot as plt
 from matplotlib_scalebar.scalebar import ScaleBar
 from mpl_toolkits.axes_grid1 import make_axes_locatable
+from ast import literal_eval
 
 from tomolog_cli import utils
 from tomolog_cli import log
@@ -98,9 +99,7 @@ class TomoLog32ID(TomoLog):
         self.google_slide.create_textbox_with_bullets(
             presentation_id, page_id, descr, 240, 120, 0, 18, 8, 0)
 
-    def run_log(self):
-
-        super().run_log()
+    def setup_resolutions(self):
         self.nct_resolution = float(self.meta[self.resolution_key][0])/1000
         self.mct_resolution = float(self.meta[self.pixel_size_key][0])
 
@@ -249,33 +248,47 @@ class TomoLog32ID(TomoLog):
 
     def plot_recon(self, recon, fname):
         log.info('Plot reconstruction')
-        fig = plt.figure(constrained_layout=True, figsize=(6, 12))
-        grid = fig.add_gridspec(3, 1, height_ratios=[1, 1, 1])
+        fig = plt.figure(constrained_layout=True, figsize=(14, 12))
+        grid = fig.add_gridspec(3, 3, height_ratios=[1, 1, 1])
         slices = ['x', 'y', 'z']
-        # autoadjust colorbar values according to a histogram
 
         if self.args.min == self.args.max:
             self.args.min, self.args.max = utils.find_min_max(
                 np.concatenate(recon))
 
         sl = [self.args.idx, self.args.idy, self.args.idz]
-        for k in range(3):
-            recon[k][0, 0] = self.args.max
-            recon[k][0, 1] = self.args.min
-            recon[k][recon[k] > self.args.max] = self.args.max
-            recon[k][recon[k] < self.args.min] = self.args.min
-            ax = fig.add_subplot(grid[k])
-            im = ax.imshow(recon[k], cmap='gray')
-            # Create scale bar
-            scalebar = ScaleBar(self.nct_resolution *
-                                2**self.binning_rec, "um", length_fraction=0.25)
-            ax.add_artist(scalebar)
-            divider = make_axes_locatable(ax)
-            cax = divider.append_axes("right", size="5%", pad=0.1)
-            plt.colorbar(im, cax=cax)
-            ax.set_ylabel(f'slice {slices[k]}={sl[k]}', fontsize=14)
-        # save
-        plt.savefig(fname, bbox_inches='tight', pad_inches=0, dpi=300)
+        tmp = literal_eval(self.args.zoom)
+        if not isinstance(tmp, list):
+            tmp = [tmp]
+        zooms = tmp
+        log.info('Zooms selected %s' % zooms)
+        log.info('nct_resolution=%.6f um  binning_rec=%.3f  pixel_size=%.6f um' % (
+            self.nct_resolution, self.binning_rec, self.nct_resolution * 2**self.binning_rec))
+        for j in range(3):
+            for k in range(3):
+                [s0, s1] = recon[k].shape
+                recon0 = recon[k][s0//2-s0//2//zooms[j]:s0//2+s0//2//zooms[j],
+                                   s1//2-s1//2//zooms[j]:s1//2+s1//2//zooms[j]]
+                log.info('zoom=%d slice=%s recon0.shape=%s scalebar_length=%.4f um' % (
+                    zooms[j], slices[k], str(recon0.shape),
+                    recon0.shape[1] * 0.25 * self.nct_resolution * 2**self.binning_rec))
+                recon0[0, 0] = self.args.max
+                recon0[0, 1] = self.args.min
+                recon0[recon0 > self.args.max] = self.args.max
+                recon0[recon0 < self.args.min] = self.args.min
+                ax = fig.add_subplot(grid[3*k+j])
+                im = ax.imshow(recon0, cmap='gray')
+                scalebar = ScaleBar(self.nct_resolution *
+                                    2**self.binning_rec, "um", length_fraction=0.25)
+                ax.add_artist(scalebar)
+                divider = make_axes_locatable(ax)
+                cax = divider.append_axes("right", size="5%", pad=0.1)
+                cb = plt.colorbar(im, cax=cax)
+                if j < 2:
+                    cb.remove()
+                if j == 0:
+                    ax.set_ylabel(f'slice {slices[k]}={sl[k]}', fontsize=18)
+        plt.savefig(fname, bbox_inches='tight', pad_inches=0, dpi=150)
         plt.cla()
         plt.close(fig)
 
@@ -288,28 +301,28 @@ class TomoLog32ID(TomoLog):
         log.info('Publish nanoCT projection')
         self.google_slide.create_image(
             presentation_id, page_id, proj_url, 170, 170, 0, 145)
-        try:
+        if len(proj) > 1:
             self.google_slide.create_textbox_with_text(
                 presentation_id, page_id, 'Micro-CT projection', 90, 20, 10, 280, 8, 0)
-            self.plot_projection(proj[1], self.file_name_proj1,scalebar='micro')
+            self.plot_projection(proj[1], self.file_name_proj1, scalebar='micro')
             proj_url = cloud.upload(self.args, self.file_name_proj1)
             log.info('Publish microCT projection')
             self.google_slide.create_image(
                 presentation_id, page_id, proj_url, 170, 170, 0, 270)
-        except:
+        else:
             log.warning('No microCT data available')
 
     def publish_recon(self, presentation_id, page_id, recon):
         if len(recon) == 3:
             # publish reconstructions
             self.google_slide.create_textbox_with_text(
-                presentation_id, page_id, 'Reconstruction', 90, 20, 270, 0, 10, 0)
+                presentation_id, page_id, f'Reconstruction                                   Zoom {self.args.zoom}', 430, 14, 270, 2, 10, 0)
             self.plot_recon(recon, self.file_name_recon)
             recon_url = cloud.upload(self.args, self.file_name_recon)
             log.info('Publish reconstruction')
             self.google_slide.create_image(
-                presentation_id, page_id, recon_url, 370, 370, 130, 25)
+                presentation_id, page_id, recon_url, 470, 336, 230, 21)
 
             rec_line = self.read_rec_line()
             self.google_slide.create_textbox_with_text(
-                presentation_id, page_id, rec_line, 1000, 20, 5, 391, 6, 0)
+                presentation_id, page_id, rec_line, 710, 43, 5, 360, 6, 0)

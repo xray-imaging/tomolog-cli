@@ -50,9 +50,13 @@ import subprocess
 import os
 import json
 import shutil
+import traceback
+import uuid
 
 from time import sleep
 from tomolog_cli import log
+
+_remote_files = []
 
 def upload(args, filename):
 
@@ -88,19 +92,23 @@ def upload(args, filename):
         log.info('Uploading image to aps web service')
         cloud_url = 'https://www3.xray.aps.anl.gov/tomolog'
         log.info('Uploading image to %s' % cloud_url)
+        ext = os.path.splitext(filename)[1]
+        dest_filename = f'{uuid.uuid4()}{ext}'
+        dest_dir = '/net/joulefs/coulomb_Public/docroot/tomolog/'
         try:
-            dest_path = shutil.copy(filename, '/net/joulefs/coulomb_Public/docroot/tomolog/')
+            dest_path = shutil.copy(filename, os.path.join(dest_dir, dest_filename))
+            _remote_files.append(dest_path)
             log.info('Image copied to web server directory at %s' % dest_path)
-            url = cloud_url + '/' + filename
+            url = cloud_url + '/' + dest_filename
             log.info('*** Image url created %s' % url)
         except FileNotFoundError:
-            print("Source file or destination directory not found.")
+            traceback.print_exc()
         except PermissionError:
-            print("Permission denied.")
+            traceback.print_exc()
         except shutil.SameFileError:
-            print("Source and destination represent the same file.")
+            traceback.print_exc()
         except Exception as e:
-            print(f"Unexpected error: {e}")
+            traceback.print_exc()
     elif args.cloud_service == 'globus':
         log.info('Uploading image to globus')
         log.error('Cloud Serice: %s is not implemented yet' % args.cloud_service)
@@ -108,3 +116,13 @@ def upload(args, filename):
 
     args.count = args.count + 1
     return url
+
+
+def cleanup(args):
+    for f in _remote_files:
+        try:
+            os.remove(f)
+            log.info('Removed temporary file %s' % f)
+        except Exception as e:
+            log.warning('Could not remove temporary file %s: %s' % (f, e))
+    _remote_files.clear()

@@ -53,7 +53,6 @@ import matplotlib.pyplot as plt
 
 from matplotlib_scalebar.scalebar import ScaleBar
 from mpl_toolkits.axes_grid1 import make_axes_locatable
-from datetime import datetime
 
 import requests
 
@@ -120,10 +119,7 @@ class TomoLog2BM(TomoLog):
                 pitch_angle = -pitch_angle
                 pitch_angle_units = self.read_meta_item("{self.meta[self.sample_pitch_angle_key][1]}")
                 descr += "Pitch angle: " + str(pitch_angle) + pitch_angle_units
-        current_datetime = datetime.now()
-        current_time_str = current_datetime.strftime("%H:%M:%S")
-        descr += F"Current time: {current_time_str}"
-        # descr = descr[:-1]
+        descr = descr[:-1]
         self.google_slide.create_textbox_with_bullets(
             presentation_id, page_id, descr, 240, 120, 0, 18, 8, 0)
 
@@ -149,13 +145,13 @@ class TomoLog2BM(TomoLog):
     def publish_proj(self, presentation_id, page_id, proj):
         # 2-BM datasets may include both microCT data and a web camera image
         self.google_slide.create_textbox_with_text(
-            presentation_id, page_id, 'Micro-CT projection', 90, 20, 50, 170, 8, 0)
+            presentation_id, page_id, 'Micro-CT projection', 90, 20, 10, 155, 8, 0)
         self.plot_projection(proj[0], self.file_name_proj0)
         proj_url = cloud.upload(self.args, self.file_name_proj0)
         log.info('Publish microCT projection')
         self.google_slide.create_image(
-            presentation_id, page_id, proj_url, 120, 120, 30, 180)
-        try:
+            presentation_id, page_id, proj_url, 170, 170, 0, 145)
+        if len(proj) > 1:
             self.google_slide.create_textbox_with_text(
                 presentation_id, page_id, 'Frame from the IP camera in the hutch', 160, 20, 10, 290, 8, 0)
             log.info('Plotting web camera image')
@@ -166,5 +162,5 @@ class TomoLog2BM(TomoLog):
             log.info('Publish web camera image')
             self.google_slide.create_image(
                 presentation_id, page_id, webcam_url, 170, 170, 0, 270)
-        except:
+        else:
             log.warning('No frame from the IP camera')

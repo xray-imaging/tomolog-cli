@@ -189,7 +189,8 @@ class TomoLog():
         
         self.mct_resolution = float(self.meta[self.pixel_size_key][0]) / float(self.meta[self.magnification_key][0].lower().replace("x", ""))
 
-        
+        self.setup_resolutions()
+
         presentation_id, page_id = self.init_slide()
         self.save_history(self.args.presentation_url)
         self.publish_descr(presentation_id, page_id)
@@ -199,6 +200,10 @@ class TomoLog():
         recon = self.read_recon()
         #print(recon)
         self.publish_recon(presentation_id, page_id, recon)
+        cloud.cleanup(self.args)
+
+    def setup_resolutions(self):
+        pass
 
     def init_slide(self):
         # create a slide and publish file name
@@ -424,14 +429,14 @@ class TomoLog():
         if len(recon) == 3:
             # publish reconstructions
             self.google_slide.create_textbox_with_text(
-                presentation_id, page_id, f'Reconstruction                                   Zoom {self.args.zoom}                                         ', 590, 20, 270, -5, 10, 0)
+                presentation_id, page_id, f'Reconstruction                                   Zoom {self.args.zoom}', 430, 14, 270, 2, 10, 0)
             self.plot_recon(recon, self.file_name_recon)
             recon_url = cloud.upload(self.args, self.file_name_recon)
             log.info('Publish reconstruction')
             self.google_slide.create_image(
-                presentation_id, page_id, recon_url, 470, 400, 230, 5)
+                presentation_id, page_id, recon_url, 470, 336, 230, 21)
 
             rec_line = self.read_rec_line()
             self.google_slide.create_textbox_with_text(
-                presentation_id, page_id, rec_line, 1000, 20, 5, 391, 6, 0)
+                presentation_id, page_id, rec_line, 710, 43, 5, 360, 6, 0)
 
