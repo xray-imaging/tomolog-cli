@@ -72,6 +72,7 @@ def run_log(args):
     # args.count = args.count + 1
     config.write(args.config, args, sections=config.PARAMS)
     log.warning('publication end')
+    log.info('presentation-url: %s' % args.presentation_url)
     
 def main():
 
