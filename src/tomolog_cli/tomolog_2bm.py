@@ -102,8 +102,8 @@ class TomoLog2BM(TomoLog):
             "Sample Y: {self.meta[self.sample_y_key][0]:.02f} {self.meta[self.sample_y_key][1]}")
         descr += self.read_meta_item(
             "Propagation dist.: {self.meta[self.propogation_distance_key][0]:.02f} {self.meta[self.propogation_distance_key][1]}")
-        # descr += self.read_meta_item(
-        #     "Eurotherm 1: {self.meta[self.eurotherm1_key][0]:.05f} {self.meta[self.eurotherm1_key][1]}")
+        descr += self.read_meta_item(
+            "Furnace temperature: {self.meta[self.eurotherm1_key][0]:.02f} {self.meta[self.eurotherm1_key][1]}")
         # descr += self.read_meta_item(
         #     "Eurotherm 2: {self.meta[self.eurotherm2_key][0]:.05f} {self.meta[self.eurotherm2_key][1]}")
 
@@ -145,12 +145,12 @@ class TomoLog2BM(TomoLog):
     def publish_proj(self, presentation_id, page_id, proj):
         # 2-BM datasets may include both microCT data and a web camera image
         self.google_slide.create_textbox_with_text(
-            presentation_id, page_id, 'Micro-CT projection', 90, 20, 10, 155, 8, 0)
+            presentation_id, page_id, 'Micro-CT projection', 90, 20, 10, 167, 8, 0)
         self.plot_projection(proj[0], self.file_name_proj0)
         proj_url = cloud.upload(self.args, self.file_name_proj0)
         log.info('Publish microCT projection')
         self.google_slide.create_image(
-            presentation_id, page_id, proj_url, 170, 170, 0, 145)
+            presentation_id, page_id, proj_url, 170, 170, 0, 190)
         if len(proj) > 1:
             self.google_slide.create_textbox_with_text(
                 presentation_id, page_id, 'Frame from the IP camera in the hutch', 160, 20, 10, 290, 8, 0)
