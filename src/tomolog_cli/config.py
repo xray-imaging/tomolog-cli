@@ -151,10 +151,15 @@ SECTIONS['general'] = {
         'default': 8,
         'help': "Number of threads to read tiff"},
     'save-format': {
-        'default': 'tiff',
+        'default': 'auto',
         'type': str,
-        'help': "Reconstruction save format",
-        'choices': ['tiff','h5']},    
+        'help': "Reconstruction save format. 'auto' picks based on what's on disk: single-file h5 if <base>_rec.h5 exists, else tiff folder. Set explicitly to force a layout.",
+        'choices': ['auto', 'tiff', 'h5', 'h5nolinks']},
+    'analysis-path': {
+        'default': None,
+        'type': Path,
+        'help': "Override directory where reconstructions (<base>_rec.h5 / <base>_rec/ + <base>_rec_line.txt) are located. Defaults to <dirname_of_raw>_rec/.",
+        'metavar': 'PATH'},
     'magnification': {
         'type': float,
         'default': -1,

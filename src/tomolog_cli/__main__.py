@@ -54,14 +54,17 @@ def run_log(args):
                 args.file_name = top + fname
                 log.warning("  *** file %d/%d;  %s" % (index, len(h5_file_list_sorted), fname))
                 index += 1
-                if args.beamline == '32-id':
-                    TomoLog32ID(args).run_log()
-                elif args.beamline == '2-bm':
-                    TomoLog2BM(args).run_log()
-                elif args.beamline == '7-bm':
-                    TomoLog7BM(args).run_log()
-                else:
-                    TomoLog(args).run_log()
+                try:
+                    if args.beamline == '32-id':
+                        TomoLog32ID(args).run_log()
+                    elif args.beamline == '2-bm':
+                        TomoLog2BM(args).run_log()
+                    elif args.beamline == '7-bm':
+                        TomoLog7BM(args).run_log()
+                    else:
+                        TomoLog(args).run_log()
+                except Exception as e:
+                    log.error("Failed to publish %s: %s — continuing batch", fname, e)
                 time.sleep(20)
 
         else:
@@ -72,6 +75,7 @@ def run_log(args):
     # args.count = args.count + 1
     config.write(args.config, args, sections=config.PARAMS)
     log.warning('publication end')
+    log.info('presentation-url: %s' % args.presentation_url)
     
 def main():
 
