@@ -198,11 +198,26 @@ class TomoLog():
             rec_dir = self._rec_dir()
             layout = self._recon_layout()
             if layout == 'h5':
-                path = f'{rec_dir}/{basename}_rec_line.txt'
+                txt_path = f'{rec_dir}/{basename}_rec_line.txt'
+                h5_path = f'{rec_dir}/{basename}_rec.h5'
+                if os.path.exists(txt_path):
+                    with open(txt_path, 'r') as fid:
+                        line = fid.readlines()[0]
+                else:
+                    # Newer tomocupy runs no longer write the sidecar txt for h5
+                    # output: the command line is stored as an attribute of
+                    # /exchange/data. Fall back to reading it from the h5 file.
+                    with h5py.File(h5_path, 'r') as fid:
+                        cmd = fid['exchange/data'].attrs.get('command', '')
+                        if isinstance(cmd, bytes):
+                            cmd = cmd.decode('utf-8')
+                        elif hasattr(cmd, 'decode'):
+                            cmd = cmd.decode('utf-8')
+                        line = str(cmd)
             else:
                 path = f'{rec_dir}/{basename}_rec/rec_line.txt'
-            with open(path, 'r') as fid:
-                line = fid.readlines()[0]
+                with open(path, 'r') as fid:
+                    line = fid.readlines()[0]
         except:
             log.warning('Skipping the command line for reconstruction')
             line = ''
