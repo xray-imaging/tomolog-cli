@@ -79,7 +79,7 @@ class TomoLog2BM(TomoLog):
         super().__init__(args)
         # add here beamline specific keys
         self.energy_key               = '/measurement/instrument/monochromator/energy'
-        self.sample_y_key             = '/measurement/instrument/sample_motor_stack/setup/y'
+        self.sample_y_key             = '/measurement/instrument/sample_motor_stack/setup/hexapod_y'
         self.sample_pitch_angle_key   = '/measurement/instrument/sample_motor_stack/setup/pitch'
         self.propogation_distance_key = '/measurement/instrument/detector_motor_stack/setup/z'
         self.load_key                 = '/measurement/sample/environment/load_cell/load_raw'
