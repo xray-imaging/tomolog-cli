@@ -212,7 +212,7 @@ SECTIONS['parameters'] = {
         'default': 'imgur',
         'type': str,
         'help': "cloud service where generated images will be uploaded. Google API retrieves images by url before publishing on slides",
-        'choices': ['imgur','globus', 'aps']},    
+        'choices': ['imgur', 'aps']},
     'count': {
         'type': int,
         'default': 0,

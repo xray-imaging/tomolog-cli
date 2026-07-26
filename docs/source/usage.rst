@@ -10,7 +10,7 @@ To publish experiment log information to a google page::
 For help::
 
    $ tomolog run -h
-   usage: tomolog run [-h] [--beamline {None,2-bm,7-bm,32-id}] [--doc-dir DOC_DIR] [--file-name PATH] [--cloud-service {imgur,globus}] [--count COUNT] [--max MAX]
+   usage: tomolog run [-h] [--beamline {None,2-bm,7-bm,32-id}] [--doc-dir DOC_DIR] [--file-name PATH] [--cloud-service {imgur,aps}] [--count COUNT] [--max MAX]
                       [--min MIN] [--presentation-url PRESENTATION_URL] [--config FILE] [--config-update] [--idx IDX]
                       [--idy IDY] [--idz IDZ] [--logs-home FILE] [--magnification MAGNIFICATION] [--nproc NPROC] [--pixel-size PIXEL_SIZE] [--public]
                       [--save-format {tiff,h5}] [--token-home FILE] [--verbose] [--zoom ZOOM]
@@ -22,7 +22,7 @@ For help::
      --doc-dir DOC_DIR     sphinx/readthedocs documentation directory where the meta data table extracted from the hdf5 file should be saved, e.g. docs/source/...
                            (default: .)
      --file-name PATH      Name of the hdf file (default: .)
-     --cloud-service {imgur,globus}
+     --cloud-service {imgur,aps}
                            cloud service where generated images will be uploaded. Google API retrieves images by url before publishing on slides (default: imgur)
      --count COUNT         counter is incremented at each google slide generated. Conter is appended to the url to generate a unique url as required by some
                            service (default: 0)

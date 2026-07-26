@@ -109,11 +109,6 @@ def upload(args, filename):
             traceback.print_exc()
         except Exception as e:
             traceback.print_exc()
-    elif args.cloud_service == 'globus':
-        log.info('Uploading image to globus')
-        log.error('Cloud Serice: %s is not implemented yet' % args.cloud_service)
-        exit()
-
     args.count = args.count + 1
     return url
 
