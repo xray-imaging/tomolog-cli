@@ -102,8 +102,8 @@ class TomoLog2BM(TomoLog):
             "Sample Y: {self.meta[self.sample_y_key][0]:.02f} {self.meta[self.sample_y_key][1]}")
         descr += self.read_meta_item(
             "Propagation dist.: {self.meta[self.propogation_distance_key][0]:.02f} {self.meta[self.propogation_distance_key][1]}")
-        descr += self.read_meta_item(
-            "Furnace temperature: {self.meta[self.eurotherm1_key][0]:.02f} {self.meta[self.eurotherm1_key][1]}")
+        # descr += self.read_meta_item(
+        #     "Furnace temperature: {self.meta[self.eurotherm1_key][0]:.02f} {self.meta[self.eurotherm1_key][1]}")
         # descr += self.read_meta_item(
         #     "Eurotherm 2: {self.meta[self.eurotherm2_key][0]:.05f} {self.meta[self.eurotherm2_key][1]}")
 
