@@ -345,9 +345,9 @@ class TomoLog():
                     if self.args.idx == -1:
                         self.args.idx = int(w//2)
                     if self.double_fov == True:
-                        binning_rec = np.log2(width//(w//2))
+                        binning_rec = width // (w // 2)
                     else:
-                        binning_rec = np.log2(width//(w))
+                        binning_rec = width // w
                     x = data[:, :, self.args.idx]
                     y = data[:, self.args.idy]
                     z = data[self.args.idz]
