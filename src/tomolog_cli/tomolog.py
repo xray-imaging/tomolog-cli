@@ -338,19 +338,42 @@ class TomoLog():
                 with h5py.File(fname, 'r') as fid:
                     data = fid['exchange/data']
                     h, w = data.shape[:2]
+                    w2 = data.shape[2]
                     if self.args.idz == -1:
                         self.args.idz = int(h//2)
                     if self.args.idy == -1:
                         self.args.idy = int(w//2)
                     if self.args.idx == -1:
-                        self.args.idx = int(w//2)
+                        self.args.idx = int(w2//2)
                     if self.double_fov == True:
                         binning_rec = width // (w // 2)
                     else:
                         binning_rec = width // w
-                    x = data[:, :, self.args.idx]
-                    y = data[:, self.args.idy]
-                    z = data[self.args.idz]
+
+                    # Stream through z in bounded-memory chunks and extract
+                    # all three cross-sections in one pass. The old code did
+                    # data[:, :, idx] / data[:, idy] / data[idz] as three
+                    # separate slices; each cross-cut the z-primary chunking
+                    # and forced h5py to rescan the whole file, taking >10 min
+                    # on bin1 volumes.
+                    dtype = data.dtype
+                    idx, idy, idz = self.args.idx, self.args.idy, self.args.idz
+                    bytes_per_slice = int(w) * int(w2) * dtype.itemsize
+                    chunk_z = max(1, (256 * 1024 * 1024) // bytes_per_slice)
+                    if data.chunks is not None:
+                        chunk_z = max(chunk_z, data.chunks[0])
+                    x = np.empty((h, w), dtype=dtype)
+                    y = np.empty((h, w2), dtype=dtype)
+                    z = None
+                    for zs in range(0, h, chunk_z):
+                        ze = min(zs + chunk_z, h)
+                        block = data[zs:ze, :, :]
+                        x[zs:ze] = block[:, :, idx]
+                        y[zs:ze] = block[:, idy, :]
+                        if zs <= idz < ze:
+                            z = block[idz - zs].copy()
+                    if z is None:
+                        z = data[idz]
                 recon = [x, y, z]
                 self.binning_rec = binning_rec
             except FileNotFoundError:
