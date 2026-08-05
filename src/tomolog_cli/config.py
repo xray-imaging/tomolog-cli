@@ -187,7 +187,8 @@ SECTIONS['file-reading'] = {
     'file-name': {
         'default': '.',
         'type': Path,
-        'help': "Name of the hdf file",
+        'aliases': ['--path'],
+        'help': "Path to an hdf file, or a directory of hdf files to batch-publish",
         'metavar': 'PATH'},
     'doc-dir': {
         'type': str,
@@ -295,8 +296,9 @@ class Params(object):
     def add_parser_args(self, parser):
         for section in self.sections:
             for name in sorted(SECTIONS[section]):
-                opts = SECTIONS[section][name]
-                parser.add_argument('--{}'.format(name), **opts)
+                opts = dict(SECTIONS[section][name])
+                aliases = opts.pop('aliases', ())
+                parser.add_argument('--{}'.format(name), *aliases, **opts)
 
     def add_arguments(self, parser):
         self.add_parser_args(parser)
